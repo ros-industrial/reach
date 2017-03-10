@@ -28,6 +28,8 @@ Run the start launch file
 - Specify the `reach_object` argument to be the name of the .yaml file you edited above
   - Defaults to `reach_study_object`
 - Specify the `config_name` argument to be the name of the folder where the reach study results are saved
+  - Creates a folder with that name within `robot_reach_study/output` to save reach study data
+  - Must be unique between different reach studies
   - Defaults to `reach_study_object`
 
 `roslaunch robot_reach_study start.launch reach_object:=NAME_OF_YOUR_YAML_FILE config_name:=NAME_OF_YOUR_OUTPUT_FOLDER`
@@ -40,5 +42,3 @@ Run the start launch file
 `roslaunch robot_reach_study setup.launch robot:=my_custom_robot`
 
 `roslaunch robot_reach_study start.launch reach_object:=my_custom_reach_object config_name:=test_1`
-
-The output binary databases would be saved to `robot_reach_study/output/test_1`
