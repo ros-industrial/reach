@@ -2,6 +2,7 @@
     <arg name="see_urdf" default="true"/>
     <arg name="robot" default="robot"/>
 
+    <param name="visualize_results" value="$(arg see_urdf)"/>
     <include file="$(find robot_reach_study)/launch/$(arg robot).launch"/>
 
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_reach_study)/launch/reach_study_config.rviz" if="$(arg see_urdf)"/>

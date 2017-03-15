@@ -29,7 +29,3 @@ mesh_sample_res: SOME_FLOAT_RESOLUTION
 # The point cloud described above will be down-sampled to this specified resolution and the resulting points will be solved by the robot's IK
 # NOTE: If no down-sampling is desired, set cloud_output_res = mesh_sample_res
 cloud_output_res: SOME_FLOAT_RESOLUTION
-
-# Specify the number of smoothing optimizations to be performed
-# Soon to be deprecated
-optimization_steps: 5

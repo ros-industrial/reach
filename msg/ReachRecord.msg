@@ -8,3 +8,5 @@ float64 score
 #float64 manipulability
 #float64 joint_penalty
 #float64 collision_distance
+#int16 reachable_neighbors
+#float64 joint_distance_to_neighbors

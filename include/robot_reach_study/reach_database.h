@@ -50,9 +50,11 @@ public:
 
   float getAverageNeighborsCount() const {return avg_neighbors_;}
 
+  float getReachPercentage() const {return reach_percentage_;}
+
   void setAverageNeighborsCount(const float n) {avg_neighbors_ = n;}
 
-  float getReachPercentage() const {return reach_percentage_;}
+  void setAverageJointDistance(const float n) {avg_joint_distance_ = n;}
 
   // For loops
   iterator begin()
@@ -72,8 +74,9 @@ private:
   mutable std::mutex mutex_;
   float total_score_ = 0.0f;
   float norm_total_score_ = 0.0f;
-  float avg_neighbors_ = 0.0f;
   float reach_percentage_ = 0.0f;
+  float avg_neighbors_ = 0.0f;
+  float avg_joint_distance_ = 0.0f;
 };
 
 }

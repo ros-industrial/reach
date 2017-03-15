@@ -38,10 +38,9 @@ public:
                                                 const robot_reach_study::ReachRecord& rec);
 
   void reachNeighborsRecursive(std::shared_ptr<robot_reach_study::Database>& db,
-                               const std::string& current_msg_id,
-                               const geometry_msgs::Pose& current_pose,
-                               const moveit::core::RobotState& current_state,
-                               std::vector<std::string>& reached_pts);
+                               const robot_reach_study::ReachRecord& msg,
+                               std::vector<std::string>& reached_pts,
+                               double& joint_distance);
 
   bool addCollisionObjectToScene(const std::string& mesh_filename,
                                  const std::string& parent_link,
@@ -57,11 +56,11 @@ public:
 
   void setNeighborRadius(float r) {neighbor_radius_ = r;}
 
-  void setKinematicJointModelGroup(std::string& name) {kin_jmgroup_ = model_->getJointModelGroup(name);
-                                                       kin_joint_limits_ = this->getJointLimits(kin_jmgroup_);}
+  void setKinematicJointModelGroup(const std::string& name) {kin_jmgroup_ = model_->getJointModelGroup(name);
+                                                             kin_joint_limits_ = this->getJointLimits(kin_jmgroup_);}
 
-  void setManipulabilityJointModelGroup(std::string& name) {manip_jmgroup_ = model_->getJointModelGroup(name);
-                                                            manip_joint_limits_ = this->getJointLimits(manip_jmgroup_);}
+  void setManipulabilityJointModelGroup(const std::string& name) {manip_jmgroup_ = model_->getJointModelGroup(name);
+                                                                  manip_joint_limits_ = this->getJointLimits(manip_jmgroup_);}
 
 
 private:

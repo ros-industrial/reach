@@ -271,13 +271,13 @@ void robot_reach_study::InteractiveIK::reachNeighborsRecursiveCB(const visualiza
     ROS_ERROR("Object does not exist in database");
   }
 
-  robot_reach_study::ReachRecord& reach_record = *lookup;
-  std::vector<std::string> msg_ids;
-  moveit::core::RobotState goal_state(ik_helper_->getCurrentRobotState());
-  moveit::core::robotStateMsgToRobotState(reach_record.goal_state, goal_state);
+  robot_reach_study::ReachRecord& rec = *lookup;
+  std::vector<std::string> reached_pts;
+  double joint_distance = 0.0;
 
-  ik_helper_->reachNeighborsRecursive(db_, reach_record.id, reach_record.goal, goal_state, msg_ids);
-  publishMarkerArray(msg_ids);
+  ik_helper_->reachNeighborsRecursive(db_, rec, reached_pts, joint_distance);
+  publishMarkerArray(reached_pts);
+  ROS_INFO("%f", joint_distance);
   showResultCB(fb);
 }
 

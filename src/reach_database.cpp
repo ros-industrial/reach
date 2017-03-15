@@ -1,7 +1,7 @@
-#include "robot_reach_study/reach_database.h"
-#include "robot_reach_study/param_helpers.h"
-#include <moveit/robot_state/conversions.h>
+#include <robot_reach_study/reach_database.h>
+#include <robot_reach_study/param_helpers.h>
 #include <robot_reach_study/ik_helper.h>
+#include <moveit/robot_state/conversions.h>
 #include <atomic>
 
 namespace // private utils namespace
@@ -27,8 +27,9 @@ void robot_reach_study::Database::save(const std::string &filename) const
 
   msg.avg_score = total_score_;
   msg.norm_avg_score = norm_total_score_;
-  msg.avg_neighbors = avg_neighbors_;
   msg.reach_percentage = reach_percentage_;
+  msg.avg_neighbors = avg_neighbors_;
+  msg.avg_joint_distance = avg_joint_distance_;
 
   if (!toFile(filename, msg))
   {
@@ -53,6 +54,7 @@ bool robot_reach_study::Database::load(const std::string &filename)
     norm_total_score_ = msg.norm_avg_score;
     avg_neighbors_ = msg.avg_neighbors;
     reach_percentage_ = msg.reach_percentage;
+    avg_joint_distance_ = msg.avg_joint_distance;
   }
   return true;
 }
@@ -121,6 +123,7 @@ void robot_reach_study::Database::printResults()
   ROS_INFO("Total points score = %f", total_score_);
   ROS_INFO("Normalized total points score = %f", norm_total_score_);
   ROS_INFO("Average reachable neighbors = %f", avg_neighbors_);
+  ROS_INFO("Average joint distance = %f", avg_joint_distance_);
   ROS_INFO("------------------------------------------------");
 }
 

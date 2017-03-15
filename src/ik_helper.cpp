@@ -75,15 +75,16 @@ boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geome
   goal_state = seed_state;
   if(goal_state.setFromIK(kin_jmgroup_, tgt_pose, sol_attempts_, sol_timeout_, constraint_))
   {
+
     const double dist = scene_ptr_->distanceToCollision(goal_state, scene_ptr_->getAllowedCollisionMatrix());
     const double dist_threshold = 4.0 * 0.0254;
 
     if(dist > dist_threshold)
     {
       const double manip = getManipulability(goal_state, manip_jmgroup_);
-      const double penalty = getJointPenalty(goal_state, manip_jmgroup_);
+      const double joint_penalty = getJointPenalty(goal_state, manip_jmgroup_);
       const double dist_penalty = std::pow((dist / (6.0 * 0.0254)), 2);
-//      boost::optional<double> score = manip * penalty * dist_penalty;
+//      boost::optional<double> score = manip * joint_penalty * dist_penalty;
 
       boost::optional<double> score = manip * dist_penalty;
 
@@ -93,6 +94,46 @@ boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geome
 
   return {};
 }
+
+//boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geometry_msgs::Pose& tgt_pose,
+//                                                                     moveit::core::RobotState& seed_state,
+//                                                                     moveit::core::RobotState& goal_state,
+//                                                                     char cost_function)
+//{
+//  goal_state = seed_state;
+//  if(goal_state.setFromIK(kin_jmgroup_, tgt_pose, sol_attempts_, sol_timeout_, constraint_))
+//  {
+//    const double manip = getManipulability(goal_state, manip_jmgroup_);
+//    const double joint_penalty = getJointPenalty(goal_state, manip_jmgroup_);
+//    const double dist = scene_ptr_->distanceToCollision(goal_state, scene_ptr_->getAllowedCollisionMatrix());
+//    const double dist_threshold = 4.0 * 0.0254;
+//    const double dist_penalty = std::pow((dist / (6.0 * 0.0254)), 2);
+
+//    // Set score based on desired cost function
+//    boost::optional<double> score;
+//    switch(cost_function)
+//    {
+//    case 0: score = manip;
+//      break;
+//    case 1: score = manip * joint_penalty;
+//      break;
+//    case 2: score = manip * dist_penalty;
+//      break;
+//    case 3: score = manip * joint_penalty * dist_penalty;
+//      break;
+//    case 4:
+//      if(dist > dist_threshold_)
+//      {
+//        score = manip * joint_penalty * dist_penalty;
+//      }
+//      break;
+//    }
+
+//    return {score};
+//  }
+
+//  return {};
+//}
 
 std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::shared_ptr<robot_reach_study::Database>& db,
                                                                            const robot_reach_study::ReachRecord& rec)
@@ -121,7 +162,6 @@ std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::
     float zp = it_pose.position.z;
     float d2 = pow((xp-x), 2) + pow((yp-y), 2) + pow((zp-z), 2);
 
-//    float radius = 0.5;
     if(d2 < pow(neighbor_radius_, 2) && d2 != 0.0)
     {
       reach_records.push_back(entry.second);
@@ -169,63 +209,72 @@ std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::
 }
 
 void robot_reach_study::IkHelper::reachNeighborsRecursive(std::shared_ptr<robot_reach_study::Database>& db,
-                                                          const std::string& current_msg_id,
-                                                          const geometry_msgs::Pose& current_pose,
-                                                          const moveit::core::RobotState& current_state,
-                                                          std::vector<std::string>& reached_pts)
+                                                          const robot_reach_study::ReachRecord& rec,
+                                                          std::vector<std::string>& reached_pts,
+                                                          double& joint_distance)
 {
-  const float x = current_pose.position.x;
-  const float y = current_pose.position.y;
-  const float z = current_pose.position.z;
+  // Add the current point to the output list of msg IDs
+  reached_pts.push_back(rec.id);
 
-  // Create vectors for storing poses and reach record messages that lie within radius of current point
-  std::vector<geometry_msgs::Pose> pose_arr;
-  std::vector<std::string> potential_pts;
+  // Get data out of the current message
+  const float x = rec.goal.position.x;
+  const float y = rec.goal.position.y;
+  const float z = rec.goal.position.z;
+
+  // Create vectors for storing reach record messages that lie within radius of current point
+  std::vector<robot_reach_study::ReachRecord> neighbors;
 
   // Iterate through all points in database to find those that lie within radius of current point
   for(auto it = db->begin(); it != db->end(); ++it)
   {
     auto& entry = *it;
-    const robot_reach_study::ReachRecord msg_object = entry.second;
-    const geometry_msgs::Pose it_pose (msg_object.goal);
+    const robot_reach_study::ReachRecord tmp_rec = entry.second;
 
-    float xp = it_pose.position.x;
-    float yp = it_pose.position.y;
-    float zp = it_pose.position.z;
+    float xp = tmp_rec.goal.position.x;
+    float yp = tmp_rec.goal.position.y;
+    float zp = tmp_rec.goal.position.z;
     float d2 = pow((xp-x), 2) + pow((yp-y), 2) + pow((zp-z), 2);
 
-//    float radius = 2.0;
     if(d2 < pow(neighbor_radius_, 2) && d2 != 0.0)
     {
-      // Save point pose and point id for all points within the sphere
-      pose_arr.push_back(msg_object.goal);
-      potential_pts.push_back(msg_object.id);
+      // Save reach record for all points within the sphere
+      neighbors.push_back(tmp_rec);
     }
   }
 
-  reached_pts.push_back(current_msg_id);
-
-//  // Solve IK for points that lie within sphere
-  if(pose_arr.size() > 0)
+  // Solve IK for points that lie within sphere
+  if(neighbors.size() > 0)
   {
     // Create new empty seed based off where the robot is currently
-    moveit::core::RobotState init_goal_state (current_state);
+    moveit::core::RobotState current_state (scene_ptr_->getCurrentState());
+    moveit::core::robotStateMsgToRobotState(rec.goal_state, current_state);
 
-    for(std::size_t i = 0; i < pose_arr.size(); ++i)
+    for(std::size_t i = 0; i < neighbors.size(); ++i)
     {
       // Check if the current potential point has been solved previously in the recursion chain
-      if(std::find(reached_pts.begin(), reached_pts.end(), potential_pts[i]) == std::end(reached_pts))
+      if(std::find(reached_pts.begin(), reached_pts.end(), neighbors[i].id) == std::end(reached_pts))
       {
         // Initialize new target pose and new empty robot goal state
-        geometry_msgs::Pose& tgt_pose = pose_arr[i];
         moveit::core::RobotState new_goal_state(scene_ptr_->getCurrentState());
 
         // Use current point's IK solution as seed
-        boost::optional<double> score = solveIKFromSeed(tgt_pose, init_goal_state, new_goal_state);
+        boost::optional<double> score = solveIKFromSeed(neighbors[i].goal, current_state, new_goal_state);
         if(score)
         {
-          // Recursively enter this function at its location
-          this->reachNeighborsRecursive(db, potential_pts[i], tgt_pose, new_goal_state, reached_pts);
+          // Calculate the joint distance between the seed and new goal states
+          joint_distance += new_goal_state.distance(current_state);
+
+          // Store information in new reach record object
+          robot_reach_study::ReachRecord new_rec;
+          new_rec.id = neighbors[i].id;
+          new_rec.goal = neighbors[i].goal;
+          moveit::core::robotStateToRobotStateMsg(new_goal_state, new_rec.goal_state);
+          moveit::core::robotStateToRobotStateMsg(current_state, new_rec.seed_state);
+          new_rec.reached = true;
+          new_rec.score = *score;
+
+          // Recursively enter this function at the new neighboring location
+          this->reachNeighborsRecursive(db, new_rec, reached_pts, joint_distance);
         }
       }
     }

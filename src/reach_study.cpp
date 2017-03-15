@@ -68,9 +68,9 @@ Eigen::Affine3d createFrame(const Eigen::Vector3f& pt,
   return p.cast<double>();
 }
 
-void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>& previous_pct, const size_t cloud_size)
+void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>& previous_pct, const int total_size)
 {
-  const float current_pct_float = (static_cast<float>(current_counter.load()) / static_cast<float>(cloud_size)) * 100.0;
+  const float current_pct_float = (static_cast<float>(current_counter.load()) / static_cast<float>(total_size)) * 100.0;
   const int current_pct = static_cast<int>(current_pct_float);
   if(current_pct > previous_pct.load())
   {
@@ -79,12 +79,20 @@ void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>&
   previous_pct = current_pct;
 }
 
-float getAverageNeighborsCount(std::shared_ptr<robot_reach_study::Database>& db,
-                               std::shared_ptr<robot_reach_study::IkHelper>& ik_helper)
+std::pair<float, float> getAverageNeighborsCount(std::shared_ptr<robot_reach_study::Database>& db,
+                                                 std::shared_ptr<robot_reach_study::IkHelper>& ik_helper,
+                                                 const std::string& planning_group)
 {
-  std::atomic<int> neighbor_count {0};
   ROS_INFO("------------------------------------------------");
   ROS_INFO("Beginning average neighbor count calculation");
+
+  // Change the solution planning group
+  ik_helper->setKinematicJointModelGroup(planning_group);
+
+  std::atomic<int> current_counter, previous_pct, neighbor_count;
+  current_counter = previous_pct = neighbor_count = 0;
+  std::atomic<double> total_joint_distance;
+  const int total = db->count();
 
   // Iterate
   #pragma parallel for
@@ -94,23 +102,30 @@ float getAverageNeighborsCount(std::shared_ptr<robot_reach_study::Database>& db,
     if(msg && msg->reached)
     {
       std::vector<std::string> reached_pts;
-      moveit::core::RobotState state(ik_helper->getCurrentRobotState());
-      moveit::core::robotStateMsgToRobotState(msg->goal_state, state);
-      ik_helper->reachNeighborsRecursive(db, msg->id, msg->goal, state, reached_pts);
+      double joint_distance = 0.0;
+      ik_helper->reachNeighborsRecursive(db, *msg, reached_pts, joint_distance);
       neighbor_count += static_cast<int>(reached_pts.size() - 1);
+      total_joint_distance = total_joint_distance + joint_distance;
     }
-    ROS_INFO("[%f]", (static_cast<float>(i) / static_cast<float>(db->count())) * 100.0);
+
+    // Print function progress
+    ++ current_counter;
+    integerProgressPrinter(current_counter, previous_pct, total);
+
   }
 
   float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db->count());
+  float avg_joint_distance = static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
 
   ROS_INFO("------------------------------------------------");
   ROS_INFO("Average number of neighbors reached: %f", avg_neighbor_count);
+  ROS_INFO("Average joint distance: %f", avg_joint_distance);
   ROS_INFO("------------------------------------------------");
 
-  return avg_neighbor_count;
-}
+  std::pair<float, float> res (avg_neighbor_count, avg_joint_distance);
 
+  return res;
+}
 
 int main(int argc, char **argv)
 {
@@ -198,6 +213,13 @@ int main(int argc, char **argv)
     return 0;
   }
 
+  bool visualize_results;
+  if(!nh.getParam("/visualize_results", visualize_results))
+  {
+    ROS_FATAL("'see_urdf' parameter must be set");
+    return 0;
+  }
+
   // Create a database where we will store the results of our ik search
   std::shared_ptr<robot_reach_study::Database> db (new robot_reach_study::Database ());
 
@@ -244,9 +266,12 @@ int main(int argc, char **argv)
     return 0;
   }
 
-  moveit_msgs::PlanningScene msg;
-  helper->getPlanningScene()->getPlanningSceneMsg(msg);
-  ik_visualizer.publishScene(msg);
+  if(visualize_results)
+  {
+    moveit_msgs::PlanningScene msg;
+    helper->getPlanningScene()->getPlanningSceneMsg(msg);
+    ik_visualizer.publishScene(msg);
+  }
 
   // Check if output data directory exists and create directory if it doesn't
   const std::string dir = ros::package::getPath("robot_reach_study") + "/output/" + config_name + "/";
@@ -273,10 +298,9 @@ int main(int argc, char **argv)
       const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
 
       // Loop through all points in point cloud and get IK solution
-      std::atomic<int> current_counter;
-      current_counter = 0;
-      std::atomic<int> previous_pct;
-      previous_pct = 0;
+      std::atomic<int> current_counter, previous_pct;
+      current_counter = previous_pct = 0;
+      const int cloud_size = static_cast<int>(cloud.size());
 
       #pragma omp parallel for
       for(unsigned int i = 0; i < cloud.points.size(); ++i)
@@ -308,7 +332,7 @@ int main(int argc, char **argv)
 
         // Print function progress
         current_counter++;
-        integerProgressPrinter(current_counter, previous_pct, cloud.size());
+        integerProgressPrinter(current_counter, previous_pct, cloud_size);
       }
 
       // Save the results of the reach study to a database that we can query later
@@ -336,8 +360,8 @@ int main(int argc, char **argv)
     }
 
     // Iterate
-    std::atomic<int> current_counter;
-    std::atomic<int> previous_pct;
+    std::atomic<int> current_counter, previous_pct;
+    const int cloud_size = static_cast<int>(cloud.size());
     int n_opt = 0;
     float previous_score = 0.0;
     float pct_improve = 1.0;
@@ -363,7 +387,7 @@ int main(int argc, char **argv)
 
         // Print function progress
         current_counter++;
-        integerProgressPrinter(current_counter, previous_pct, cloud.size());
+        integerProgressPrinter(current_counter, previous_pct, cloud_size);
       }
 
       // Recalculate optimized reach study results
@@ -391,9 +415,13 @@ int main(int argc, char **argv)
 
   if(get_neighbors)
   {
-    const float n = getAverageNeighborsCount(db, helper);
-    db->setAverageNeighborsCount(n);
-    db->save(opt_saved_db_name);
+    if(db->getAverageNeighborsCount() == 0.0)
+    {
+      const std::pair<float, float> res = getAverageNeighborsCount(db, helper, manip_group_name);
+      db->setAverageNeighborsCount(res.first);
+      db->setAverageJointDistance(res.second);
+      db->save(opt_saved_db_name);
+    }
   }
 
   // Load all databases
@@ -415,10 +443,11 @@ int main(int argc, char **argv)
 
   //  loadDatabases(names, db_filenames, ik_visualizer);
 
-
-  ik_visualizer.createReachMarkers();
-
-  ros::spin();
+  if(visualize_results)
+  {
+    ik_visualizer.createReachMarkers();
+    ros::spin();
+  }
 
   ros::shutdown();
 
