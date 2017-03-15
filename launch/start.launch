@@ -1,0 +1,10 @@
+<launch>
+    <arg name="reach_object" default="reach_study_object"/>
+    <arg name="config_name" default="reach_study_object"/>
+
+    <node name="robot_reach_study_node" pkg="robot_reach_study" type="robot_reach_study" output="screen">
+      <rosparam command="load" file="$(find robot_reach_study)/input/$(arg reach_object).yaml"/>
+      <param name="config_name" value="$(arg config_name)"/>
+    </node>
+    <node name="sample_mesh_server" pkg="robot_reach_study" type="sample_mesh_server" output="screen"/>
+</launch>

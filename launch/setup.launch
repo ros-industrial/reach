@@ -1,0 +1,10 @@
+<launch>
+    <arg name="see_urdf" default="true"/>
+    <arg name="robot" default="robot"/>
+
+    <include file="$(find robot_reach_study)/launch/$(arg robot).launch"/>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_reach_study)/launch/reach_study_config.rviz" if="$(arg see_urdf)"/>
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
+</launch>

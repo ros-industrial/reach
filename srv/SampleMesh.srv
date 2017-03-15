@@ -1,0 +1,10 @@
+# Request Data
+string cloud_filename
+string mesh_filename
+string world_name
+string object_name
+float32 sampling_resolution
+float32 output_resolution
+---
+# Response Data
+sensor_msgs/PointCloud2 cloud
