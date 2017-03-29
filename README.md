@@ -4,9 +4,9 @@ Before building the Robot Reach Study package, install the following packages:
 - PCL 1.8
 - VTK 7.1
 - vtk_viewer
-  - `git clone `
+  - `git clone https://raesgit.datasys.swri.edu/agoins/10.R8706.git`
 - tool_path_planner
-  - `git clone`
+  - `git clone https://raesgit.datasys.swri.edu/agoins/10.R8706.git`
 
 ## Running Robot Reach Study
 ### Setup Steps
