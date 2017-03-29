@@ -11,29 +11,40 @@
 #include <robot_reach_study/ik_helper.h>
 #include <robot_reach_study/SampleMesh.h>
 
-//void loadDatabases(const std::vector<std::string>& names,
-//                   const std::vector<std::string>& filenames,
-//                   robot_reach_study::InteractiveIK& ik_visualizer)
-//{
-//  std::vector<std::pair<std::string, robot_reach_study::Database*>> data;
-//  std::vector<robot_reach_study::Database> dbs(filenames.size());
-//  std::vector<robot_reach_study::Database*> db_ptrs(filenames.size());
+void compareDatabases(const std::vector<std::string> compare_dbs,
+                      robot_reach_study::InteractiveIK& ik_visualizer)
+{
+  // Create list of database file names from input
+  const std::string dir = ros::package::getPath("robot_reach_study") + "/output/";
+  const std::string db_filename = "/optimized_reach.db";
+  std::vector<std::string> db_filenames;
+  for(auto it = compare_dbs.begin(); it != compare_dbs.end(); ++it)
+  {
+    db_filenames.push_back(dir + *it + db_filename);
+  }
 
-//  for(std::size_t i = 0; i < filenames.size(); i++)
-//  {
-//    if(!dbs[i].load(filenames[i]))
-//    {
-//      ROS_INFO("Cannot load %s", filenames[i].c_str());
-//      continue;
-//    }
-//    db_ptrs[i] = &dbs[i];
-//    std::pair<std::string, robot_reach_study::Database*> pair(names[i], db_ptrs[i]);
-//    data.push_back(pair);
-//  }
+  // Load databases to be compared
+  std::vector<std::pair<std::string, std::shared_ptr<robot_reach_study::Database>>> data;
+  for(size_t i = 0; i < db_filenames.size(); ++i)
+  {
+    std::shared_ptr<robot_reach_study::Database> db (new robot_reach_study::Database);
+    if(!db->load(db_filenames[i]))
+    {
+      ROS_ERROR("Cannot load database at:\n %s", db_filenames[i].c_str());
+      continue;
+    }
+    std::pair<std::string, std::shared_ptr<robot_reach_study::Database>> pair (compare_dbs[i], db);
+    data.push_back(pair);
+  }
 
-//  ik_visualizer.reachDiffVisualizer(data);
+  if(data.size() < 2)
+  {
+    ROS_ERROR("Only %lu database(s) loaded; cannot compare fewer than 2 databases", data.size());
+    return;
+  }
 
-//}
+  ik_visualizer.reachDiffVisualizer(data);
+}
 
 Eigen::Affine3d createFrame(const Eigen::Vector3f& pt,
                             const Eigen::Vector3f& norm)
@@ -216,15 +227,21 @@ int main(int argc, char **argv)
   bool visualize_results;
   if(!nh.getParam("/visualize_results", visualize_results))
   {
-    ROS_FATAL("'see_urdf' parameter must be set");
-    return 0;
+    ROS_FATAL("'see_urdf' parameter not set; reach study results will not be visualized.");
+    visualize_results = false;
+  }
+
+  std::vector<std::string> compare_dbs;
+  if(!nh.getParam("compare_dbs", compare_dbs))
+  {
+    ROS_ERROR("'compare_dbs' parameter not set. No databases will be compared");
   }
 
   // Create a database where we will store the results of our ik search
   std::shared_ptr<robot_reach_study::Database> db (new robot_reach_study::Database ());
 
   // Initialize IK Helper and set parameters
-  std::shared_ptr<robot_reach_study::IkHelper> helper ( new robot_reach_study::IkHelper ("/robot_description", kin_group_name, manip_group_name) );
+  std::shared_ptr<robot_reach_study::IkHelper> helper (new robot_reach_study::IkHelper ("/robot_description", kin_group_name, manip_group_name));
   helper->setSolutionAttempts(1);
   helper->setSolutionTimeout(0.02);
   helper->setNeighborRadius(2.0 * cloud_output_res);
@@ -424,27 +441,20 @@ int main(int argc, char **argv)
     }
   }
 
-  // Load all databases
-//  std::vector<std::string> db_filenames;
-//  db_filenames.push_back(dir + "abb_optimized_reach.db");
-//  db_filenames.push_back(dir + "abb2_optimized_reach.db");
-//  db_filenames.push_back(dir + "abb3_optimized_reach.db");
-//  db_filenames.push_back(dir + "motoman_optimized_reach.db");
-//  db_filenames.push_back(dir + "motoman2_optimized_reach.db");
-//  db_filenames.push_back(dir + "motoman3_optimized_reach.db");
-
-//  std::vector<std::string> names;
-//  names.push_back("abb");
-//  names.push_back("abb2");
-//  names.push_back("abb3");
-//  names.push_back("motoman");
-//  names.push_back("motoman2");
-//  names.push_back("motoman3");
-
-  //  loadDatabases(names, db_filenames, ik_visualizer);
-
   if(visualize_results)
   {
+    // Compare database results
+    if(!compare_dbs.empty())
+    {
+      // Add the newly created database to the list if it isn't already there
+      if(std::find(compare_dbs.begin(), compare_dbs.end(), config_name) == compare_dbs.end())
+      {
+        compare_dbs.push_back(config_name);
+      }
+      compareDatabases(compare_dbs, ik_visualizer);
+    }
+
+    // Create markers
     ik_visualizer.createReachMarkers();
     ros::spin();
   }

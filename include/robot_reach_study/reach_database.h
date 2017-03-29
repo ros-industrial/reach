@@ -52,6 +52,8 @@ public:
 
   float getReachPercentage() const {return reach_percentage_;}
 
+  float getAverageJointDistance() const {return avg_joint_distance_;}
+
   void setAverageNeighborsCount(const float n) {avg_neighbors_ = n;}
 
   void setAverageJointDistance(const float n) {avg_joint_distance_ = n;}

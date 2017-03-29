@@ -27,7 +27,7 @@ public:
 
   void createReachMarkers();
   void publishScene(const moveit_msgs::PlanningScene& msg);
-  void reachDiffVisualizer(std::vector<std::pair<std::string, robot_reach_study::Database*>> data);
+  void reachDiffVisualizer(std::vector<std::pair<std::string, std::shared_ptr<robot_reach_study::Database>>> data);
 
 private:
   void addRecord(const robot_reach_study::ReachRecord& rec);
@@ -43,7 +43,7 @@ private:
   interactive_markers::MenuHandler menu_handler;
   ros::Publisher state_pub_;
   ros::Publisher scene_pub_;
-  ros::Publisher line_pub_;
+  ros::Publisher neighbor_pub_;
   ros::Publisher diff_pub_;
   std::shared_ptr<robot_reach_study::IkHelper> ik_helper_;
 };

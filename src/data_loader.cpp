@@ -1,94 +1,82 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <robot_reach_study/reach_database.h>
+#include <boost/filesystem.hpp>
+
+bool get_all(const boost::filesystem::path& root,
+             const std::string& ext,
+             std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>>& ret)
+{
+  if(!boost::filesystem::exists(root) || !boost::filesystem::is_directory(root)) return false;
+
+  boost::filesystem::recursive_directory_iterator it(root);
+  boost::filesystem::recursive_directory_iterator endit;
+
+  while(it != endit)
+  {
+    if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ext)
+    {
+      // Capture only the optimized reach databases
+      if(it->path().filename() == "optimized_reach.db")
+      {
+        std::pair<boost::filesystem::path, boost::filesystem::path> tmp;
+        tmp.first = it->path().parent_path().filename();
+        tmp.second = it->path();
+        ret.push_back(tmp);
+      }
+    }
+    ++it;
+  }
+
+  std::sort(ret.begin(), ret.end());
+
+  return true;
+}
 
 int main(int argc, char **argv)
 {
-  std::vector<std::string> configs;
-
-  configs.push_back("abb_rail_bmw");
-  configs.push_back("abb_rail_chrysler");
-  configs.push_back("abb_rail_fiat");
-  configs.push_back("abb_rail_ford");
-  configs.push_back("abb_rail_gmc");
-  configs.push_back("abb_rail_mercedes");
-  configs.push_back("abb_rail_ram");
-
-  configs.push_back("motoman_rail_bmw");
-  configs.push_back("motoman_rail_chrysler");
-  configs.push_back("motoman_rail_fiat");
-  configs.push_back("motoman_rail_ford");
-  configs.push_back("motoman_rail_gmc");
-  configs.push_back("motoman_rail_mercedes");
-  configs.push_back("motoman_rail_ram");
-
-  configs.push_back("kawasaki_rail_bmw");
-  configs.push_back("kawasaki_rail_chrysler");
-  configs.push_back("kawasaki_rail_fiat");
-  configs.push_back("kawasaki_rail_ford");
-  configs.push_back("kawasaki_rail_gmc");
-  configs.push_back("kawasaki_rail_mercedes");
-  configs.push_back("kawasaki_rail_ram");
-
-  configs.push_back("abb_inverted_bmw");
-  configs.push_back("abb_inverted_chrysler");
-  configs.push_back("abb_inverted_fiat");
-  configs.push_back("abb_inverted_ford");
-  configs.push_back("abb_inverted_gmc");
-  configs.push_back("abb_inverted_mercedes");
-  configs.push_back("abb_inverted_ram");
-
-  configs.push_back("motoman_inverted_bmw");
-  configs.push_back("motoman_inverted_chrysler");
-  configs.push_back("motoman_inverted_fiat");
-  configs.push_back("motoman_inverted_ford");
-  configs.push_back("motoman_inverted_gmc");
-  configs.push_back("motoman_inverted_mercedes");
-  configs.push_back("motoman_inverted_ram");
-
-  configs.push_back("kawasaki_inverted_bmw");
-  configs.push_back("kawasaki_inverted_chrysler");
-  configs.push_back("kawasaki_inverted_fiat");
-  configs.push_back("kawasaki_inverted_ford");
-  configs.push_back("kawasaki_inverted_gmc");
-  configs.push_back("kawasaki_inverted_mercedes");
-  configs.push_back("kawasaki_inverted_ram");
-
-  configs.push_back("motoman_sideslung_bmw");
-  configs.push_back("motoman_sideslung_chrysler");
-  configs.push_back("motoman_sideslung_fiat");
-  configs.push_back("motoman_sideslung_ford");
-  configs.push_back("motoman_sideslung_gmc");
-  configs.push_back("motoman_sideslung_mercedes");
-  configs.push_back("motoman_sideslung_ram");
-
-  configs.push_back("fanuc_rail_bmw");
-  configs.push_back("fanuc_rail_chrysler");
-  configs.push_back("fanuc_rail_fiat");
-  configs.push_back("fanuc_rail_ford");
-  configs.push_back("fanuc_rail_gmc");
-  configs.push_back("fanuc_rail_mercedes");
-  configs.push_back("fanuc_rail_ram");
-
-  configs.push_back("fanuc_inverted_bmw");
-  configs.push_back("fanuc_inverted_chrysler");
-  configs.push_back("fanuc_inverted_fiat");
-  configs.push_back("fanuc_inverted_ford");
-  configs.push_back("fanuc_inverted_gmc");
-  configs.push_back("fanuc_inverted_mercedes");
-  configs.push_back("fanuc_inverted_ram");
-
-  const std::string pkg_path = ros::package::getPath("robot_reach_study");
-
-  std::cout << boost::format("%-30s %=25s %=25s\n") % "Configuration Name" % "Reach Percentage" % "Normalized Total Score";
-  for(size_t i = 0; i < configs.size(); ++i)
+  if(argc > 2)
   {
-    const std::string config = configs[i];
-    const std::string path = pkg_path + "/output/" + config + "/optimized_reach.db";
+    return -1;
+  }
+
+  std::string root_path = ros::package::getPath("robot_reach_study") + "/output";
+
+  if(argv[1])
+  {
+    const std::string folder_name = argv[1];
+    root_path += "/" + folder_name;
+  }
+
+  boost::filesystem::path root (root_path);
+  std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>> files;
+  if(!get_all(root, ".db", files))
+  {
+    std::cout << "Specified directory does not exist";
+    return 0;
+  }
+
+  std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n")
+               % "Configuration Name"
+               % "Reach Percentage"
+               % "Normalized Total Score"
+               % "Average Reachable Neighbors"
+               % "Average Joint Distance";
+
+  for(size_t i = 0; i < files.size(); ++i)
+  {
+    const std::string config = files[i].first.string();
+    const std::string path = files[i].second.string();
+
     robot_reach_study::Database db;
     if(db.load(path))
     {
-      std::cout << boost::format("%-30s %=25.2f %=25.6f\n") % config.c_str() % db.getReachPercentage() % db.getNormalizedTotalScore();
+      std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n")
+                   % config.c_str()
+                   % db.getReachPercentage()
+                   % db.getNormalizedTotalScore()
+                   % db.getAverageNeighborsCount()
+                   % db.getAverageJointDistance();
     }
   }
 
