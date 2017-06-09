@@ -187,7 +187,6 @@ namespace utils
   {
     visualization_msgs::InteractiveMarker m;
     m.header.frame_id = frame;
-//    m.scale = 1.0;
     m.name = r.id;
 
     // Control
@@ -206,14 +205,12 @@ namespace utils
   inline visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts,
                                                const std::string& frame,
                                                const double scale,
-//                                               const int id,
                                                const std::string& ns = "")
   {
     visualization_msgs::Marker marker;
     marker.header.frame_id = frame;
     marker.header.stamp = ros::Time::now();
     marker.ns = ns;
-//    marker.id = id;
     marker.type = visualization_msgs::Marker::POINTS;
     marker.action = visualization_msgs::Marker::ADD;
 

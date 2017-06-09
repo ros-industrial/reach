@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <launch>
     <arg name="reach_object" default="reach_study_object"/>
     <arg name="config_name" default="reach_study_object"/>

@@ -1,52 +1,18 @@
-# File name of the reach object to be studied (with the prefix "package://" as in the URDF)
+fixed_frame:
+object_frame:
 
-object_mesh_filename: "package://**ROS_PACKAGE**/**FOLDER**/**FILE.stl**"
+reach_object:
+  object_mesh_filename:
+  pcd_file:
+  n_neighbors:
+  cloud_output_res:
 
-#-------------------------------------------------------------------------------------------
-# Desired filename of the sampled point cloud of the reach object
-# If the point cloud does not exist already, it will be created and saved in this directory
+move_group:
+  kinematics:
+  manipulability:
 
-pcd_file: "/**SOME_DIRECTORY**/**FOLDER**/**FILE.pcd**"
-
-#-------------------------------------------------------------------------------------------
-# Specify the planning group with which you wish to solve the robot's inverse kinematics (kinematics)
-# Specify the planning group with which you wish to score the inverse kinematics solution (manipulability)
-
-planning_group:
-  kinematics: "SOME_PLANNING_GROUP_NAME"
-  manipulability: "SOME_PLANNING_GROUP_NAME"
-
-#-------------------------------------------------------------------------------------------
-# Boolean flag for evaluating the average number neighboring points the robot can reach using its kinematics planning group
-# The result of this evaluation is an indication of the relative workspace size of the robot
-
-get_avg_neighbor_count: false
-
-#-------------------------------------------------------------------------------------------
-# Name of the root, fixed link in the URDF
-
-fixed_frame: "SOME_FRAME_NAME"
-
-#-------------------------------------------------------------------------------------------
-# Name of the reach object link in the URDF
-
-object_frame: "SOME_FRAME_NAME"
-
-#-------------------------------------------------------------------------------------------
-# Specify the resolution with which you wish to sample the reach object mesh (in meters)
-# A point cloud with normals of the mesh object will be created with at this specified resolution
-
-mesh_sample_res: SOME_FLOAT_RESOLUTION
-
-#-------------------------------------------------------------------------------------------
-# Specify the resolution of output point cloud with which the reach study will be performed
-# The point cloud described above will be down-sampled to this specified resolution and the resulting points will be solved by the robot's IK
-# NOTE: If no down-sampling is desired, set cloud_output_res = mesh_sample_res
-
-cloud_output_res: SOME_FLOAT_RESOLUTION
-
-#-------------------------------------------------------------------------------------------
-# Specify a list of other configuration databases against which to compare reach study results
-# The members of this list should be the database folder name (located in the robot_reach_study/output directory) which contains the desired optimized_reach.db file
-
-compare_dbs = [SOME_FOLDER_NAME, SOME_FOLDER_NAME, ... ]
+constraints:
+  get_avg_neighbor_count:
+  cost_function:
+  distance_threshold:
+  compare_dbs:

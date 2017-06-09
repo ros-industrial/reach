@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <launch>
     <include file="$(find **YOUR_ROBOT'S_MOVEIT_PACKAGE**)/launch/planning_context.launch">
         <arg name="load_robot_description" value="true"/>

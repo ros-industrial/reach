@@ -182,6 +182,9 @@ bool robot_reach_study::ReachStudy::getReachObjectPointCloud()
 
 void robot_reach_study::ReachStudy::runInitialReachStudy()
 {
+  // Rotation to flip the Z axis fo the surface normal point
+  const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
+
   // Loop through all points in point cloud and get IK solution
   std::atomic<int> current_counter, previous_pct;
   current_counter = previous_pct = 0;
@@ -194,6 +197,7 @@ void robot_reach_study::ReachStudy::runInitialReachStudy()
     const pcl::PointNormal& pt = cloud_->points[i];
     Eigen::Affine3d tgt_frame;
     tgt_frame = utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
+    tgt_frame = tgt_frame * tool_z_rot;
     geometry_msgs::Pose tgt_pose;
     tf::poseEigenToMsg(tgt_frame, tgt_pose);
 
