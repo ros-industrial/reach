@@ -156,11 +156,8 @@ bool robot_reach_study::ReachStudy::getReachObjectPointCloud()
 
   robot_reach_study::SampleMesh srv;
   srv.request.cloud_filename = sp_.pcd_file;
-  srv.request.mesh_filename = sp_.object_mesh_filename;
-  srv.request.world_name = sp_.fixed_frame;
-  srv.request.object_name = sp_.object_frame;
-  srv.request.n_neighbors = sp_.n_neighbors;
-  srv.request.output_resolution = sp_.cloud_output_res;
+  srv.request.world_frame = sp_.fixed_frame;
+  srv.request.object_frame = sp_.object_frame;
 
   client.waitForExistence(ros::Duration (SRV_TIMEOUT));
   if(client.call(srv))
