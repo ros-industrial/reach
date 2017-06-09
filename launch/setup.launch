@@ -1,11 +1,13 @@
 <launch>
-    <arg name="see_urdf" default="true"/>
+    <arg name="rviz" default="true"/>
     <arg name="robot" default="robot"/>
 
-    <param name="visualize_results" value="$(arg see_urdf)"/>
+    <param name="visualize_results" value="$(arg rviz)"/>
     <include file="$(find robot_reach_study)/launch/$(arg robot).launch"/>
 
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_reach_study)/launch/reach_study_config.rviz" if="$(arg see_urdf)"/>
+    <node name="sample_mesh_server" pkg="robot_reach_study" type="sample_mesh_server" output="screen" required="true"/>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_reach_study)/launch/reach_study_config.rviz" if="$(arg rviz)"/>
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher"/>
 </launch>

@@ -23,9 +23,9 @@ planning_group:
 get_avg_neighbor_count: false
 
 #-------------------------------------------------------------------------------------------
-# Name of the root, world link in the URDF
+# Name of the root, fixed link in the URDF
 
-world_frame: "SOME_FRAME_NAME"
+fixed_frame: "SOME_FRAME_NAME"
 
 #-------------------------------------------------------------------------------------------
 # Name of the reach object link in the URDF

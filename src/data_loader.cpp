@@ -3,6 +3,9 @@
 #include <robot_reach_study/reach_database.h>
 #include <boost/filesystem.hpp>
 
+const static std::string RESULTS_FOLDER_NAME = "results";
+const static std::string OPT_DB_NAME = "optimized_reach.db";
+
 bool get_all(const boost::filesystem::path& root,
              const std::string& ext,
              std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>>& ret)
@@ -17,7 +20,7 @@ bool get_all(const boost::filesystem::path& root,
     if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ext)
     {
       // Capture only the optimized reach databases
-      if(it->path().filename() == "optimized_reach.db")
+      if(it->path().filename() == OPT_DB_NAME)
       {
         std::pair<boost::filesystem::path, boost::filesystem::path> tmp;
         tmp.first = it->path().parent_path().filename();
@@ -40,7 +43,7 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  std::string root_path = ros::package::getPath("robot_reach_study") + "/output";
+  std::string root_path = ros::package::getPath("robot_reach_study") + "/" + RESULTS_FOLDER_NAME;
 
   if(argv[1])
   {
@@ -59,7 +62,7 @@ int main(int argc, char **argv)
   std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n")
                % "Configuration Name"
                % "Reach Percentage"
-               % "Normalized Total Score"
+               % "Normalized Total Pose Score"
                % "Average Reachable Neighbors"
                % "Average Joint Distance";
 
@@ -74,7 +77,7 @@ int main(int argc, char **argv)
       std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n")
                    % config.c_str()
                    % db.getReachPercentage()
-                   % db.getNormalizedTotalScore()
+                   % db.getNormalizedTotalPoseScore()
                    % db.getAverageNeighborsCount()
                    % db.getAverageJointDistance();
     }

@@ -1,8 +1,9 @@
-#include <robot_reach_study/reach_database.h>
-#include <robot_reach_study/param_helpers.h>
-#include <robot_reach_study/ik_helper.h>
+//#include <atomic>
 #include <moveit/robot_state/conversions.h>
-#include <atomic>
+//#include <robot_reach_study/param_helpers.h>
+#include <robot_reach_study/ik_helper.h>
+#include <robot_reach_study/reach_database.h>
+#include <robot_reach_study/utils.h>
 
 namespace // private utils namespace
 {
@@ -25,13 +26,13 @@ void robot_reach_study::Database::save(const std::string &filename) const
   std::lock_guard<std::mutex> lock {mutex_};
   robot_reach_study::ReachDatabase msg = toReachDatabase(map_);
 
-  msg.avg_score = total_score_;
-  msg.norm_avg_score = norm_total_score_;
+  msg.total_pose_score = total_pose_score_;
+  msg.norm_total_pose_score = norm_total_pose_score_;
   msg.reach_percentage = reach_percentage_;
-  msg.avg_neighbors = avg_neighbors_;
+  msg.avg_num_neighbors = avg_num_neighbors_;
   msg.avg_joint_distance = avg_joint_distance_;
 
-  if (!toFile(filename, msg))
+  if (!utils::toFile(filename, msg))
   {
     throw std::runtime_error("Unable to save database to file: " + filename);
   }
@@ -40,7 +41,7 @@ void robot_reach_study::Database::save(const std::string &filename) const
 bool robot_reach_study::Database::load(const std::string &filename)
 {
   robot_reach_study::ReachDatabase msg;
-  if (!fromFile(filename, msg))
+  if (!utils::fromFile(filename, msg))
   {
     return false;
   }
@@ -50,10 +51,10 @@ bool robot_reach_study::Database::load(const std::string &filename)
   for (const auto& r : msg.records)
   {
     putHelper(r);
-    total_score_ = msg.avg_score;
-    norm_total_score_ = msg.norm_avg_score;
-    avg_neighbors_ = msg.avg_neighbors;
     reach_percentage_ = msg.reach_percentage;
+    total_pose_score_ = msg.total_pose_score;
+    norm_total_pose_score_ = msg.norm_total_pose_score;
+    avg_num_neighbors_ = msg.avg_num_neighbors;
     avg_joint_distance_ = msg.avg_joint_distance;
   }
   return true;
@@ -110,8 +111,8 @@ void robot_reach_study::Database::calculateResults()
   const float pct_success = static_cast<float>(success) / static_cast<float>(total);
 
   reach_percentage_ = 100.0 * pct_success;
-  total_score_ = score;
-  norm_total_score_ = score / pct_success;
+  total_pose_score_ = score;
+  norm_total_pose_score_ = score / pct_success;
 
   printResults();
 }
@@ -120,9 +121,9 @@ void robot_reach_study::Database::printResults()
 {
   ROS_INFO("------------------------------------------------");
   ROS_INFO("Percent Reached = %f", reach_percentage_);
-  ROS_INFO("Total points score = %f", total_score_);
-  ROS_INFO("Normalized total points score = %f", norm_total_score_);
-  ROS_INFO("Average reachable neighbors = %f", avg_neighbors_);
+  ROS_INFO("Total points score = %f", total_pose_score_);
+  ROS_INFO("Normalized total points score = %f", norm_total_pose_score_);
+  ROS_INFO("Average reachable neighbors = %f", avg_num_neighbors_);
   ROS_INFO("Average joint distance = %f", avg_joint_distance_);
   ROS_INFO("------------------------------------------------");
 }

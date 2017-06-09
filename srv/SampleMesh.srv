@@ -3,7 +3,7 @@ string cloud_filename
 string mesh_filename
 string world_name
 string object_name
-float32 sampling_resolution
+float32 n_neighbors
 float32 output_resolution
 ---
 # Response Data

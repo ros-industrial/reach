@@ -1,58 +1,62 @@
-#include <robot_reach_study/ik_helper.h>
-#include <robot_reach_study/reach_database.h>
-#include <ros/ros.h>
+#include <cmath>
 #include <eigen_conversions/eigen_msg.h>
 #include <moveit/robot_state/conversions.h>
-#include <cmath>
-#include <moveit_msgs/PlanningScene.h>
-#include <moveit_msgs/CollisionObject.h>
-#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <geometric_shapes/shapes.h>
-#include <geometric_shapes/mesh_operations.h>
-#include <geometric_shapes/shape_operations.h>
+#include <robot_reach_study/ik_helper.h>
+#include <robot_reach_study/reach_database.h>
+#include <robot_reach_study/utils.h>
+#include <ros/ros.h>
+
+const static std::string ROBOT_DESCRIPTION_TOPIC = "robot_description";
 
 namespace
 {
-  Eigen::Affine3d createFrame(const Eigen::Vector3f& pt,
-                              const Eigen::Vector3f& norm)
+  double getManipulability(const moveit::core::RobotState& state,
+                           const moveit::core::JointModelGroup* jmg)
   {
-    // Initialize coordinate frame and set XYZ location
-    Eigen::Affine3f p = Eigen::Affine3f::Identity();
-    p.matrix()(0, 3) = pt(0);
-    p.matrix()(1, 3) = pt(1);
-    p.matrix()(2, 3) = pt(2);
+    // Calculate manipulability of kinematic chain of input robot state
+    // Create new robot state to avoid dirty link transforms
+    moveit::core::RobotState temp_state(state);
 
-    // Create plane from point normal
-    Eigen::Hyperplane<float, 3> plane (norm, Eigen::Vector3f(0, 0, 0));
+    // Get the Jacobian matrix
+    Eigen::MatrixXd jacobian = temp_state.getJacobian(jmg);
 
-    // If the normal and global x-axis are not closely aligned
-    if (std::abs(norm.dot(Eigen::Vector3f::UnitX()) < 0.90))
+    // Calculate manipulability by multiplying Jacobian matrix singular values together
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
+    Eigen::MatrixXd singular_values = svd.singularValues();
+    double m = 1.0;
+    for(unsigned int i = 0; i < singular_values.rows(); ++i)
     {
-      // Project the global x-axis onto the plane to generate the x-axis
-      Eigen::Vector3f x_axis = plane.projection(Eigen::Vector3f::UnitX()).normalized();
-      p.matrix().col(0).head<3>() = x_axis;
-      p.matrix().col(1).head<3>() = norm.cross(x_axis);
-      p.matrix().col(2).head<3>() = norm;
+      m *= singular_values(i, 0);
     }
-    else
-    {
-      // Project the global y-axis onto the plane to generate the y-axis
-      Eigen::Vector3f y_axis = plane.projection(Eigen::Vector3f::UnitY()).normalized();
-      p.matrix().col(0).head<3>() = y_axis.cross(norm);
-      p.matrix().col(1).head<3>() = y_axis;
-      p.matrix().col(2).head<3>() = norm;
-    }
-
-    return p.cast<double>();
+    return m;
   }
 
+  double getJointPenalty(const moveit::core::RobotState& state,
+                         const moveit::core::JointModelGroup* jmg,
+                         std::vector<std::vector<double>>& joint_limits)
+  {
+    std::vector<double> max, min, current;
+    min = joint_limits[0];
+    max = joint_limits[1];
+
+    // Get current joint values in jmg chain
+    moveit::core::RobotState temp_state(state);
+    temp_state.copyJointGroupPositions(jmg, current);
+
+    double penalty = 1.0;
+    for(std::size_t i = 0; i < max.size(); ++i)
+    {
+      double range = max[i] - min[i];
+      penalty *= ((current[i] - min[i])*(max[i] - current[i])) / pow(range, 2);
+    }
+    return std::max(0.0, 1.0 - exp(-1.0 * penalty));
+  }
 }
 
-robot_reach_study::IkHelper::IkHelper(const std::string robot_description,
-                                      const std::string kin_group_name,
+robot_reach_study::IkHelper::IkHelper(const std::string kin_group_name,
                                       const std::string manip_group_name)
 {
-  model_loader_ = robot_model_loader::RobotModelLoaderPtr(new robot_model_loader::RobotModelLoader(robot_description));
+  model_loader_ = robot_model_loader::RobotModelLoaderPtr(new robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_TOPIC));
   model_ = model_loader_->getModel();
   scene_ptr_ = planning_scene::PlanningScenePtr(new planning_scene::PlanningScene(model_));
 
@@ -62,10 +66,6 @@ robot_reach_study::IkHelper::IkHelper(const std::string robot_description,
   manip_joint_limits_ = this->getJointLimits(manip_jmgroup_);
 
   constraint_ = boost::bind(&IkHelper::isIKSolutionValid, this, _1, _2, _3);
-  sol_attempts_ = 5;
-  sol_timeout_ = 0.05;
-
-  neighbor_radius_ = 1.0f;
 }
 
 boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geometry_msgs::Pose& tgt_pose,
@@ -75,65 +75,46 @@ boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geome
   goal_state = seed_state;
   if(goal_state.setFromIK(kin_jmgroup_, tgt_pose, sol_attempts_, sol_timeout_, constraint_))
   {
-
+    const double manip = getManipulability(goal_state, manip_jmgroup_);
+    const double joint_penalty = getJointPenalty(goal_state, manip_jmgroup_, manip_joint_limits_);
     const double dist = scene_ptr_->distanceToCollision(goal_state, scene_ptr_->getAllowedCollisionMatrix());
-    const double dist_threshold = 4.0 * 0.0254;
+    const double dist_penalty = std::pow((dist / dist_threshold_), 2);
 
-    if(dist > dist_threshold)
+    // Set score based on desired cost function
+    boost::optional<double> score;
+    switch(cost_function_)
     {
-      const double manip = getManipulability(goal_state, manip_jmgroup_);
-      const double joint_penalty = getJointPenalty(goal_state, manip_jmgroup_);
-      const double dist_penalty = std::pow((dist / (6.0 * 0.0254)), 2);
-//      boost::optional<double> score = manip * joint_penalty * dist_penalty;
-
-      boost::optional<double> score = manip * dist_penalty;
-
-      return {score};
+    case this->CostFunction::M:
+      score = manip;
+      break;
+    case this->CostFunction::M_JP:
+      score = manip * joint_penalty;
+      break;
+    case this->CostFunction::M_JP_DP:
+      score = manip * joint_penalty * dist_penalty;
+      break;
+    case this->CostFunction::M_DP:
+      score = manip * dist_penalty;
+      break;
+    case this->CostFunction::M_DP_DT:
+      if(dist > dist_threshold_)
+      {
+        score = manip * dist_penalty;
+      }
+      break;
+    case this->CostFunction::M_JP_DP_DT:
+      if(dist > dist_threshold_)
+      {
+        score = manip * joint_penalty * dist_penalty;
+      }
+      break;
     }
+
+    return {score};
   }
 
   return {};
 }
-
-//boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geometry_msgs::Pose& tgt_pose,
-//                                                                     moveit::core::RobotState& seed_state,
-//                                                                     moveit::core::RobotState& goal_state,
-//                                                                     char cost_function)
-//{
-//  goal_state = seed_state;
-//  if(goal_state.setFromIK(kin_jmgroup_, tgt_pose, sol_attempts_, sol_timeout_, constraint_))
-//  {
-//    const double manip = getManipulability(goal_state, manip_jmgroup_);
-//    const double joint_penalty = getJointPenalty(goal_state, manip_jmgroup_);
-//    const double dist = scene_ptr_->distanceToCollision(goal_state, scene_ptr_->getAllowedCollisionMatrix());
-//    const double dist_threshold = 4.0 * 0.0254;
-//    const double dist_penalty = std::pow((dist / (6.0 * 0.0254)), 2);
-
-//    // Set score based on desired cost function
-//    boost::optional<double> score;
-//    switch(cost_function)
-//    {
-//    case 0: score = manip;
-//      break;
-//    case 1: score = manip * joint_penalty;
-//      break;
-//    case 2: score = manip * dist_penalty;
-//      break;
-//    case 3: score = manip * joint_penalty * dist_penalty;
-//      break;
-//    case 4:
-//      if(dist > dist_threshold_)
-//      {
-//        score = manip * joint_penalty * dist_penalty;
-//      }
-//      break;
-//    }
-
-//    return {score};
-//  }
-
-//  return {};
-//}
 
 std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::shared_ptr<robot_reach_study::Database>& db,
                                                                            const robot_reach_study::ReachRecord& rec)
@@ -301,22 +282,7 @@ bool robot_reach_study::IkHelper::addCollisionObjectToScene(const std::string& m
   object_name.erase(0, prefix_pos + 1);
 
   // Create a CollisionObject message for the reach object
-  moveit_msgs::CollisionObject obj;
-  obj.header.frame_id = parent_link;
-  obj.id = object_name;
-  shapes::ShapeMsg shape_msg;
-  shapes::Mesh* mesh = shapes::createMeshFromResource(mesh_filename);
-  shapes::constructMsgFromShape(mesh, shape_msg);
-  obj.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
-  obj.operation = obj.ADD;
-
-  // Assign a default pose to the mesh
-  geometry_msgs::Pose pose;
-  pose.position.x = pose.position.y = pose.position.z = 0.0;
-  pose.orientation.x = pose.orientation.y = pose.orientation.z = 0.0;
-  pose.orientation.w = 1.0;
-  obj.mesh_poses.push_back(pose);
-
+  moveit_msgs::CollisionObject obj = robot_reach_study::utils::createCollisionObject(mesh_filename, parent_link, touch_links, object_name);
   if(scene_ptr_->processCollisionObjectMsg(obj))
   {
     // Update the allowed collision matrix
@@ -355,45 +321,4 @@ std::vector<std::vector<double>> robot_reach_study::IkHelper::getJointLimits(con
   joint_limits.push_back(min);
   joint_limits.push_back(max);
   return joint_limits;
-}
-
-double robot_reach_study::IkHelper::getManipulability(const moveit::core::RobotState& state,
-                                                      const moveit::core::JointModelGroup* jmg)
-{
-  // Calculate manipulability of kinematic chain of input robot state
-  // Create new robot state to avoid dirty link transforms
-  moveit::core::RobotState temp_state(state);
-
-  // Get the Jacobian matrix
-  Eigen::MatrixXd jacobian = temp_state.getJacobian(jmg);
-
-  // Calculate manipulability by multiplying Jacobian matrix singular values together
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
-  Eigen::MatrixXd singular_values = svd.singularValues();
-  double m = 1.0;
-  for(unsigned int i = 0; i < singular_values.rows(); ++i)
-  {
-    m *= singular_values(i, 0);
-  }
-  return m;
-}
-
-double robot_reach_study::IkHelper::getJointPenalty(const moveit::core::RobotState& state,
-                                                    const moveit::core::JointModelGroup* jmg)
-{
-  std::vector<double> max, min, current;
-  min = manip_joint_limits_[0];
-  max = manip_joint_limits_[1];
-
-  // Get current joint values in jmg chain
-  moveit::core::RobotState temp_state(state);
-  temp_state.copyJointGroupPositions(jmg, current);
-
-  double penalty = 1.0;
-  for(std::size_t i = 0; i < max.size(); ++i)
-  {
-    double range = max[i] - min[i];
-    penalty *= ((current[i] - min[i])*(max[i] - current[i])) / pow(range, 2);
-  }
-  return std::max(0.0, 1.0 - exp(-1.0 * penalty));
 }

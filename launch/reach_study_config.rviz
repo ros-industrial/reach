@@ -7,7 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /MarkerArray1/Namespaces1
-        - /PlanningScene1/Scene Robot1
       Splitter Ratio: 0.527191997
     Tree Height: 895
   - Class: rviz/Selection
@@ -57,11 +56,11 @@ Visualization Manager:
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
-      Update Topic: /reach/update
+      Update Topic: /reach_int_markers/update
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /robot_reach_study_node/neighbors
+      Marker Topic: /reach_neighbors
       Name: Marker
       Namespaces:
         {}
@@ -69,7 +68,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: false
-      Marker Topic: /robot_reach_study_node/reach_diff
+      Marker Topic: /reach_comparison
       Name: MarkerArray
       Namespaces:
         {}
@@ -93,7 +92,7 @@ Visualization Manager:
       Enabled: true
       Move Group Namespace: ""
       Name: PlanningScene
-      Planning Scene Topic: /robot_reach_study_node/scene
+      Planning Scene Topic: /scene
       Robot Description: robot_description
       Scene Geometry:
         Scene Alpha: 1
@@ -234,7 +233,7 @@ Visualization Manager:
       Pitch: 0.236366987
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.41596365
+      Yaw: 5.35096216
     Saved: ~
 Window Geometry:
   Displays:
