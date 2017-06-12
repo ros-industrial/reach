@@ -2,12 +2,11 @@ fixed_frame:
 object_frame:
 
 reach_object:
-  object_mesh_filename:
-  pcd_file:
-  n_neighbors:
-  cloud_output_res:
+  mesh_filename:
+  pcd_filename:
+  optimization_radius:
 
-move_group:
+planning_group:
   kinematics:
   manipulability:
 

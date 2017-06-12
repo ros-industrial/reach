@@ -15,6 +15,8 @@ const static std::string OPT_SAVED_DB_NAME = "optimized_reach.db";
 const static int MAX_NUM_OPT = 10;
 const static double PCT_IMPROVE_THRESHOLD = 0.01;
 const static double MAJOR_LENGTH_TO_MARKER_RATIO = 30;
+const static int SOLUTION_ATTEMPTS = 1;
+const static float SOLUTION_TIMEOUT = 0.02;
 
 robot_reach_study::ReachStudy::ReachStudy(ros::NodeHandle& nh,
                                           robot_reach_study::StudyParams& sp)
@@ -30,9 +32,9 @@ robot_reach_study::ReachStudy::ReachStudy(ros::NodeHandle& nh,
 void robot_reach_study::ReachStudy::init()
 {
   // Initialize IK parameters
-  helper_->setSolutionAttempts(1);
-  helper_->setSolutionTimeout(0.02);
-  helper_->setNeighborRadius(2.0 * sp_.cloud_output_res);
+  helper_->setSolutionAttempts(SOLUTION_ATTEMPTS);
+  helper_->setSolutionTimeout(SOLUTION_TIMEOUT);
+  helper_->setNeighborRadius(sp_.optimization_radius);
   helper_->setCostFunction(static_cast<robot_reach_study::IkHelper::CostFunction>(sp_.cost_function));
   helper_->setDistanceThreshold(sp_.distance_threshold);
 
@@ -63,7 +65,7 @@ bool robot_reach_study::ReachStudy::run()
   // Add the reach object mesh as a collision object in the planning scene
   std::vector<std::string> touch_links;
   touch_links.push_back(sp_.fixed_frame);
-  if(!helper_->addCollisionObjectToScene(sp_.object_mesh_filename, sp_.object_frame, touch_links))
+  if(!helper_->addCollisionObjectToScene(sp_.mesh_filename, sp_.object_frame, touch_links))
   {
     ROS_ERROR("Unable to add collision object to planning scene");
     return false;
@@ -155,8 +157,8 @@ bool robot_reach_study::ReachStudy::getReachObjectPointCloud()
   ros::ServiceClient client = nh_.serviceClient<robot_reach_study::SampleMesh>(SAMPLE_MESH_SRV_TOPIC);
 
   robot_reach_study::SampleMesh srv;
-  srv.request.cloud_filename = sp_.pcd_file;
-  srv.request.world_frame = sp_.fixed_frame;
+  srv.request.cloud_filename = sp_.pcd_filename;
+  srv.request.fixed_frame = sp_.fixed_frame;
   srv.request.object_frame = sp_.object_frame;
 
   client.waitForExistence(ros::Duration (SRV_TIMEOUT));
@@ -270,6 +272,7 @@ void robot_reach_study::ReachStudy::optimizeReachStudyResults()
 
     // Recalculate optimized reach study results
     db_->calculateResults();
+    db_->printResults();
     pct_improve = std::abs((db_->getNormalizedTotalPoseScore() - previous_score)/previous_score);
     ++ n_opt;
   }
@@ -279,7 +282,7 @@ void robot_reach_study::ReachStudy::optimizeReachStudyResults()
   db_->save(results_dir_ + OPT_SAVED_DB_NAME);
 
   ROS_INFO("----------------------");
-  ROS_INFO("Beginning optimization");
+  ROS_INFO("Optimization concluded");
 }
 
 void robot_reach_study::ReachStudy::getAverageNeighborsCount()

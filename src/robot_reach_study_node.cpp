@@ -22,68 +22,62 @@ bool getStudyParameters(ros::NodeHandle& nh,
     return false;
   }
 
-  if(!nh.getParam("reach_object/pcd_file", sp.pcd_file))
+  if(!nh.getParam("reach_object/mesh_filename", sp.mesh_filename))
   {
-    ROS_ERROR("Must set 'pcd_file' parameter");
+    ROS_ERROR("Must set 'reach_object/mesh_filename' parameter");
     return false;
   }
 
-  if(!nh.getParam("reach_object/object_mesh_filename", sp.object_mesh_filename))
+  if(!nh.getParam("reach_object/pcd_filename", sp.pcd_filename))
   {
-    ROS_ERROR("'object_mesh_filename' parameter must be set");
+    ROS_ERROR("Must set 'reach_object/pcd_filename' parameter");
     return false;
   }
 
-  if(!nh.getParam("reach_object/n_neighbors", sp.n_neighbors))
+  if(!nh.getParam("reach_object/optimization_radius", sp.optimization_radius))
   {
-    ROS_ERROR("'n_neighbors' parameter must be set");
+    ROS_ERROR("Must set 'reach_object/optimization_radius' parameter");
     return false;
   }
 
-  if(!nh.getParam("reach_object/cloud_output_res", sp.cloud_output_res))
+  if(!nh.getParam("planning_group/kinematics", sp.kin_group_name))
   {
-    ROS_ERROR("'cloud_output_res' parameter must be set");
+    ROS_ERROR("Must set 'planning_group/kinematics' parameter");
     return false;
   }
 
-  if(!nh.getParam("move_group/kinematics", sp.kin_group_name))
+  if(!nh.getParam("planning_group/manipulability", sp.manip_group_name))
   {
-    ROS_ERROR("Must set 'move_group/kinematics' parameter");
-    return false;
-  }
-
-  if(!nh.getParam("move_group/manipulability", sp.manip_group_name))
-  {
-    ROS_ERROR("Must set 'move_group/manipulability' parameter");
+    ROS_ERROR("Must set 'planning_group/manipulability' parameter");
     return false;
   }
 
   if(!nh.getParam("constraints/get_avg_neighbor_count", sp.get_neighbors))
   {
-    ROS_ERROR("'get_avg_neighbor_count' parameter not set");
+    ROS_ERROR("'constraints/get_avg_neighbor_count' parameter not set");
     return false;
   }
 
   if(!nh.getParam("constraints/distance_threshold", sp.distance_threshold))
   {
-    ROS_ERROR("'distance_threshold' parameter must be set");
+    ROS_ERROR("'constraints/distance_threshold' parameter must be set");
     return false;
   }
 
   if(!nh.getParam("constraints/compare_dbs", sp.compare_dbs))
   {
-    ROS_ERROR("'compare_dbs' parameter not set. No databases will be compared");
+    ROS_ERROR("'constraints/compare_dbs' parameter not set. No databases will be compared");
   }
 
   if(!nh.getParam("constraints/cost_function", sp.cost_function))
   {
-    ROS_ERROR("'cost_function' parameter not set. Defaulting to manipulability only cost function");
+    ROS_ERROR("'constraints/cost_function' parameter not set. Defaulting to manipulability only cost function");
     sp.cost_function = 0;
   }
 
   if(!nh.getParam("/visualize_results", sp.visualize_results))
   {
-    ROS_ERROR("'visualize_results' parameter not set; reach study results will not be visualized.");
+    ROS_ERROR("'/visualize_results' parameter not set; reach study results will not be visualized.");
     sp.visualize_results = false;
   }
 

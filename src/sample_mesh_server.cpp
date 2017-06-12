@@ -9,16 +9,16 @@
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
 
-bool getObjectTF(const std::string& world_frame,
+bool getObjectTF(const std::string& fixed_frame,
                  const std::string& object_frame,
                  tf::StampedTransform& transform)
 {
   tf::TransformListener listener;
-  if(listener.waitForTransform(world_frame, object_frame, ros::Time::now(), ros::Duration(5.0)))
+  if(listener.waitForTransform(fixed_frame, object_frame, ros::Time::now(), ros::Duration(5.0)))
   {
     try
     {
-      listener.lookupTransform(world_frame, object_frame, ros::Time(0.0), transform);
+      listener.lookupTransform(fixed_frame, object_frame, ros::Time(0.0), transform);
     }
     catch(tf::TransformException ex)
     {
@@ -28,7 +28,7 @@ bool getObjectTF(const std::string& world_frame,
   }
   else
   {
-    ROS_ERROR("TF lookup between %s and %s has timed out", world_frame.c_str(), object_frame.c_str());
+    ROS_ERROR("TF lookup between %s and %s has timed out", fixed_frame.c_str(), object_frame.c_str());
     return false;
   }
   return true;
@@ -63,11 +63,13 @@ bool getSampledMesh(robot_reach_study::SampleMesh::Request& req,
   pcl::PCLPointCloud2 cloud_msg;
   if(pcl::io::loadPCDFile(req.cloud_filename, cloud_msg) == -1)
   {
+    ROS_ERROR("Unable to load point cloud .pcd file");
     return false;
   }
 
   if(!hasNormals(cloud_msg))
   {
+    ROS_ERROR("Point cloud file does not contain normals. Please regenerate the cloud with normal vectors");
     return false;
   }
 
@@ -76,7 +78,7 @@ bool getSampledMesh(robot_reach_study::SampleMesh::Request& req,
 
   // Transform point cloud to correct frame
   tf::StampedTransform object_tf;
-  if(!getObjectTF(req.world_frame, req.object_frame, object_tf))
+  if(!getObjectTF(req.fixed_frame, req.object_frame, object_tf))
   {
     return false;
   }

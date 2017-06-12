@@ -10,6 +10,8 @@ const static std::string REACH_NEIGHBORS_TOPIC = "reach_neighbors";
 const static std::string REACH_COMPARISON_TOPIC = "reach_comparison";
 const static std::string PLANNING_SCENE_TOPIC = "scene";
 const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
+const static float RE_SOLVE_IK_ATTEMPTS = 3;
+const static float RE_SOLVE_IK_TIMEOUT = 0.2;
 
 robot_reach_study::InteractiveIK::InteractiveIK(ros::NodeHandle& nh,
                                                 std::shared_ptr<robot_reach_study::Database>& db,
@@ -62,19 +64,28 @@ void robot_reach_study::InteractiveIK::reSolveIKCB(const visualization_msgs::Int
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
   {
-    moveit::core::RobotState goal_state (ik_helper_->getCurrentRobotState()), seed_state (ik_helper_->getCurrentRobotState());
-
+    // Set the robot's seed state to the current robot state
+    moveit::core::RobotState goal_state (ik_helper_->getCurrentRobotState());
+    moveit::core::RobotState seed_state (ik_helper_->getCurrentRobotState());
     moveit::core::robotStateMsgToRobotState(lookup->goal_state, goal_state);
     moveit::core::robotStateMsgToRobotState(lookup->seed_state, seed_state);
 
-    ik_helper_->setSolutionAttempts(3);
-    ik_helper_->setSolutionTimeout(0.2);
+    // Save the original IK solution attempts and timeout
+    const int sol_attempts = ik_helper_->getSolutionAttempts();
+    const float sol_timeout = ik_helper_->getSolutionTimeout();
+
+    // Increase the number of solution attempts and the timeout
+    ik_helper_->setSolutionAttempts(RE_SOLVE_IK_ATTEMPTS);
+    ik_helper_->setSolutionTimeout(RE_SOLVE_IK_TIMEOUT);
+
+    // Re-solve IK at the selected marker
     boost::optional<double> score = ik_helper_->solveIKFromSeed(lookup->goal, seed_state, goal_state);
+
+    // Update the database if the IK solution was valid
     if(score)
     {
       ROS_INFO("Solution found for point");
 
-      // Update the database
       lookup->reached = true;
       lookup->score = *score;
       moveit::core::robotStateToRobotStateMsg(goal_state, lookup->goal_state);
@@ -90,16 +101,15 @@ void robot_reach_study::InteractiveIK::reSolveIKCB(const visualization_msgs::Int
       msg.robot_state = lookup->goal_state;
       msg.is_diff = true;
       scene_pub_.publish(msg);
-
     }
     else
     {
       ROS_INFO("No solution found for point");
     }
 
-    ik_helper_->setSolutionAttempts(1);
-    ik_helper_->setSolutionTimeout(0.02);
-
+    // Reset the original number of solution attempts and solution timeout
+    ik_helper_->setSolutionAttempts(sol_attempts);
+    ik_helper_->setSolutionTimeout(sol_timeout);
   }
 }
 

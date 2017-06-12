@@ -17,10 +17,9 @@ namespace robot_reach_study
     std::string config_name;              // reach study configuration name
     std::string fixed_frame;              // root, fixed frame of the URDF
     std::string object_frame;             // frame of the reach object in the URDF
-    std::string object_mesh_filename;     // filename of the reach object mesh
-    std::string pcd_file;                 // filename at which to save the point cloud representation of the reach object
-    float n_neighbors;                    // number of nearest neighbors to use in normal estimation for the reach object
-    float cloud_output_res;               // voxel size of the output reach object point cloud
+    std::string mesh_filename;            // filename which contains the reach object mesh
+    std::string pcd_filename;             // filename which contains the point cloud representation of the reach object
+    float optimization_radius;            // The radius around a given point which identifies neighboring points used to optimize the reach study results
     std::string kin_group_name;           // planning group used to solve for IK
     std::string manip_group_name;         // planning group used to calculate pose scoring
     bool get_neighbors;                   // flag for evaluating robot work area

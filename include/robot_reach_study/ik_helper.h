@@ -106,10 +106,22 @@ public:
   planning_scene::PlanningScenePtr getPlanningScene() const {return scene_ptr_;}
 
   /**
+   * @brief setNeighborRadius
+   * @param r
+   */
+  void setNeighborRadius(float r) {neighbor_radius_ = r;}
+
+  /**
    * @brief setSolutionAttempts sets the number of attempts with which to try to find a valid IK solution
    * @param n
    */
-  void setSolutionAttempts(unsigned int n) {sol_attempts_ = n;}
+  void setSolutionAttempts(int n) {sol_attempts_ = n;}
+
+  /**
+   * @brief getSolutionAttempts returns the number of attempts with which to try to find a valid IK solution
+   * @return
+   */
+  int getSolutionAttempts() {return sol_attempts_;} const
 
   /**
    * @brief setSolutionTimeout sets the timeout after which the the IK solution process will be cancelled
@@ -118,10 +130,10 @@ public:
   void setSolutionTimeout(float n) {sol_timeout_ = n;}
 
   /**
-   * @brief setNeighborRadius sets the radius with which to search for neighboring points around any given point
-   * @param r
+   * @brief getSolutionTimeout returns the timeout after which the the IK solution process will be cancelled
+   * @return
    */
-  void setNeighborRadius(float r) {neighbor_radius_ = r;}
+  float getSolutionTimeout() {return sol_timeout_;} const
 
   /**
    * @brief setKinematicJointModelGroup sets the joint model group which will be used to solve IK

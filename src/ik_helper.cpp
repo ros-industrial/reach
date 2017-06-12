@@ -7,6 +7,7 @@
 #include <ros/ros.h>
 
 const static std::string ROBOT_DESCRIPTION_TOPIC = "robot_description";
+const static std::vector<std::string> MESH_FILE_EXTENSIONS = {".stl", ".ply", ".obj"};
 
 namespace
 {
@@ -268,16 +269,25 @@ bool robot_reach_study::IkHelper::addCollisionObjectToScene(const std::string& m
 {
   // Get name of mesh for Collision object ID
   std::string object_name = mesh_filename;
-  const std::string ext = ".stl";
 
-  const size_t ext_pos = object_name.find(ext);
-  if(ext_pos == std::string::npos)
+  size_t ind = 0;
+  size_t ext_pos = std::string::npos;
+  for(size_t i = 0; i < MESH_FILE_EXTENSIONS.size(); ++i)
   {
-    ROS_FATAL("Mesh filename does not have an .stl extension");
-    return false;
+    ext_pos = object_name.find(MESH_FILE_EXTENSIONS[i]);
+    if(ext_pos != std::string::npos)
+    {
+      ind = i;
+      break;
+    }
+  }
+  if(ind == 0)
+  {
+    ROS_ERROR("Mesh file name does not contain an acceptable extension");
+    return 0;
   }
 
-  object_name.erase(ext_pos, ext.length());
+  object_name.erase(ext_pos, MESH_FILE_EXTENSIONS[ind].length());
   const size_t prefix_pos = object_name.find_last_of("/", 0);
   object_name.erase(0, prefix_pos + 1);
 

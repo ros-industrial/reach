@@ -113,8 +113,6 @@ void robot_reach_study::Database::calculateResults()
   reach_percentage_ = 100.0 * pct_success;
   total_pose_score_ = score;
   norm_total_pose_score_ = score / pct_success;
-
-  printResults();
 }
 
 void robot_reach_study::Database::printResults()

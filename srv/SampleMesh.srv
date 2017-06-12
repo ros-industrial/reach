@@ -1,6 +1,6 @@
 # Request Data
 string cloud_filename
-string world_frame
+string fixed_frame
 string object_frame
 
 ---
