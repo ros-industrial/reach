@@ -14,7 +14,7 @@ const static std::string SAVED_DB_NAME = "reach.db";
 const static std::string OPT_SAVED_DB_NAME = "optimized_reach.db";
 const static int MAX_NUM_OPT = 10;
 const static double PCT_IMPROVE_THRESHOLD = 0.01;
-const static double MAJOR_LENGTH_TO_MARKER_RATIO = 30;
+//const static double MAJOR_LENGTH_TO_MARKER_RATIO = 50;
 const static int SOLUTION_ATTEMPTS = 1;
 const static float SOLUTION_TIMEOUT = 0.02;
 
@@ -31,12 +31,18 @@ robot_reach_study::ReachStudy::ReachStudy(ros::NodeHandle& nh,
 
 void robot_reach_study::ReachStudy::init()
 {
-  // Initialize IK parameters
+  // Set the IK parameters
   helper_->setSolutionAttempts(SOLUTION_ATTEMPTS);
   helper_->setSolutionTimeout(SOLUTION_TIMEOUT);
   helper_->setNeighborRadius(sp_.optimization_radius);
   helper_->setCostFunction(static_cast<robot_reach_study::IkHelper::CostFunction>(sp_.cost_function));
   helper_->setDistanceThreshold(sp_.distance_threshold);
+
+  // Set the visualizer parameters
+  ik_visualizer_->setMarkerFrame(sp_.fixed_frame);
+//  double marker_size = utils::getMajorLength(cloud_) / MAJOR_LENGTH_TO_MARKER_RATIO;
+//  ik_visualizer_->setMarkerScale(marker_size);
+  ik_visualizer_->setMarkerScale(sp_.optimization_radius / 2.0);
 
   // Create a directory to store results of study
   dir_ = ros::package::getPath("robot_reach_study") + "/results/";
@@ -141,9 +147,6 @@ bool robot_reach_study::ReachStudy::run()
     }
 
     // Create markers
-    ik_visualizer_->setMarkerFrame(sp_.fixed_frame);
-    double marker_size = static_cast<double>(utils::getMajorLength(cloud_)) / MAJOR_LENGTH_TO_MARKER_RATIO;
-    ik_visualizer_->setMarkerScale(marker_size);
     ik_visualizer_->createReachMarkers();
     ros::spin();
   }

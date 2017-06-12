@@ -254,16 +254,22 @@ namespace utils
     return obj;
   }
 
-  inline float getMajorLength(pcl::PointCloud<pcl::PointNormal>::Ptr cloud)
+  inline double getMajorLength(pcl::PointCloud<pcl::PointNormal>::Ptr cloud)
   {
     pcl::MomentOfInertiaEstimation<pcl::PointNormal> feature_extractor;
     feature_extractor.setInputCloud(cloud);
     feature_extractor.compute();
 
-    float major_len, middle_len, minor_len;
-    feature_extractor.getEigenValues(major_len, middle_len, minor_len);
+    pcl::PointNormal min_pt, max_pt, position;
+    Eigen::Matrix3f rotation;
+    feature_extractor.getOBB(min_pt, max_pt, position, rotation);
 
-    return 2.0 * major_len;
+    std::vector<double> lengths;
+    lengths.push_back(max_pt.x - min_pt.x);
+    lengths.push_back(max_pt.y - min_pt.y);
+    lengths.push_back(max_pt.z - min_pt.z);
+
+    return *(std::max_element(lengths.begin(), lengths.end()));
   }
 
 }
