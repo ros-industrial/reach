@@ -1,5 +1,6 @@
 fixed_frame:
 object_frame:
+results_directory:
 
 reach_object:
   mesh_filename:

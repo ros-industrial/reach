@@ -45,7 +45,15 @@ void robot_reach_study::ReachStudy::init()
   ik_visualizer_->setMarkerScale(sp_.optimization_radius / 2.0);
 
   // Create a directory to store results of study
-  dir_ = ros::package::getPath("robot_reach_study") + "/results/";
+  if(!sp_.results_directory.empty() && boost::filesystem::exists(sp_.results_directory.c_str()))
+  {
+    dir_ = sp_.results_directory + "/";
+  }
+  else
+  {
+    dir_ = ros::package::getPath("robot_reach_study") + "/results/";
+    ROS_WARN("Using default results file directory: %s", dir_.c_str());
+  }
   results_dir_ =  dir_ + sp_.config_name + "/";
   const char* char_dir = results_dir_.c_str();
 

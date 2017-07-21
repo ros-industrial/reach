@@ -281,10 +281,10 @@ bool robot_reach_study::IkHelper::addCollisionObjectToScene(const std::string& m
       break;
     }
   }
-  if(ind == 0)
+  if(ext_pos == std::string::npos)
   {
     ROS_ERROR("Mesh file name does not contain an acceptable extension");
-    return 0;
+    return false;
   }
 
   object_name.erase(ext_pos, MESH_FILE_EXTENSIONS[ind].length());

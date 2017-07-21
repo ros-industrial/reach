@@ -16,6 +16,12 @@ bool getStudyParameters(ros::NodeHandle& nh,
     return false;
   }
 
+  if(!nh.getParam("results_directory", sp.results_directory))
+  {
+    ROS_WARN("'results_directory' parameter not set; using default file location");
+    sp.results_directory = "";
+  }
+
   if(!nh.getParam("object_frame", sp.object_frame))
   {
     ROS_ERROR("'object_frame' parameter must be set");
@@ -66,18 +72,18 @@ bool getStudyParameters(ros::NodeHandle& nh,
 
   if(!nh.getParam("constraints/compare_dbs", sp.compare_dbs))
   {
-    ROS_ERROR("'constraints/compare_dbs' parameter not set. No databases will be compared");
+    ROS_WARN("'constraints/compare_dbs' parameter not set. No databases will be compared");
   }
 
   if(!nh.getParam("constraints/cost_function", sp.cost_function))
   {
-    ROS_ERROR("'constraints/cost_function' parameter not set. Defaulting to manipulability only cost function");
+    ROS_WARN("'constraints/cost_function' parameter not set. Defaulting to manipulability only cost function");
     sp.cost_function = 0;
   }
 
   if(!nh.getParam("/visualize_results", sp.visualize_results))
   {
-    ROS_ERROR("'/visualize_results' parameter not set; reach study results will not be visualized.");
+    ROS_WARN("'/visualize_results' parameter not set; reach study results will not be visualized.");
     sp.visualize_results = false;
   }
 

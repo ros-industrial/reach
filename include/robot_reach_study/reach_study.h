@@ -14,19 +14,20 @@ namespace robot_reach_study
    */
   struct StudyParams
   {
-    std::string config_name;              // reach study configuration name
-    std::string fixed_frame;              // root, fixed frame of the URDF
-    std::string object_frame;             // frame of the reach object in the URDF
-    std::string mesh_filename;            // filename which contains the reach object mesh
-    std::string pcd_filename;             // filename which contains the point cloud representation of the reach object
-    float optimization_radius;            // The radius around a given point which identifies neighboring points used to optimize the reach study results
-    std::string kin_group_name;           // planning group used to solve for IK
-    std::string manip_group_name;         // planning group used to calculate pose scoring
-    bool get_neighbors;                   // flag for evaluating robot work area
-    bool visualize_results;               // flag for publishing reach study data/markers for Rviz
-    std::vector<std::string> compare_dbs; // list of database names with which to compare to the current database
-    int cost_function;                    // enumeration defining the method used to score robot poses
-    float distance_threshold;             // minimum distance from collision that the robot must be for the IK solution to be considered valid
+    std::string config_name;              /** @brief reach study configuration name **/
+    std::string fixed_frame;              /** @brief root, fixed frame of the URDF **/
+    std::string results_directory;        /** @brief directory in which the study results will be saved **/
+    std::string object_frame;             /** @brief frame of the reach object in the URDF **/
+    std::string mesh_filename;            /** @brief filename which contains the reach object mesh **/
+    std::string pcd_filename;             /** @brief filename which contains the point cloud representation of the reach object **/
+    float optimization_radius;            /** @brief The radius around a given point which identifies neighboring points used to optimize the reach study results **/
+    std::string kin_group_name;           /** @brief planning group used to solve for IK **/
+    std::string manip_group_name;         /** @brief planning group used to calculate pose scoring **/
+    bool get_neighbors;                   /** @brief flag for evaluating robot work area **/
+    bool visualize_results;               /** @brief flag for publishing reach study data/markers for Rviz **/
+    std::vector<std::string> compare_dbs; /** @brief list of database names with which to compare to the current database **/
+    int cost_function;                    /** @brief enumeration defining the method used to score robot poses **/
+    float distance_threshold;             /** @brief minimum distance from collision that the robot must be for the IK solution to be considered valid **/
   };
 
   /**
