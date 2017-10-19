@@ -13,9 +13,12 @@ const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
 const static float RE_SOLVE_IK_ATTEMPTS = 3;
 const static float RE_SOLVE_IK_TIMEOUT = 0.2;
 
-robot_reach_study::InteractiveIK::InteractiveIK(ros::NodeHandle& nh,
-                                                std::shared_ptr<robot_reach_study::Database>& db,
-                                                std::shared_ptr<robot_reach_study::IkHelper>& ik_helper)
+namespace robot_reach_study
+{
+
+InteractiveIK::InteractiveIK(ros::NodeHandle& nh,
+                                                std::shared_ptr<Database>& db,
+                                                std::shared_ptr<IkHelper>& ik_helper)
   : server_{INTERACTIVE_MARKER_TOPIC, "", false}
 {
   // Generate interactive marker
@@ -45,7 +48,7 @@ robot_reach_study::InteractiveIK::InteractiveIK(ros::NodeHandle& nh,
   scene_pub_ = nh.advertise<moveit_msgs::PlanningScene>(PLANNING_SCENE_TOPIC, 1, true);
 }
 
-void robot_reach_study::InteractiveIK::createReachMarkers()
+void InteractiveIK::createReachMarkers()
 {
   for (const auto& m : *db_)
   {
@@ -54,12 +57,12 @@ void robot_reach_study::InteractiveIK::createReachMarkers()
   server_.applyChanges();
 }
 
-void robot_reach_study::InteractiveIK::publishScene(const moveit_msgs::PlanningScene& msg)
+void InteractiveIK::publishScene(const moveit_msgs::PlanningScene& msg)
 {
   scene_pub_.publish(msg);
 }
 
-void robot_reach_study::InteractiveIK::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void InteractiveIK::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -113,7 +116,7 @@ void robot_reach_study::InteractiveIK::reSolveIKCB(const visualization_msgs::Int
   }
 }
 
-void robot_reach_study::InteractiveIK::showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void InteractiveIK::showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -126,7 +129,7 @@ void robot_reach_study::InteractiveIK::showResultCB(const visualization_msgs::In
   }
 }
 
-void robot_reach_study::InteractiveIK::showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void InteractiveIK::showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -139,7 +142,7 @@ void robot_reach_study::InteractiveIK::showSeedCB(const visualization_msgs::Inte
   }
 }
 
-void robot_reach_study::InteractiveIK::reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void InteractiveIK::reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if(!lookup)
@@ -147,7 +150,7 @@ void robot_reach_study::InteractiveIK::reachNeighborsDirectCB(const visualizatio
     ROS_ERROR("Object does not exist in database");
   }
 
-  robot_reach_study::ReachRecord& reach_record = *lookup;
+  ReachRecord& reach_record = *lookup;
   std::vector<std::string> reached_pts = ik_helper_->reachNeighborsDirect(db_, reach_record);
 
   publishMarkerArray(reached_pts);
@@ -155,7 +158,7 @@ void robot_reach_study::InteractiveIK::reachNeighborsDirectCB(const visualizatio
   showResultCB(fb);
 }
 
-void robot_reach_study::InteractiveIK::reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void InteractiveIK::reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if(!lookup)
@@ -163,7 +166,7 @@ void robot_reach_study::InteractiveIK::reachNeighborsRecursiveCB(const visualiza
     ROS_ERROR("Object does not exist in database");
   }
 
-  robot_reach_study::ReachRecord& rec = *lookup;
+  ReachRecord& rec = *lookup;
   std::vector<std::string> reached_pts;
   double joint_distance = 0.0;
 
@@ -179,7 +182,7 @@ void robot_reach_study::InteractiveIK::reachNeighborsRecursiveCB(const visualiza
   showResultCB(fb);
 }
 
-void robot_reach_study::InteractiveIK::reachDiffVisualizer(std::vector<std::pair<std::string, std::shared_ptr<robot_reach_study::Database>>> data)
+void InteractiveIK::reachDiffVisualizer(std::vector<std::pair<std::string, std::shared_ptr<Database>>> data)
 {
 
   const int db_num = static_cast<int>(data.size());
@@ -234,11 +237,11 @@ void robot_reach_study::InteractiveIK::reachDiffVisualizer(std::vector<std::pair
   for(int i = 0; i < data[0].second->count(); ++i)
   {
     // Get the reach record message for the current point from each database
-    std::vector<robot_reach_study::ReachRecord> msgs;
+    std::vector<ReachRecord> msgs;
     for(int j = 0; j < db_num; ++j)
     {
       std::string msg_id = std::to_string(i);
-      boost::optional<robot_reach_study::ReachRecord> msg = data[j].second->get(msg_id);
+      boost::optional<ReachRecord> msg = data[j].second->get(msg_id);
       msgs.push_back(*msg);
     }
 
@@ -262,7 +265,7 @@ void robot_reach_study::InteractiveIK::reachDiffVisualizer(std::vector<std::pair
   diff_pub_.publish(marker_array);
 }
 
-void robot_reach_study::InteractiveIK::publishMarkerArray(std::vector<std::string>& msg_ids)
+void InteractiveIK::publishMarkerArray(std::vector<std::string>& msg_ids)
 {
   std::vector<geometry_msgs::Point> pt_array;
   if(msg_ids.size() > 0)
@@ -270,7 +273,7 @@ void robot_reach_study::InteractiveIK::publishMarkerArray(std::vector<std::strin
     for (auto it = msg_ids.begin(); it != msg_ids.end(); ++it)
     {
       // Update the interactive markers that have changed
-      robot_reach_study::ReachRecord msg = *db_->get(*it);
+      ReachRecord msg = *db_->get(*it);
       addRecord(msg);
 
       // Visualize points reached around input point
@@ -288,10 +291,12 @@ void robot_reach_study::InteractiveIK::publishMarkerArray(std::vector<std::strin
   neighbor_pub_.publish(pt_marker);
 }
 
-void robot_reach_study::InteractiveIK::addRecord(const robot_reach_study::ReachRecord &rec)
+void InteractiveIK::addRecord(const ReachRecord &rec)
 {
   auto id = rec.id;
   auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
   server_.insert(marker);
   menu_handler_.apply(server_, id);
 }
+
+} // namespace robot_reach_study
