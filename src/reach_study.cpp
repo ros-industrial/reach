@@ -17,25 +17,29 @@ const static double PCT_IMPROVE_THRESHOLD = 0.01;
 //const static double MAJOR_LENGTH_TO_MARKER_RATIO = 50;
 const static int SOLUTION_ATTEMPTS = 1;
 const static float SOLUTION_TIMEOUT = 0.02;
+const static double DISCRETIZATION_ANGLE = 10.0f * (M_PI / 180.0f);
 
-robot_reach_study::ReachStudy::ReachStudy(ros::NodeHandle& nh,
-                                          robot_reach_study::StudyParams& sp)
+namespace robot_reach_study
+{
+
+ReachStudy::ReachStudy(ros::NodeHandle& nh,
+                       StudyParams& sp)
 {
   nh_ = nh;
   sp_ = sp;
-  helper_.reset(new robot_reach_study::IkHelper (sp_.kin_group_name, sp_.manip_group_name));
-  db_.reset(new robot_reach_study::Database);
-  ik_visualizer_.reset(new robot_reach_study::InteractiveIK (nh_, db_, helper_));
+  helper_.reset(new IkHelper (sp_.kin_group_name, sp_.manip_group_name));
+  db_.reset(new Database);
+  ik_visualizer_.reset(new InteractiveIK (nh_, db_, helper_));
   cloud_.reset(new pcl::PointCloud<pcl::PointNormal> ());
 }
 
-void robot_reach_study::ReachStudy::init()
+void ReachStudy::init()
 {
   // Set the IK parameters
   helper_->setSolutionAttempts(SOLUTION_ATTEMPTS);
   helper_->setSolutionTimeout(SOLUTION_TIMEOUT);
   helper_->setNeighborRadius(sp_.optimization_radius);
-  helper_->setCostFunction(static_cast<robot_reach_study::IkHelper::CostFunction>(sp_.cost_function));
+  helper_->setCostFunction(static_cast<IkHelper::CostFunction>(sp_.cost_function));
   helper_->setDistanceThreshold(sp_.distance_threshold);
 
   // Set the visualizer parameters
@@ -64,7 +68,7 @@ void robot_reach_study::ReachStudy::init()
   }
 }
 
-bool robot_reach_study::ReachStudy::run()
+bool ReachStudy::run()
 {
   // Initialize the study
   init();
@@ -162,12 +166,12 @@ bool robot_reach_study::ReachStudy::run()
   return true;
 }
 
-bool robot_reach_study::ReachStudy::getReachObjectPointCloud()
+bool ReachStudy::getReachObjectPointCloud()
 {
   // Call the sample mesh service to create a point cloud of the reach object mesh
-  ros::ServiceClient client = nh_.serviceClient<robot_reach_study::SampleMesh>(SAMPLE_MESH_SRV_TOPIC);
+  ros::ServiceClient client = nh_.serviceClient<SampleMesh>(SAMPLE_MESH_SRV_TOPIC);
 
-  robot_reach_study::SampleMesh srv;
+  SampleMesh srv;
   srv.request.cloud_filename = sp_.pcd_filename;
   srv.request.fixed_frame = sp_.fixed_frame;
   srv.request.object_frame = sp_.object_frame;
@@ -190,10 +194,13 @@ bool robot_reach_study::ReachStudy::getReachObjectPointCloud()
   return true;
 }
 
-void robot_reach_study::ReachStudy::runInitialReachStudy()
+void ReachStudy::runInitialReachStudy()
 {
   // Rotation to flip the Z axis fo the surface normal point
   const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
+
+  // Calculate the number of discretizations about the tool Z axis
+  const int n_discretizations = int((2.0*M_PI) / DISCRETIZATION_ANGLE);
 
   // Loop through all points in point cloud and get IK solution
   std::atomic<int> current_counter, previous_pct;
@@ -208,29 +215,54 @@ void robot_reach_study::ReachStudy::runInitialReachStudy()
     Eigen::Affine3d tgt_frame;
     tgt_frame = utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
     tgt_frame = tgt_frame * tool_z_rot;
-    geometry_msgs::Pose tgt_pose;
-    tf::poseEigenToMsg(tgt_frame, tgt_pose);
 
-    // Create robot state objects for goal and seed to be filled by ik_helper
-    moveit::core::RobotState goal_state(helper_->getCurrentRobotState());
+    // Set the seed state for the robot
     moveit::core::RobotState seed_state(helper_->getCurrentRobotState());
 
-    // Solve IK using setfromIK
-    boost::optional<double> score = helper_->solveIKFromSeed(tgt_pose, seed_state, goal_state);
-    if(score)
+    // Set up containers for the best solution to be saved into the database
+    geometry_msgs::Pose best_tgt_pose;
+    tf::poseEigenToMsg(tgt_frame, best_tgt_pose);
+    moveit::core::RobotState best_goal_state (helper_->getCurrentRobotState());
+    double best_score = 0;
+
+    for(int j = 0; j < n_discretizations; ++j)
     {
-      auto msg = robot_reach_study::makeRecordSuccess(std::to_string(i), tgt_pose, seed_state, goal_state, *score);
+      Eigen::Affine3d discr_tgt_frame (tgt_frame * Eigen::AngleAxisd (double(j)*DISCRETIZATION_ANGLE, Eigen::Vector3d::UnitZ()));
+
+      geometry_msgs::Pose tgt_pose;
+      tf::poseEigenToMsg(discr_tgt_frame, tgt_pose);
+
+      // Create robot state objects for goal and seed to be filled by ik_helper
+      moveit::core::RobotState goal_state(helper_->getCurrentRobotState());
+
+      // Solve IK using setfromIK
+      boost::optional<double> score = helper_->solveIKFromSeed(tgt_pose, seed_state, goal_state);
+      if(score && (score.get() > best_score))
+      {
+        best_score = *score;
+        best_goal_state = goal_state;
+        best_tgt_pose = tgt_pose;
+      }
+      else
+      {
+        continue;
+      }
+    }
+
+    if(best_score > 0)
+    {
+      auto msg = makeRecord(std::to_string(i), true, best_tgt_pose, seed_state, best_goal_state, best_score);
       db_->put(msg);
     }
     else
     {
-      auto msg = robot_reach_study::makeRecordFailure(std::to_string(i), tgt_pose, seed_state, 0.0);
+      auto msg = makeRecord(std::to_string(i), false, best_tgt_pose, seed_state, best_goal_state, best_score);
       db_->put(msg);
     }
 
     // Print function progress
     current_counter++;
-    robot_reach_study::utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
+    utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
   }
 
   // Save the results of the reach study to a database that we can query later
@@ -238,7 +270,7 @@ void robot_reach_study::ReachStudy::runInitialReachStudy()
   db_->save(results_dir_ + SAVED_DB_NAME);
 }
 
-void robot_reach_study::ReachStudy::optimizeReachStudyResults()
+void ReachStudy::optimizeReachStudyResults()
 {
   ROS_INFO("----------------------");
   ROS_INFO("Beginning optimization");
@@ -270,7 +302,7 @@ void robot_reach_study::ReachStudy::optimizeReachStudyResults()
     #pragma parallel for
     for(std::size_t i = 0; i < rand_vec.size(); ++i)
     {
-      robot_reach_study::ReachRecord msg = *(db_->get(std::to_string(rand_vec[i])));
+      ReachRecord msg = *(db_->get(std::to_string(rand_vec[i])));
       if(msg.reached)
       {
         std::vector<std::string> score = helper_->reachNeighborsDirect(db_, msg);
@@ -278,7 +310,7 @@ void robot_reach_study::ReachStudy::optimizeReachStudyResults()
 
       // Print function progress
       current_counter++;
-      robot_reach_study::utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
+      utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
     }
 
     // Recalculate optimized reach study results
@@ -296,7 +328,7 @@ void robot_reach_study::ReachStudy::optimizeReachStudyResults()
   ROS_INFO("Optimization concluded");
 }
 
-void robot_reach_study::ReachStudy::getAverageNeighborsCount()
+void ReachStudy::getAverageNeighborsCount()
 {
   ROS_INFO("--------------------------------------------");
   ROS_INFO("Beginning average neighbor count calculation");
@@ -313,7 +345,7 @@ void robot_reach_study::ReachStudy::getAverageNeighborsCount()
   #pragma parallel for
   for(int i = 0; i < db_->count(); ++i)
   {
-    boost::optional<robot_reach_study::ReachRecord> msg = db_->get(std::to_string(i));
+    boost::optional<ReachRecord> msg = db_->get(std::to_string(i));
     if(msg && msg->reached)
     {
       std::vector<std::string> reached_pts;
@@ -325,7 +357,7 @@ void robot_reach_study::ReachStudy::getAverageNeighborsCount()
 
     // Print function progress
     ++ current_counter;
-    robot_reach_study::utils::integerProgressPrinter(current_counter, previous_pct, total);
+    utils::integerProgressPrinter(current_counter, previous_pct, total);
   }
 
   float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->count());
@@ -342,7 +374,7 @@ void robot_reach_study::ReachStudy::getAverageNeighborsCount()
   db_->save(results_dir_ + OPT_SAVED_DB_NAME);
 }
 
-bool robot_reach_study::ReachStudy::compareDatabases()
+bool ReachStudy::compareDatabases()
 {
   // Add the newly created database to the list if it isn't already there
   if(std::find(sp_.compare_dbs.begin(), sp_.compare_dbs.end(), sp_.config_name) == sp_.compare_dbs.end())
@@ -358,16 +390,16 @@ bool robot_reach_study::ReachStudy::compareDatabases()
   }
 
   // Load databases to be compared
-  std::vector<std::pair<std::string, std::shared_ptr<robot_reach_study::Database>>> data;
+  std::vector<std::pair<std::string, std::shared_ptr<Database>>> data;
   for(size_t i = 0; i < db_filenames.size(); ++i)
   {
-    std::shared_ptr<robot_reach_study::Database> db (new robot_reach_study::Database);
+    std::shared_ptr<Database> db (new Database);
     if(!db->load(db_filenames[i]))
     {
       ROS_ERROR("Cannot load database at:\n %s", db_filenames[i].c_str());
       continue;
     }
-    std::pair<std::string, std::shared_ptr<robot_reach_study::Database>> pair (sp_.compare_dbs[i], db);
+    std::pair<std::string, std::shared_ptr<Database>> pair (sp_.compare_dbs[i], db);
     data.push_back(pair);
   }
 
@@ -381,3 +413,5 @@ bool robot_reach_study::ReachStudy::compareDatabases()
 
   return true;
 }
+
+} // namespace robot_reach_study
