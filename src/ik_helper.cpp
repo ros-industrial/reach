@@ -11,50 +11,55 @@ const static std::vector<std::string> MESH_FILE_EXTENSIONS = {".stl", ".ply", ".
 
 namespace
 {
-  double getManipulability(const moveit::core::RobotState& state,
-                           const moveit::core::JointModelGroup* jmg)
+
+double getManipulability(const moveit::core::RobotState& state,
+                         const moveit::core::JointModelGroup* jmg)
+{
+  // Calculate manipulability of kinematic chain of input robot state
+  // Create new robot state to avoid dirty link transforms
+  moveit::core::RobotState temp_state(state);
+
+  // Get the Jacobian matrix
+  Eigen::MatrixXd jacobian = temp_state.getJacobian(jmg);
+
+  // Calculate manipulability by multiplying Jacobian matrix singular values together
+  Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
+  Eigen::MatrixXd singular_values = svd.singularValues();
+  double m = 1.0;
+  for(unsigned int i = 0; i < singular_values.rows(); ++i)
   {
-    // Calculate manipulability of kinematic chain of input robot state
-    // Create new robot state to avoid dirty link transforms
-    moveit::core::RobotState temp_state(state);
-
-    // Get the Jacobian matrix
-    Eigen::MatrixXd jacobian = temp_state.getJacobian(jmg);
-
-    // Calculate manipulability by multiplying Jacobian matrix singular values together
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
-    Eigen::MatrixXd singular_values = svd.singularValues();
-    double m = 1.0;
-    for(unsigned int i = 0; i < singular_values.rows(); ++i)
-    {
-      m *= singular_values(i, 0);
-    }
-    return m;
+    m *= singular_values(i, 0);
   }
-
-  double getJointPenalty(const moveit::core::RobotState& state,
-                         const moveit::core::JointModelGroup* jmg,
-                         std::vector<std::vector<double>>& joint_limits)
-  {
-    std::vector<double> max, min, current;
-    min = joint_limits[0];
-    max = joint_limits[1];
-
-    // Get current joint values in jmg chain
-    moveit::core::RobotState temp_state(state);
-    temp_state.copyJointGroupPositions(jmg, current);
-
-    double penalty = 1.0;
-    for(std::size_t i = 0; i < max.size(); ++i)
-    {
-      double range = max[i] - min[i];
-      penalty *= ((current[i] - min[i])*(max[i] - current[i])) / pow(range, 2);
-    }
-    return std::max(0.0, 1.0 - exp(-1.0 * penalty));
-  }
+  return m;
 }
 
-robot_reach_study::IkHelper::IkHelper(const std::string kin_group_name,
+double getJointPenalty(const moveit::core::RobotState& state,
+                       const moveit::core::JointModelGroup* jmg,
+                       std::vector<std::vector<double>>& joint_limits)
+{
+  std::vector<double> max, min, current;
+  min = joint_limits[0];
+  max = joint_limits[1];
+
+  // Get current joint values in jmg chain
+  moveit::core::RobotState temp_state(state);
+  temp_state.copyJointGroupPositions(jmg, current);
+
+  double penalty = 1.0;
+  for(std::size_t i = 0; i < max.size(); ++i)
+  {
+    double range = max[i] - min[i];
+    penalty *= ((current[i] - min[i])*(max[i] - current[i])) / pow(range, 2);
+  }
+  return std::max(0.0, 1.0 - exp(-1.0 * penalty));
+}
+
+} // anonymous namespace
+
+namespace robot_reach_study
+{
+
+IkHelper::IkHelper(const std::string kin_group_name,
                                       const std::string manip_group_name)
 {
   model_loader_ = robot_model_loader::RobotModelLoaderPtr(new robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_TOPIC));
@@ -69,9 +74,9 @@ robot_reach_study::IkHelper::IkHelper(const std::string kin_group_name,
   constraint_ = boost::bind(&IkHelper::isIKSolutionValid, this, _1, _2, _3);
 }
 
-boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geometry_msgs::Pose& tgt_pose,
-                                                                     moveit::core::RobotState& seed_state,
-                                                                     moveit::core::RobotState& goal_state)
+boost::optional<double> IkHelper::solveIKFromSeed(const geometry_msgs::Pose& tgt_pose,
+                                                  const moveit::core::RobotState& seed_state,
+                                                  moveit::core::RobotState& goal_state)
 {
   goal_state = seed_state;
   if(goal_state.setFromIK(kin_jmgroup_, tgt_pose, sol_attempts_, sol_timeout_, constraint_))
@@ -117,8 +122,56 @@ boost::optional<double> robot_reach_study::IkHelper::solveIKFromSeed(const geome
   return {};
 }
 
-std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::shared_ptr<robot_reach_study::Database>& db,
-                                                                           const robot_reach_study::ReachRecord& rec)
+boost::optional<double> IkHelper::solveDiscretizedIKFromSeed(const Eigen::Affine3d& tgt_frame,
+                                                             const double discretization_angle,
+                                                             const moveit::core::RobotState& seed_state,
+                                                             moveit::core::RobotState& goal_state)
+{
+  // Calculate the number of discretizations necessary to achieve discretization angle
+  const int n_discretizations = int((2.0*M_PI) / discretization_angle);
+
+  // Set up containers for the best solution to be saved into the database
+  geometry_msgs::Pose best_tgt_pose;
+  tf::poseEigenToMsg(tgt_frame, best_tgt_pose);
+  moveit::core::RobotState best_goal_state = seed_state;
+  double best_score = 0;
+
+  for(int i = 0; i < n_discretizations; ++i)
+  {
+    moveit::core::RobotState tmp_goal_state (seed_state);
+    Eigen::Affine3d discr_tgt_frame (tgt_frame * Eigen::AngleAxisd (double(i)*discretization_angle, Eigen::Vector3d::UnitZ()));
+
+    geometry_msgs::Pose discr_tgt_pose;
+    tf::poseEigenToMsg(discr_tgt_frame, discr_tgt_pose);
+
+    // Solve IK using setfromIK
+    boost::optional<double> score = solveIKFromSeed(discr_tgt_pose, seed_state, tmp_goal_state);
+    if(score && (score.get() > best_score))
+    {
+      best_score = *score;
+      best_goal_state = tmp_goal_state;
+      best_tgt_pose = discr_tgt_pose;
+    }
+    else
+    {
+      continue;
+    }
+  }
+
+  if(best_score > 0)
+  {
+    goal_state = best_goal_state;
+    return boost::optional<double>(best_score);
+  }
+  else
+  {
+    goal_state = seed_state;
+    return {};
+  }
+}
+
+std::vector<std::string> IkHelper::reachNeighborsDirect(std::shared_ptr<Database>& db,
+                                                        const ReachRecord& rec)
 {
   // Initialize return array of string IDs of msgs that have been updated
   std::vector<std::string> msg_ids;
@@ -130,13 +183,13 @@ std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::
 
   // Create vectors for storing poses and reach record messages that lie within radius of current point
   std::vector<geometry_msgs::Pose> pose_arr;
-  std::vector<robot_reach_study::ReachRecord> reach_records;
+  std::vector<ReachRecord> reach_records;
 
   // Iterate through all points in database to find those that lie within radius of current point
   for(auto it = db->begin(); it != db->end(); ++it)
   {
     auto& entry = *it;
-    const robot_reach_study::ReachRecord msg_object = entry.second;
+    const ReachRecord msg_object = entry.second;
     const geometry_msgs::Pose it_pose (msg_object.goal);
 
     float xp = it_pose.position.x;
@@ -170,7 +223,7 @@ std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::
       {
         // Change database if currently solved point didn't have solution before
         // or if its current manipulability is better than that saved in the databas
-        robot_reach_study::ReachRecord msg = reach_records[i];
+        ReachRecord msg = reach_records[i];
 
         if(!msg.reached || (*score > msg.score))
         {
@@ -190,10 +243,10 @@ std::vector<std::string> robot_reach_study::IkHelper::reachNeighborsDirect(std::
   return msg_ids;
 }
 
-void robot_reach_study::IkHelper::reachNeighborsRecursive(std::shared_ptr<robot_reach_study::Database>& db,
-                                                          const robot_reach_study::ReachRecord& rec,
-                                                          std::vector<std::string>& reached_pts,
-                                                          double& joint_distance)
+void IkHelper::reachNeighborsRecursive(std::shared_ptr<Database>& db,
+                                       const ReachRecord& rec,
+                                       std::vector<std::string>& reached_pts,
+                                       double& joint_distance)
 {
   // Add the current point to the output list of msg IDs
   reached_pts.push_back(rec.id);
@@ -204,13 +257,13 @@ void robot_reach_study::IkHelper::reachNeighborsRecursive(std::shared_ptr<robot_
   const float z = rec.goal.position.z;
 
   // Create vectors for storing reach record messages that lie within radius of current point
-  std::vector<robot_reach_study::ReachRecord> neighbors;
+  std::vector<ReachRecord> neighbors;
 
   // Iterate through all points in database to find those that lie within radius of current point
   for(auto it = db->begin(); it != db->end(); ++it)
   {
     auto& entry = *it;
-    const robot_reach_study::ReachRecord tmp_rec = entry.second;
+    const ReachRecord tmp_rec = entry.second;
 
     float xp = tmp_rec.goal.position.x;
     float yp = tmp_rec.goal.position.y;
@@ -247,7 +300,7 @@ void robot_reach_study::IkHelper::reachNeighborsRecursive(std::shared_ptr<robot_
           joint_distance += new_goal_state.distance(current_state);
 
           // Store information in new reach record object
-          robot_reach_study::ReachRecord new_rec;
+          ReachRecord new_rec;
           new_rec.id = neighbors[i].id;
           new_rec.goal = neighbors[i].goal;
           moveit::core::robotStateToRobotStateMsg(new_goal_state, new_rec.goal_state);
@@ -263,9 +316,9 @@ void robot_reach_study::IkHelper::reachNeighborsRecursive(std::shared_ptr<robot_
   }
 }
 
-bool robot_reach_study::IkHelper::addCollisionObjectToScene(const std::string& mesh_filename,
-                                                            const std::string& parent_link,
-                                                            const std::vector<std::string>& touch_links)
+bool IkHelper::addCollisionObjectToScene(const std::string& mesh_filename,
+                                         const std::string& parent_link,
+                                         const std::vector<std::string>& touch_links)
 {
   // Get name of mesh for Collision object ID
   std::string object_name = mesh_filename;
@@ -292,7 +345,7 @@ bool robot_reach_study::IkHelper::addCollisionObjectToScene(const std::string& m
   object_name.erase(0, prefix_pos + 1);
 
   // Create a CollisionObject message for the reach object
-  moveit_msgs::CollisionObject obj = robot_reach_study::utils::createCollisionObject(mesh_filename, parent_link, touch_links, object_name);
+  moveit_msgs::CollisionObject obj = utils::createCollisionObject(mesh_filename, parent_link, touch_links, object_name);
   if(scene_ptr_->processCollisionObjectMsg(obj))
   {
     // Update the allowed collision matrix
@@ -303,16 +356,16 @@ bool robot_reach_study::IkHelper::addCollisionObjectToScene(const std::string& m
   return false;
 }
 
-bool robot_reach_study::IkHelper::isIKSolutionValid(moveit::core::RobotState* state,
-                                                     const moveit::core::JointModelGroup* jmg,
-                                                     const double* ik_solution) const
+bool IkHelper::isIKSolutionValid(moveit::core::RobotState* state,
+                                 const moveit::core::JointModelGroup* jmg,
+                                 const double* ik_solution) const
 {
   state->setJointGroupPositions(jmg, ik_solution);
   state->update();
   return !scene_ptr_->isStateColliding(*state, jmg->getName(), false);
 }
 
-std::vector<std::vector<double>> robot_reach_study::IkHelper::getJointLimits(const moveit::core::JointModelGroup* jmg)
+std::vector<std::vector<double>> IkHelper::getJointLimits(const moveit::core::JointModelGroup* jmg)
 {
   std::vector<double> max, min;
   // Get joint limits
@@ -332,3 +385,5 @@ std::vector<std::vector<double>> robot_reach_study::IkHelper::getJointLimits(con
   joint_limits.push_back(max);
   return joint_limits;
 }
+
+} // namespace robot_reach_study

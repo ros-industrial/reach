@@ -199,9 +199,6 @@ void ReachStudy::runInitialReachStudy()
   // Rotation to flip the Z axis fo the surface normal point
   const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
 
-  // Calculate the number of discretizations about the tool Z axis
-  const int n_discretizations = int((2.0*M_PI) / DISCRETIZATION_ANGLE);
-
   // Loop through all points in point cloud and get IK solution
   std::atomic<int> current_counter, previous_pct;
   current_counter = previous_pct = 0;
@@ -216,47 +213,23 @@ void ReachStudy::runInitialReachStudy()
     tgt_frame = utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
     tgt_frame = tgt_frame * tool_z_rot;
 
-    // Set the seed state for the robot
+    // Create robot state objects for goal and seed to be filled by ik_helper
     moveit::core::RobotState seed_state(helper_->getCurrentRobotState());
+    moveit::core::RobotState goal_state(helper_->getCurrentRobotState());
 
-    // Set up containers for the best solution to be saved into the database
-    geometry_msgs::Pose best_tgt_pose;
-    tf::poseEigenToMsg(tgt_frame, best_tgt_pose);
-    moveit::core::RobotState best_goal_state (helper_->getCurrentRobotState());
-    double best_score = 0;
+    // Solve IK using setfromIKDiscretized
+    boost::optional<double> score = helper_->solveDiscretizedIKFromSeed(tgt_frame, DISCRETIZATION_ANGLE, seed_state, goal_state);
+    geometry_msgs::Pose tgt_pose;
+    tf::poseEigenToMsg(tgt_frame, tgt_pose);
 
-    for(int j = 0; j < n_discretizations; ++j)
+    if(score)
     {
-      Eigen::Affine3d discr_tgt_frame (tgt_frame * Eigen::AngleAxisd (double(j)*DISCRETIZATION_ANGLE, Eigen::Vector3d::UnitZ()));
-
-      geometry_msgs::Pose tgt_pose;
-      tf::poseEigenToMsg(discr_tgt_frame, tgt_pose);
-
-      // Create robot state objects for goal and seed to be filled by ik_helper
-      moveit::core::RobotState goal_state(helper_->getCurrentRobotState());
-
-      // Solve IK using setfromIK
-      boost::optional<double> score = helper_->solveIKFromSeed(tgt_pose, seed_state, goal_state);
-      if(score && (score.get() > best_score))
-      {
-        best_score = *score;
-        best_goal_state = goal_state;
-        best_tgt_pose = tgt_pose;
-      }
-      else
-      {
-        continue;
-      }
-    }
-
-    if(best_score > 0)
-    {
-      auto msg = makeRecord(std::to_string(i), true, best_tgt_pose, seed_state, best_goal_state, best_score);
+      auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
       db_->put(msg);
     }
     else
     {
-      auto msg = makeRecord(std::to_string(i), false, best_tgt_pose, seed_state, best_goal_state, best_score);
+      auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0f);
       db_->put(msg);
     }
 
