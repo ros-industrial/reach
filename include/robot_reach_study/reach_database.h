@@ -10,6 +10,13 @@
 namespace robot_reach_study
 {
 
+ReachRecord makeRecord(const std::string& id,
+                       const bool reached,
+                       const geometry_msgs::Pose& goal,
+                       const moveit::core::RobotState& seed_state,
+                       const moveit::core::RobotState& goal_state,
+                       const double score);
+
 /**
  * @brief makeRecordSuccess creates a ReachRecord message for the successful solution of the robot's IK for a given target pose
  * @param id
@@ -19,11 +26,11 @@ namespace robot_reach_study
  * @param score
  * @return a ReachRecord message containing information about the robot pose, to be saved in the reach database
  */
-robot_reach_study::ReachRecord makeRecordSuccess(const std::string& id,
-                                                 const geometry_msgs::Pose& goal,
-                                                 const moveit::core::RobotState& seed_state,
-                                                 const moveit::core::RobotState& goal_state,
-                                                 const double score);
+ReachRecord makeRecordSuccess(const std::string& id,
+                              const geometry_msgs::Pose& goal,
+                              const moveit::core::RobotState& seed_state,
+                              const moveit::core::RobotState& goal_state,
+                              const double score);
 
 /**
  * @brief makeRecordFailure creates a ReachRecord message for the unsuccessful solution of the robot's IK for a given target pose
@@ -33,10 +40,10 @@ robot_reach_study::ReachRecord makeRecordSuccess(const std::string& id,
  * @param score
  * @return a ReachRecord message containing informatino about the robot pose, to be saved in the reach database
  */
-robot_reach_study::ReachRecord makeRecordFailure(const std::string& id,
-                                                 const geometry_msgs::Pose& goal,
-                                                 const moveit::core::RobotState& seed_state,
-                                                 const double score);
+ReachRecord makeRecordFailure(const std::string& id,
+                              const geometry_msgs::Pose& goal,
+                              const moveit::core::RobotState& seed_state,
+                              const double score);
 
 /**
  * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database also saves
