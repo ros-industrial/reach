@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <robot_reach_study/reach_study.h>
+#include <robot_reach_study/study.h>
 
 bool getStudyParameters(ros::NodeHandle& nh,
                         robot_reach_study::StudyParams& sp)

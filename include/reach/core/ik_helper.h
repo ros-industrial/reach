@@ -1,14 +1,18 @@
-#ifndef IK_HELPER_H
-#define IK_HELPER_H
+#ifndef REACH_CORE_IK_HELPER_H
+#define REACH_CORE_IK_HELPER_H
+
+#include <reach/core/reach_database.h>
+#include <reach/core/study_parameters.h>
 
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <boost/optional.hpp>
-#include <robot_reach_study/reach_database.h>
 #include <ros/ros.h>
 
-namespace robot_reach_study
+namespace reach
+{
+namespace core
 {
 
 /**
@@ -27,19 +31,6 @@ public:
    */
   IkHelper(const std::string kin_group_name,
            const std::string manip_group_name);
-
-  /**
-   * @brief The CostFunction enumeration defines which quantities are used to optimize the results of the reach study
-   */
-  enum CostFunction
-  {
-    M = 0,          // Manipulability
-    M_JP = 1,       // Manipulability and Joint Penalty
-    M_JP_DP = 2,    // Manipulability, Joint Penalty, and Distance Penalty
-    M_DP = 3,       // Manipulability and Distance Penalty
-    M_DP_DT = 4,    // Manipulability, Distance Penalty, and Distance Threshold
-    M_JP_DP_DT = 5  // Manipulabilty, Joint Penalty, Distance Penalty, and Distance Threshold
-  };
 
   /**
    * @brief solveIKFromSeed attempts to find a valid IK solution for the given target pose starting from the input seed state.
@@ -78,7 +69,7 @@ public:
    * @param rec
    * @return a vector of ReachRecord keys representing the neighboring target poses that were reachable from the input target pose
    */
-  std::vector<std::string> reachNeighborsDirect(std::shared_ptr<robot_reach_study::Database>& db,
+  std::vector<std::string> reachNeighborsDirect(std::shared_ptr<ReachDatabase>& db,
                                                 const robot_reach_study::ReachRecord& rec);
 
   /**
@@ -92,7 +83,7 @@ public:
    * @param joint_distance the cumulative distance in joint space that was required to travel to all of the identified reachable points. This
    * number can be used to quantify if a particular robot configuration is more "efficient" at travelling between neighboring poses
    */
-  void reachNeighborsRecursive(std::shared_ptr<robot_reach_study::Database>& db,
+  void reachNeighborsRecursive(std::shared_ptr<ReachDatabase>& db,
                                const robot_reach_study::ReachRecord& msg,
                                std::vector<std::string>& reached_pts,
                                double& joint_distance);
@@ -190,30 +181,43 @@ public:
 
 private:
 
-  robot_model_loader::RobotModelLoaderPtr model_loader_;
-  robot_model::RobotModelConstPtr model_;
-  planning_scene::PlanningScenePtr scene_ptr_;
-  ros::Publisher planning_scene_publisher_;
-  const moveit::core::JointModelGroup* kin_jmgroup_;
-  const moveit::core::JointModelGroup* manip_jmgroup_;
-  robot_state::GroupStateValidityCallbackFn constraint_;
-  std::vector<std::vector<double>> kin_joint_limits_;
-  std::vector<std::vector<double>> manip_joint_limits_;
-
-  CostFunction cost_function_ = IkHelper::CostFunction::M;
-  int sol_attempts_ = 5;
-  float sol_timeout_ = 0.05;
-  float neighbor_radius_ = 1.0;
-  float dist_threshold_ = 0.0;
-
   bool isIKSolutionValid(moveit::core::RobotState* state,
                          const moveit::core::JointModelGroup* jmg,
                          const double* ik_solution) const;
 
   std::vector<std::vector<double>> getJointLimits(const moveit::core::JointModelGroup* jmg);
 
+  robot_model_loader::RobotModelLoaderPtr model_loader_;
+
+  robot_model::RobotModelConstPtr model_;
+
+  planning_scene::PlanningScenePtr scene_ptr_;
+
+  ros::Publisher planning_scene_publisher_;
+
+  const moveit::core::JointModelGroup* kin_jmgroup_;
+
+  const moveit::core::JointModelGroup* manip_jmgroup_;
+
+  robot_state::GroupStateValidityCallbackFn constraint_;
+
+  std::vector<std::vector<double>> kin_joint_limits_;
+
+  std::vector<std::vector<double>> manip_joint_limits_;
+
+  CostFunction cost_function_ = CostFunction::M;
+
+  int sol_attempts_ = 5;
+
+  float sol_timeout_ = 0.05;
+
+  float neighbor_radius_ = 1.0;
+
+  float dist_threshold_ = 0.0;
+
 };
 
-}
+} // namespace core
+} // namespace reach
 
-#endif // IK_HELPER_H
+#endif // REACH_CORE_IK_HELPER_H

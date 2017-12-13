@@ -1,19 +1,22 @@
-#ifndef INTERACTIVE_IK_H
-#define INTERACTIVE_IK_H
+#ifndef REACH_CORE_STUDY_VISUALIZER_H
+#define REACH_CORE_STUDY_VISUALIZER_H
+
+#include <reach/core/reach_database.h>
+#include <reach/core/ik_helper.h>
 
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
-#include <robot_reach_study/reach_database.h>
-#include <robot_reach_study/ik_helper.h>
 
-namespace robot_reach_study
+namespace reach
+{
+namespace core
 {
 
 /**
  * @brief The InteractiveIK class displays the results of the reach study and provides an interface for visualizing the robot's work
  * area from a given pose, recalculating the IK solution at a given target pose, and comparing reach databases.
  */
-class InteractiveIK
+class ReachVisualizer
 {
 public:
 
@@ -22,9 +25,9 @@ public:
    * @param db
    * @param ik_helper
    */
-  InteractiveIK(ros::NodeHandle& nh,
-                std::shared_ptr<robot_reach_study::Database>& db,
-                std::shared_ptr<robot_reach_study::IkHelper>& ik_helper);
+  ReachVisualizer(ros::NodeHandle& nh,
+                  std::shared_ptr<ReachDatabase>& db,
+                  std::shared_ptr<IkHelper>& ik_helper);
 
   /**
    * @brief createReachMarkers creates an Interactive Marker for each pose in the input reach study database.
@@ -76,18 +79,29 @@ private:
   void reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb);
 
   interactive_markers::InteractiveMarkerServer server_;
+
   std::shared_ptr<robot_reach_study::Database> db_;
+
   interactive_markers::MenuHandler menu_handler_;
+
   ros::NodeHandle nh_;
+
   ros::Publisher state_pub_;
+
   ros::Publisher scene_pub_;
+
   ros::Publisher neighbor_pub_;
+
   ros::Publisher diff_pub_;
+
   std::shared_ptr<robot_reach_study::IkHelper> ik_helper_;
+
   std::string fixed_frame_ = "world";
+
   double marker_scale_ = 0.150;
 };
 
-}
+} // namespace core
+} // namespace reach
 
-#endif // INTERACTIVE_IK_H
+#endif // REACH_CORE_STUDY_VISUALIZER_H
