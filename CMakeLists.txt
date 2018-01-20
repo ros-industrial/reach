@@ -4,6 +4,7 @@ project(robot_reach_study)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
+  eigen_conversions
   geometry_msgs
   interactive_markers
   message_generation
@@ -12,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   moveit_ros_planning
   pcl_ros
-  roscpp
   sensor_msgs
   tf
   tf_conversions
@@ -52,55 +52,101 @@ catkin_package(
   LIBRARIES
     reach_database
     ik_helper
-    interactive_ik
+    reach_visualizer
     reach_study
+    reach_study_utils
   CATKIN_DEPENDS
-    roscpp
     moveit_core
     moveit_msgs
     sensor_msgs
 )
 
-include_directories(include
-  ${catkin_INCLUDE_DIRS})
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
 
-add_library(reach_database src/reach_database.cpp)
-target_link_libraries(reach_database ${catkin_LIBRARIES})
+## Utilites Library
+add_library(reach_study_utils
+  src/utils/database_utils.cpp
+  src/utils/general_utils.cpp
+  src/utils/kinematics_utils.cpp
+  src/utils/visualization_utils.cpp
+)
+target_link_libraries(reach_study_utils
+  ${catkin_LIBRARIES}
+)
+add_dependencies(reach_study_utils
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+## Reach Database Library
+add_library(reach_database
+  src/core/reach_database.cpp
+)
+target_link_libraries(reach_database
+  ${catkin_LIBRARIES}
+  reach_study_utils
+)
 add_dependencies(reach_database
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS})
+  ${catkin_EXPORTED_TARGETS}
+)
 
-add_library(ik_helper src/ik_helper.cpp)
+## IK Helper Library
+add_library(ik_helper
+  src/core/ik_helper.cpp
+)
 target_link_libraries(ik_helper
   ${catkin_LIBRARIES}
-  reach_database)
-
-add_library(interactive_ik src/interactive_ik.cpp)
-target_link_libraries(interactive_ik
-  ${catkin_LIBRARIES}
   reach_database
-  ik_helper)
+)
 
-add_library(reach_study src/reach_study.cpp)
+## Reach Visualizer Library
+add_library(reach_visualizer
+  src/core/reach_visualizer.cpp
+)
+target_link_libraries(reach_visualizer
+  ${catkin_LIBRARIES}
+  ik_helper
+)
+
+## Reach Study Library
+add_library(reach_study
+  src/core/reach_study.cpp
+)
 target_link_libraries(reach_study
   ${catkin_LIBRARIES}
-  reach_database
-  ik_helper
-  interactive_ik)
+  reach_visualizer
+)
 
-add_executable(robot_reach_study_node src/robot_reach_study_node.cpp)
+## Reach Study Node
+add_executable(robot_reach_study_node
+  src/robot_reach_study_node.cpp
+)
 target_link_libraries(robot_reach_study_node
   ${catkin_LIBRARIES}
-  reach_study)
+  reach_study
+)
 
-add_executable(sample_mesh_server src/sample_mesh_server.cpp)
+# Sample Mesh Server Node
+add_executable(sample_mesh_server
+  src/sample_mesh_server_node.cpp
+)
 target_link_libraries(sample_mesh_server
-  ${catkin_LIBRARIES})
+  ${catkin_LIBRARIES}
+)
 add_dependencies(sample_mesh_server
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS})
+  ${catkin_EXPORTED_TARGETS}
+)
 
-add_executable(data_loader src/data_loader.cpp)
+# Data Loader Node
+add_executable(data_loader
+  src/data_loader_node.cpp
+)
 target_link_libraries(data_loader
   ${catkin_LIBRARIES}
-  reach_database)
+  reach_database
+)
