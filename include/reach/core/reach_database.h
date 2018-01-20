@@ -120,13 +120,13 @@ public:
    * @brief setAverageNeighborsCount
    * @param n
    */
-  void setAverageNeighborsCount(const float n) {avg_num_neighbors_ = n;}
+  void setAverageNeighborsCount(const float n) {results_.avg_num_neighbors = n;}
 
   /**
    * @brief setAverageJointDistance
    * @param n
    */
-  void setAverageJointDistance(const float n) {avg_joint_distance_ = n;}
+  void setAverageJointDistance(const float n) {results_.avg_joint_distance = n;}
 
   // For loops
   iterator begin()
@@ -149,15 +149,6 @@ private:
 
   StudyResults results_;
 
-//  float total_pose_score_ = 0.0f;
-
-//  float norm_total_pose_score_ = 0.0f;
-
-//  float reach_percentage_ = 0.0f;
-
-//  float avg_num_neighbors_ = 0.0f;
-
-//  float avg_joint_distance_ = 0.0f;
 };
 
 } // namespace core

@@ -30,6 +30,38 @@ struct StudyParameters
   float distance_threshold;             /** @brief minimum distance from collision that the robot must be for the IK solution to be considered valid **/
 };
 
+struct StudySetup
+{
+  std::string results_directory;        /** @brief directory in which the study results will be saved **/
+  std::string fixed_frame;              /** @brief root, fixed frame of the URDF **/
+  std::string object_frame;             /** @brief frame of the reach object in the URDF **/
+};
+
+struct StudyConfig
+{
+  std::string config_name;              /** @brief reach study configuration name **/
+  std::string pcd_filename;             /** @brief filename which contains the point cloud representation of the reach object **/
+  std::string mesh_filename;            /** @brief filename which contains the reach object mesh **/
+  std::string kin_group_name;           /** @brief planning group used to solve for IK **/
+  std::string manip_group_name;         /** @brief planning group used to calculate pose scoring **/
+};
+
+struct StudyCalculation
+{
+  float optimization_radius;            /** @brief The radius around a given point which identifies neighboring points used to optimize the reach study results **/
+  bool get_neighbors;                   /** @brief flag for evaluating robot work area **/
+  bool visualize_results;               /** @brief flag for publishing reach study data/markers for Rviz **/
+  int cost_function;                    /** @brief enumeration defining the method used to score robot poses **/
+  float distance_threshold;             /** @brief minimum distance from collision that the robot must be for the IK solution to be considered valid **/
+};
+
+struct StudyParameters2
+{
+  StudySetup setup;
+  StudyConfig config;
+  StudyCalculation calc;
+};
+
 /**
  * @brief The CostFunction enumeration defines which quantities are used to optimize the results of the reach study
  */
@@ -48,10 +80,10 @@ enum CostFunction
  */
 struct IKParameters
 {
-  int sol_attempts_ = 5;
-  float sol_timeout_ = 0.05;
-  float neighbor_radius_ = 1.0;
-  float dist_threshold_ = 0.0;
+  int sol_attempts = 5;
+  float sol_timeout = 0.05;
+  float neighbor_radius = 1.0;
+  float dist_threshold = 0.0;
 };
 
 /**
@@ -59,11 +91,11 @@ struct IKParameters
  */
 struct StudyResults
 {
-  float total_pose_score_ = 0.0f;
-  float norm_total_pose_score_ = 0.0f;
-  float reach_percentage_ = 0.0f;
-  float avg_num_neighbors_ = 0.0f;
-  float avg_joint_distance_ = 0.0f;
+  float total_pose_score = 0.0f;
+  float norm_total_pose_score = 0.0f;
+  float reach_percentage = 0.0f;
+  float avg_num_neighbors = 0.0f;
+  float avg_joint_distance = 0.0f;
 };
 
 }

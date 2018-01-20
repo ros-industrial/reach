@@ -1,6 +1,6 @@
+#include "reach/core/reach_database.h"
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <robot_reach_study/reach_database.h>
 #include <boost/filesystem.hpp>
 
 const static std::string RESULTS_FOLDER_NAME = "results";
@@ -71,15 +71,16 @@ int main(int argc, char **argv)
     const std::string config = files[i].first.string();
     const std::string path = files[i].second.string();
 
-    robot_reach_study::Database db;
+    reach::core::ReachDatabase db;
     if(db.load(path))
     {
+      reach::core::StudyResults res = db.getStudyResults();
       std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n")
                    % config.c_str()
-                   % db.getReachPercentage()
-                   % db.getNormalizedTotalPoseScore()
-                   % db.getAverageNeighborsCount()
-                   % db.getAverageJointDistance();
+                   % res.reach_percentage
+                   % res.norm_total_pose_score
+                   % res.avg_num_neighbors
+                   % res.avg_joint_distance;
     }
   }
 

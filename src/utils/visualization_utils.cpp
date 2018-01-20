@@ -13,8 +13,8 @@ namespace utils
 visualization_msgs::Marker makeVisual(const robot_reach_study::ReachRecord& r,
                                       const std::string& frame,
                                       const double scale,
-                                      const std::string& ns = "reach",
-                                      const boost::optional<std::vector<float>>& color = {})
+                                      const std::string& ns,
+                                      const boost::optional<std::vector<float>>& color)
 {
   static int idx = 0;
 
@@ -99,7 +99,7 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const robot_reach_st
 visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts,
                                       const std::string& frame,
                                       const double scale,
-                                      const std::string& ns = "")
+                                      const std::string& ns)
 {
   visualization_msgs::Marker marker;
   marker.header.frame_id = frame;

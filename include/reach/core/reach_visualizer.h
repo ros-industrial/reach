@@ -80,7 +80,7 @@ private:
 
   interactive_markers::InteractiveMarkerServer server_;
 
-  std::shared_ptr<robot_reach_study::Database> db_;
+  std::shared_ptr<reach::core::ReachDatabase> db_;
 
   interactive_markers::MenuHandler menu_handler_;
 
@@ -94,7 +94,7 @@ private:
 
   ros::Publisher diff_pub_;
 
-  std::shared_ptr<robot_reach_study::IkHelper> ik_helper_;
+  std::shared_ptr<reach::core::IkHelper> ik_helper_;
 
   std::string fixed_frame_ = "world";
 

@@ -28,11 +28,11 @@ void ReachDatabase::save(const std::string &filename) const
   std::lock_guard<std::mutex> lock {mutex_};
   robot_reach_study::ReachDatabase msg = toReachDatabase(map_);
 
-  msg.total_pose_score = results_.total_pose_score_;
-  msg.norm_total_pose_score = results_.norm_total_pose_score_;
-  msg.reach_percentage = results_.reach_percentage_;
-  msg.avg_num_neighbors = results_.avg_num_neighbors_;
-  msg.avg_joint_distance = results_.avg_joint_distance_;
+  msg.total_pose_score = results_.total_pose_score;
+  msg.norm_total_pose_score = results_.norm_total_pose_score;
+  msg.reach_percentage = results_.reach_percentage;
+  msg.avg_num_neighbors = results_.avg_num_neighbors;
+  msg.avg_joint_distance = results_.avg_joint_distance;
 
   if (!utils::toFile(filename, msg))
   {
@@ -53,11 +53,11 @@ bool ReachDatabase::load(const std::string &filename)
   for (const auto& r : msg.records)
   {
     putHelper(r);
-    results_.reach_percentage_ = msg.reach_percentage;
-    results_.total_pose_score_ = msg.total_pose_score;
-    results_.norm_total_pose_score_ = msg.norm_total_pose_score;
-    results_.avg_num_neighbors_ = msg.avg_num_neighbors;
-    results_.avg_joint_distance_ = msg.avg_joint_distance;
+    results_.reach_percentage = msg.reach_percentage;
+    results_.total_pose_score = msg.total_pose_score;
+    results_.norm_total_pose_score = msg.norm_total_pose_score;
+    results_.avg_num_neighbors = msg.avg_num_neighbors;
+    results_.avg_joint_distance = msg.avg_joint_distance;
   }
   return true;
 }
@@ -112,19 +112,19 @@ void ReachDatabase::calculateResults()
   }
   const float pct_success = static_cast<float>(success) / static_cast<float>(total);
 
-  results_.reach_percentage_ = 100.0 * pct_success;
-  results_.total_pose_score_ = score;
-  results_.norm_total_pose_score_ = score / pct_success;
+  results_.reach_percentage = 100.0 * pct_success;
+  results_.total_pose_score = score;
+  results_.norm_total_pose_score = score / pct_success;
 }
 
 void ReachDatabase::printResults()
 {
   ROS_INFO("------------------------------------------------");
-  ROS_INFO("Percent Reached = %f", results_.reach_percentage_);
-  ROS_INFO("Total points score = %f", results_.total_pose_score_);
-  ROS_INFO("Normalized total points score = %f", results_.norm_total_pose_score_);
-  ROS_INFO("Average reachable neighbors = %f", results_.avg_num_neighbors_);
-  ROS_INFO("Average joint distance = %f", results_.avg_joint_distance_);
+  ROS_INFO("Percent Reached = %f", results_.reach_percentage);
+  ROS_INFO("Total points score = %f", results_.total_pose_score);
+  ROS_INFO("Normalized total points score = %f", results_.norm_total_pose_score);
+  ROS_INFO("Average reachable neighbors = %f", results_.avg_num_neighbors);
+  ROS_INFO("Average joint distance = %f", results_.avg_joint_distance);
   ROS_INFO("------------------------------------------------");
 }
 
