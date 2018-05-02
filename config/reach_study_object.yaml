@@ -1,0 +1,18 @@
+fixed_frame:
+object_frame:
+results_directory:
+
+reach_object:
+  mesh_filename:
+  pcd_filename:
+  optimization_radius:
+
+planning_group:
+  kinematics:
+  manipulability:
+
+constraints:
+  get_avg_neighbor_count:
+  cost_function:
+  distance_threshold:
+  compare_dbs:

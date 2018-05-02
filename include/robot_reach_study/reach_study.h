@@ -1,10 +1,81 @@
 #ifndef REACH_STUDY_H
 #define REACH_STUDY_H
 
-#include <ros/console.h>
 #include <ros/ros.h>
-#include <ros/node_handle.h>
 #include <pcl_ros/point_cloud.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <robot_reach_study/ik_helper.h>
+#include <robot_reach_study/interactive_ik.h>
+#include <sensor_msgs/PointCloud2.h>
+
+namespace robot_reach_study
+{
+  /**
+   * @brief The StudyParams struct contains all necessary parameters for the reach study
+   */
+  struct StudyParams
+  {
+    std::string config_name;              /** @brief reach study configuration name **/
+    std::string fixed_frame;              /** @brief root, fixed frame of the URDF **/
+    std::string results_directory;        /** @brief directory in which the study results will be saved **/
+    std::string object_frame;             /** @brief frame of the reach object in the URDF **/
+    std::string mesh_filename;            /** @brief filename which contains the reach object mesh **/
+    std::string pcd_filename;             /** @brief filename which contains the point cloud representation of the reach object **/
+    float optimization_radius;            /** @brief The radius around a given point which identifies neighboring points used to optimize the reach study results **/
+    std::string kin_group_name;           /** @brief planning group used to solve for IK **/
+    std::string manip_group_name;         /** @brief planning group used to calculate pose scoring **/
+    bool get_neighbors;                   /** @brief flag for evaluating robot work area **/
+    bool visualize_results;               /** @brief flag for publishing reach study data/markers for Rviz **/
+    std::vector<std::string> compare_dbs; /** @brief list of database names with which to compare to the current database **/
+    int cost_function;                    /** @brief enumeration defining the method used to score robot poses **/
+    float distance_threshold;             /** @brief minimum distance from collision that the robot must be for the IK solution to be considered valid **/
+  };
+
+  /**
+   * @brief The ReachStudy class
+   */
+  class ReachStudy
+  {
+  public:
+
+    /**
+     * @brief ReachStudy
+     * @param nh
+     * @param sp
+     */
+    ReachStudy(ros::NodeHandle& nh,
+               StudyParams& sp);
+
+    /**
+     * @brief run
+     * @return
+     */
+    bool run();
+
+  private:
+
+    void init();
+
+    bool getReachObjectPointCloud();
+
+    void runInitialReachStudy();
+
+    void optimizeReachStudyResults();
+
+    void getAverageNeighborsCount();
+
+    bool compareDatabases();
+
+    ros::NodeHandle nh_;
+    std::shared_ptr<robot_reach_study::IkHelper> helper_;
+    std::shared_ptr<robot_reach_study::InteractiveIK> ik_visualizer_;
+    std::shared_ptr<robot_reach_study::Database> db_;
+    StudyParams sp_;
+    std::string dir_;
+    std::string results_dir_;
+    sensor_msgs::PointCloud2 cloud_msg_;
+    pcl::PointCloud<pcl::PointNormal>::Ptr cloud_;
+  };
+
+}
 
 #endif // REACH_STUDY_H
