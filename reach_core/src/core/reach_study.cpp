@@ -47,6 +47,21 @@ void ReachStudy::initializeStudy(const StudyParameters& sp)
   helper_->setCostFunction(static_cast<CostFunction>(sp.cost_function));
   helper_->setDistanceThreshold(sp.distance_threshold);
 
+  // Remove seed states whose length is not equal to the number of joints in the kinematic chain
+  const std::size_t n_joints = helper_->getKinematicGroupJointCount();
+  auto it = std::remove_if(sp_.seed_states.begin(), sp_.seed_states.end(), [&n_joints](const std::vector<double>& state)
+  {
+    return state.size() != n_joints;
+  });
+  sp_.seed_states.erase(it, sp_.seed_states.end());
+
+  // Add an all zeros seed state if the seed state vector ends up being empty
+  if(sp_.seed_states.empty())
+  {
+    std::vector<double> seed (helper_->getKinematicGroupJointCount(), 0.0f);
+    sp_.seed_states.push_back(std::move(seed));
+  }
+
   // Set the visualizer parameters
   visualizer_->setMarkerFrame(sp.fixed_frame);
   visualizer_->setMarkerScale(sp.optimization_radius / 2.0);
@@ -216,25 +231,36 @@ void ReachStudy::runInitialReachStudy()
     tgt_frame = utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
     tgt_frame = tgt_frame * tool_z_rot;
 
-    // Create robot state objects for goal and seed to be filled by ik_helper
-    moveit::core::RobotState seed_state(helper_->getCurrentRobotState());
-    moveit::core::RobotState goal_state(helper_->getCurrentRobotState());
-
     // Solve IK using setfromIKDiscretized
-    boost::optional<double> score = helper_->solveDiscretizedIKFromSeed(tgt_frame, DISCRETIZATION_ANGLE, seed_state, goal_state);
-    geometry_msgs::Pose tgt_pose;
-    tf::poseEigenToMsg(tgt_frame, tgt_pose);
+    std::vector<reach_msgs::ReachRecord> records (sp_.seed_states.size());
+    for(std::size_t j = 0; j < sp_.seed_states.size(); ++j)
+    {
+      // Create robot state objects for goal and seed to be filled by ik_helper
+      moveit::core::RobotState seed_state(helper_->getCurrentRobotState());
+      seed_state.setJointGroupPositions(sp_.kin_group_name, sp_.seed_states[j]);
+      seed_state.update();
+      moveit::core::RobotState goal_state(seed_state);
 
-    if(score)
-    {
-      auto msg = utils::makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
-      db_->put(msg);
+      boost::optional<double> score = helper_->solveDiscretizedIKFromSeed(tgt_frame, DISCRETIZATION_ANGLE, seed_state, goal_state);
+      geometry_msgs::Pose tgt_pose;
+      tf::poseEigenToMsg(tgt_frame, tgt_pose);
+
+      if(score)
+      {
+        records[j] = utils::makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
+      }
+      else
+      {
+        records[j] = utils::makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0f);
+      }
     }
-    else
+
+    std::sort(records.begin(), records.end(), [](const reach_msgs::ReachRecord& a, const reach_msgs::ReachRecord& b)
     {
-      auto msg = utils::makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0f);
-      db_->put(msg);
-    }
+      return a.score > b.score;
+    });
+
+    db_->put(records.front());
 
     // Print function progress
     current_counter++;

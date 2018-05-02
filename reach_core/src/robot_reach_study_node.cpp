@@ -1,5 +1,7 @@
+#include <ros/ros.h>
 #include "reach/core/reach_study.h"
 #include "reach/core/study_parameters.h"
+#include <xmlrpcpp/XmlRpcException.h>
 
 bool getStudyParameters(ros::NodeHandle& nh,
                         reach::core::StudyParameters& sp)
@@ -85,6 +87,33 @@ bool getStudyParameters(ros::NodeHandle& nh,
   {
     ROS_WARN("'/visualize_results' parameter not set; reach study results will not be visualized.");
     sp.visualize_results = false;
+  }
+
+  XmlRpc::XmlRpcValue seed_states;
+  if(!nh.getParam("constraints/seed_states", seed_states))
+  {
+    ROS_WARN("'seed_states' parameter not set; using all zeros seed state");
+  }
+  else
+  {
+    sp.seed_states.resize(seed_states.size());
+    try
+    {
+      for(int i = 0; i < seed_states.size(); ++i)
+      {
+        XmlRpc::XmlRpcValue& pose = seed_states[i];
+        sp.seed_states[i].resize(pose.size());
+        for(int j = 0; j < pose.size(); ++j)
+        {
+          sp.seed_states[i][j] = pose[j];
+        }
+      }
+    }
+    catch(XmlRpc::XmlRpcException& ex)
+    {
+      ROS_INFO_STREAM(ex.getMessage());
+      return false;
+    }
   }
 
   return true;

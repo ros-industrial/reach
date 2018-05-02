@@ -127,7 +127,7 @@ public:
    * @brief getSolutionAttempts returns the number of attempts with which to try to find a valid IK solution
    * @return
    */
-  int getSolutionAttempts() {return sol_attempts_;} const
+  int getSolutionAttempts() const {return sol_attempts_;}
 
   /**
    * @brief setSolutionTimeout sets the timeout after which the the IK solution process will be cancelled
@@ -139,33 +139,39 @@ public:
    * @brief getSolutionTimeout returns the timeout after which the the IK solution process will be cancelled
    * @return
    */
-  float getSolutionTimeout() {return sol_timeout_;} const
+  float getSolutionTimeout() const {return sol_timeout_;}
 
   /**
    * @brief setKinematicJointModelGroup sets the joint model group which will be used to solve IK
    * @param name
    */
-  void setKinematicJointModelGroup(const std::string& name) {kin_jmgroup_ = model_->getJointModelGroup(name);
-                                                             kin_joint_limits_ = this->getJointLimits(kin_jmgroup_);}
+  void setKinematicJointModelGroup(const std::string& name)
+  {
+    kin_jmgroup_ = model_->getJointModelGroup(name);
+    kin_joint_limits_ = this->getJointLimits(kin_jmgroup_);
+  }
 
   /**
    * @brief getKinematicJointModelGroupName
    * @return
    */
-  const std::string getKinematicJointModelGroupName() {return kin_jmgroup_->getName();} const
+  const std::string getKinematicJointModelGroupName() const {return kin_jmgroup_->getName();}
 
   /**
    * @brief setManipulabilityJointModelGroup sets the joint model group with which the pose score will be calculated
    * @param name
    */
-  void setManipulabilityJointModelGroup(const std::string& name) {manip_jmgroup_ = model_->getJointModelGroup(name);
-                                                                  manip_joint_limits_ = this->getJointLimits(manip_jmgroup_);}
+  void setManipulabilityJointModelGroup(const std::string& name)
+  {
+    manip_jmgroup_ = model_->getJointModelGroup(name);
+    manip_joint_limits_ = this->getJointLimits(manip_jmgroup_);
+  }
 
   /**
    * @brief getManipulabilityJointModelGroupName
    * @return
    */
-  const std::string getManipulabilityJointModelGroupName() {return manip_jmgroup_->getName();} const
+  const std::string getManipulabilityJointModelGroupName() const {return manip_jmgroup_->getName();}
 
   /**
    * @brief setCostFunction sets the cost function which will be used to determine the score of a particular pose
@@ -178,6 +184,12 @@ public:
    * @param d
    */
   void setDistanceThreshold(const float d) {dist_threshold_ = d;}
+
+  /**
+   * @brief getKinematicGroupJointCount returns the number of joints in the kinematic joint model group
+   * @return
+   */
+  std::size_t getKinematicGroupJointCount() const {return kin_jmgroup_->getActiveJointModelNames().size();}
 
 private:
 
