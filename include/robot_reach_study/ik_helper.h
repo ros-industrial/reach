@@ -51,8 +51,23 @@ public:
    * @return the score of the particular pose if valid IK solution is found, nothing if no valid IK solution is found
    */
   boost::optional<double> solveIKFromSeed(const geometry_msgs::Pose& tgt_pose,
-                                          moveit::core::RobotState& seed_state,
+                                          const moveit::core::RobotState &seed_state,
                                           moveit::core::RobotState& goal_state);
+  /**
+   * @brief sovleDiscretizedIKFromSeed discretizes the input target frame about the frame's Z-axis at the input
+   * discretization angle; attempts to find a valid IK solution for each discretized target pose starting from the input
+   * seed state. If a solution(s) is found, the highest scoring solution's RobotState is saved into the goal_state object
+   * and the pose score is returned
+   * @param tgt_frame
+   * @param discretization_angle in radians
+   * @param seed_state
+   * @param goal_state
+   * @return the score of the particular pose if valid IK solution is found, nothing if no valid IK solution is found
+   */
+  boost::optional<double> solveDiscretizedIKFromSeed(const Eigen::Affine3d& tgt_frame,
+                                                     const double discretization_angle,
+                                                     const moveit::core::RobotState &seed_state,
+                                                     moveit::core::RobotState& goal_state);
 
   /**
    * @brief reachNeighborsDirect finds all of the neighboring target poses within a specified radius of the target pose of the input

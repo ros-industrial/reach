@@ -21,7 +21,10 @@ toReachDatabase(const std::unordered_map<std::string, robot_reach_study::ReachRe
 
 } // end private namespace
 
-void robot_reach_study::Database::save(const std::string &filename) const
+namespace robot_reach_study
+{
+
+void Database::save(const std::string &filename) const
 {
   std::lock_guard<std::mutex> lock {mutex_};
   robot_reach_study::ReachDatabase msg = toReachDatabase(map_);
@@ -38,7 +41,7 @@ void robot_reach_study::Database::save(const std::string &filename) const
   }
 }
 
-bool robot_reach_study::Database::load(const std::string &filename)
+bool Database::load(const std::string &filename)
 {
   robot_reach_study::ReachDatabase msg;
   if (!utils::fromFile(filename, msg))
@@ -60,7 +63,7 @@ bool robot_reach_study::Database::load(const std::string &filename)
   return true;
 }
 
-boost::optional<robot_reach_study::ReachRecord> robot_reach_study::Database::get(const std::string &id) const
+boost::optional<ReachRecord> Database::get(const std::string &id) const
 {
   std::lock_guard<std::mutex> lock {mutex_};
   auto it = map_.find(id);
@@ -74,31 +77,31 @@ boost::optional<robot_reach_study::ReachRecord> robot_reach_study::Database::get
   }
 }
 
-void robot_reach_study::Database::put(const robot_reach_study::ReachRecord &record)
+void Database::put(const ReachRecord &record)
 {
   std::lock_guard<std::mutex> lock {mutex_};
   return putHelper(record);
 }
 
-void robot_reach_study::Database::putHelper(const robot_reach_study::ReachRecord &record)
+void Database::putHelper(const ReachRecord &record)
 {
   map_[record.id] = record;
 }
 
-int robot_reach_study::Database::count()
+int Database::count()
 {
   int count = 0;
   for(auto it = this->begin(); it != this->end(); ++it) {++count;}
   return count;
 }
 
-void robot_reach_study::Database::calculateResults()
+void Database::calculateResults()
 {
   unsigned int success = 0, total = 0;
   double score = 0.0;
   for(int i = 0; i < this->count(); ++i)
   {
-    robot_reach_study::ReachRecord msg = *this->get(std::to_string(i));
+    ReachRecord msg = *this->get(std::to_string(i));
 
     if(msg.reached)
     {
@@ -115,7 +118,7 @@ void robot_reach_study::Database::calculateResults()
   norm_total_pose_score_ = score / pct_success;
 }
 
-void robot_reach_study::Database::printResults()
+void Database::printResults()
 {
   ROS_INFO("------------------------------------------------");
   ROS_INFO("Percent Reached = %f", reach_percentage_);
@@ -126,13 +129,30 @@ void robot_reach_study::Database::printResults()
   ROS_INFO("------------------------------------------------");
 }
 
-robot_reach_study::ReachRecord robot_reach_study::makeRecordSuccess(const std::string &id,
-                                                                    const geometry_msgs::Pose &goal,
-                                                                    const moveit::core::RobotState &seed_state,
-                                                                    const moveit::core::RobotState &goal_state,
-                                                                    const double score)
+ReachRecord makeRecord(const std::string& id,
+                       const bool reached,
+                       const geometry_msgs::Pose& goal,
+                       const moveit::core::RobotState& seed_state,
+                       const moveit::core::RobotState& goal_state,
+                       const double score)
 {
-  robot_reach_study::ReachRecord r;
+  ReachRecord r;
+  r.id = id;
+  r.goal = goal;
+  r.reached = reached;
+  moveit::core::robotStateToRobotStateMsg(seed_state, r.seed_state);
+  moveit::core::robotStateToRobotStateMsg(goal_state, r.goal_state);
+  r.score = score;
+  return r;
+}
+
+ReachRecord makeRecordSuccess(const std::string &id,
+                              const geometry_msgs::Pose &goal,
+                              const moveit::core::RobotState &seed_state,
+                              const moveit::core::RobotState &goal_state,
+                              const double score)
+{
+  ReachRecord r;
   r.id = id;
   r.goal = goal;
   r.reached = true;
@@ -142,10 +162,10 @@ robot_reach_study::ReachRecord robot_reach_study::makeRecordSuccess(const std::s
   return r;
 }
 
-robot_reach_study::ReachRecord robot_reach_study::makeRecordFailure(const std::string &id,
-                                                                    const geometry_msgs::Pose &goal,
-                                                                    const moveit::core::RobotState &seed_state,
-                                                                    const double score)
+ReachRecord makeRecordFailure(const std::string &id,
+                              const geometry_msgs::Pose &goal,
+                              const moveit::core::RobotState &seed_state,
+                              const double score)
 {
   robot_reach_study::ReachRecord r;
   r.id = id;
@@ -156,3 +176,6 @@ robot_reach_study::ReachRecord robot_reach_study::makeRecordFailure(const std::s
   r.score = score;
   return r;
 }
+
+} // namespace robot_reach_study
+
