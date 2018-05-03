@@ -28,6 +28,7 @@ struct StudyParameters
   std::vector<std::string> compare_dbs; /** @brief list of database names with which to compare to the current database **/
   int cost_function;                    /** @brief enumeration defining the method used to score robot poses **/
   float distance_threshold;             /** @brief minimum distance from collision that the robot must be for the IK solution to be considered valid **/
+  std::vector<std::vector<double>> seed_states; /** @brief seed states from which to solve IK **/
 };
 
 struct StudySetup
