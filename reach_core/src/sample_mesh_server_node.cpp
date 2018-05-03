@@ -2,7 +2,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/PCLPointField.h>
 #include <pcl_ros/point_cloud.h>
-#include <robot_reach_study/SampleMesh.h>
+#include <reach_msgs/SampleMesh.h>
 #include <ros/ros.h>
 #include <tf_conversions/tf_eigen.h>
 #include <tf/transform_listener.h>
@@ -50,8 +50,8 @@ bool hasNormals(pcl::PCLPointCloud2& cloud)
   }
 }
 
-bool getSampledMesh(robot_reach_study::SampleMesh::Request& req,
-                    robot_reach_study::SampleMesh::Response& res)
+bool getSampledMesh(reach_msgs::SampleMeshRequest& req,
+                    reach_msgs::SampleMeshResponse& res)
 {
   // Check if file exists
   if(!boost::filesystem::exists(req.cloud_filename))

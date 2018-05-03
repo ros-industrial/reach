@@ -1,68 +1,24 @@
+#include <reach/core/ik_helper.h>
+#include <reach/core/reach_database.h>
+#include <reach/utils/kinematics_utils.h>
+
 #include <cmath>
 #include <eigen_conversions/eigen_msg.h>
 #include <moveit/robot_state/conversions.h>
-#include <robot_reach_study/ik_helper.h>
-#include <robot_reach_study/reach_database.h>
-#include <robot_reach_study/utils.h>
 #include <ros/ros.h>
 
 const static std::string ROBOT_DESCRIPTION_TOPIC = "robot_description";
 const static std::vector<std::string> MESH_FILE_EXTENSIONS = {".stl", ".ply", ".obj"};
 
-namespace
+namespace reach
 {
-
-double getManipulability(const moveit::core::RobotState& state,
-                         const moveit::core::JointModelGroup* jmg)
-{
-  // Calculate manipulability of kinematic chain of input robot state
-  // Create new robot state to avoid dirty link transforms
-  moveit::core::RobotState temp_state(state);
-
-  // Get the Jacobian matrix
-  Eigen::MatrixXd jacobian = temp_state.getJacobian(jmg);
-
-  // Calculate manipulability by multiplying Jacobian matrix singular values together
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
-  Eigen::MatrixXd singular_values = svd.singularValues();
-  double m = 1.0;
-  for(unsigned int i = 0; i < singular_values.rows(); ++i)
-  {
-    m *= singular_values(i, 0);
-  }
-  return m;
-}
-
-double getJointPenalty(const moveit::core::RobotState& state,
-                       const moveit::core::JointModelGroup* jmg,
-                       std::vector<std::vector<double>>& joint_limits)
-{
-  std::vector<double> max, min, current;
-  min = joint_limits[0];
-  max = joint_limits[1];
-
-  // Get current joint values in jmg chain
-  moveit::core::RobotState temp_state(state);
-  temp_state.copyJointGroupPositions(jmg, current);
-
-  double penalty = 1.0;
-  for(std::size_t i = 0; i < max.size(); ++i)
-  {
-    double range = max[i] - min[i];
-    penalty *= ((current[i] - min[i])*(max[i] - current[i])) / pow(range, 2);
-  }
-  return std::max(0.0, 1.0 - exp(-1.0 * penalty));
-}
-
-} // anonymous namespace
-
-namespace robot_reach_study
+namespace core
 {
 
 IkHelper::IkHelper(const std::string kin_group_name,
-                                      const std::string manip_group_name)
+                   const std::string manip_group_name)
+  : model_loader_(new robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_TOPIC))
 {
-  model_loader_ = robot_model_loader::RobotModelLoaderPtr(new robot_model_loader::RobotModelLoader(ROBOT_DESCRIPTION_TOPIC));
   model_ = model_loader_->getModel();
   scene_ptr_ = planning_scene::PlanningScenePtr(new planning_scene::PlanningScene(model_));
 
@@ -81,8 +37,8 @@ boost::optional<double> IkHelper::solveIKFromSeed(const geometry_msgs::Pose& tgt
   goal_state = seed_state;
   if(goal_state.setFromIK(kin_jmgroup_, tgt_pose, sol_attempts_, sol_timeout_, constraint_))
   {
-    const double manip = getManipulability(goal_state, manip_jmgroup_);
-    const double joint_penalty = getJointPenalty(goal_state, manip_jmgroup_, manip_joint_limits_);
+    const double manip = utils::getManipulability(goal_state, manip_jmgroup_);
+    const double joint_penalty = utils::getJointPenalty(goal_state, manip_jmgroup_, manip_joint_limits_);
     const double dist = scene_ptr_->distanceToCollision(goal_state, scene_ptr_->getAllowedCollisionMatrix());
     const double dist_penalty = std::pow((dist / dist_threshold_), 2);
 
@@ -90,25 +46,25 @@ boost::optional<double> IkHelper::solveIKFromSeed(const geometry_msgs::Pose& tgt
     boost::optional<double> score;
     switch(cost_function_)
     {
-    case this->CostFunction::M:
+    case CostFunction::M:
       score = manip;
       break;
-    case this->CostFunction::M_JP:
+    case CostFunction::M_JP:
       score = manip * joint_penalty;
       break;
-    case this->CostFunction::M_JP_DP:
+    case CostFunction::M_JP_DP:
       score = manip * joint_penalty * dist_penalty;
       break;
-    case this->CostFunction::M_DP:
+    case CostFunction::M_DP:
       score = manip * dist_penalty;
       break;
-    case this->CostFunction::M_DP_DT:
+    case CostFunction::M_DP_DT:
       if(dist > dist_threshold_)
       {
         score = manip * dist_penalty;
       }
       break;
-    case this->CostFunction::M_JP_DP_DT:
+    case CostFunction::M_JP_DP_DT:
       if(dist > dist_threshold_)
       {
         score = manip * joint_penalty * dist_penalty;
@@ -170,8 +126,8 @@ boost::optional<double> IkHelper::solveDiscretizedIKFromSeed(const Eigen::Affine
   }
 }
 
-std::vector<std::string> IkHelper::reachNeighborsDirect(std::shared_ptr<Database>& db,
-                                                        const ReachRecord& rec)
+std::vector<std::string> IkHelper::reachNeighborsDirect(std::shared_ptr<ReachDatabase>& db,
+                                                        const reach_msgs::ReachRecord& rec)
 {
   // Initialize return array of string IDs of msgs that have been updated
   std::vector<std::string> msg_ids;
@@ -183,13 +139,13 @@ std::vector<std::string> IkHelper::reachNeighborsDirect(std::shared_ptr<Database
 
   // Create vectors for storing poses and reach record messages that lie within radius of current point
   std::vector<geometry_msgs::Pose> pose_arr;
-  std::vector<ReachRecord> reach_records;
+  std::vector<reach_msgs::ReachRecord> reach_records;
 
   // Iterate through all points in database to find those that lie within radius of current point
   for(auto it = db->begin(); it != db->end(); ++it)
   {
     auto& entry = *it;
-    const ReachRecord msg_object = entry.second;
+    const reach_msgs::ReachRecord msg_object = entry.second;
     const geometry_msgs::Pose it_pose (msg_object.goal);
 
     float xp = it_pose.position.x;
@@ -223,7 +179,7 @@ std::vector<std::string> IkHelper::reachNeighborsDirect(std::shared_ptr<Database
       {
         // Change database if currently solved point didn't have solution before
         // or if its current manipulability is better than that saved in the databas
-        ReachRecord msg = reach_records[i];
+        reach_msgs::ReachRecord msg = reach_records[i];
 
         if(!msg.reached || (*score > msg.score))
         {
@@ -243,8 +199,8 @@ std::vector<std::string> IkHelper::reachNeighborsDirect(std::shared_ptr<Database
   return msg_ids;
 }
 
-void IkHelper::reachNeighborsRecursive(std::shared_ptr<Database>& db,
-                                       const ReachRecord& rec,
+void IkHelper::reachNeighborsRecursive(std::shared_ptr<ReachDatabase>& db,
+                                       const reach_msgs::ReachRecord& rec,
                                        std::vector<std::string>& reached_pts,
                                        double& joint_distance)
 {
@@ -257,13 +213,13 @@ void IkHelper::reachNeighborsRecursive(std::shared_ptr<Database>& db,
   const float z = rec.goal.position.z;
 
   // Create vectors for storing reach record messages that lie within radius of current point
-  std::vector<ReachRecord> neighbors;
+  std::vector<reach_msgs::ReachRecord> neighbors;
 
   // Iterate through all points in database to find those that lie within radius of current point
   for(auto it = db->begin(); it != db->end(); ++it)
   {
     auto& entry = *it;
-    const ReachRecord tmp_rec = entry.second;
+    const reach_msgs::ReachRecord tmp_rec = entry.second;
 
     float xp = tmp_rec.goal.position.x;
     float yp = tmp_rec.goal.position.y;
@@ -300,7 +256,7 @@ void IkHelper::reachNeighborsRecursive(std::shared_ptr<Database>& db,
           joint_distance += new_goal_state.distance(current_state);
 
           // Store information in new reach record object
-          ReachRecord new_rec;
+          reach_msgs::ReachRecord new_rec;
           new_rec.id = neighbors[i].id;
           new_rec.goal = neighbors[i].goal;
           moveit::core::robotStateToRobotStateMsg(new_goal_state, new_rec.goal_state);
@@ -386,4 +342,5 @@ std::vector<std::vector<double>> IkHelper::getJointLimits(const moveit::core::Jo
   return joint_limits;
 }
 
-} // namespace robot_reach_study
+} // namespace core
+} // namespace reach

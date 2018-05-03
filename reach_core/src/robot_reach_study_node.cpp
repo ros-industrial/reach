@@ -1,8 +1,8 @@
-#include <ros/ros.h>
-#include <robot_reach_study/reach_study.h>
+#include "reach/core/reach_study.h"
+#include "reach/core/study_parameters.h"
 
 bool getStudyParameters(ros::NodeHandle& nh,
-                        robot_reach_study::StudyParams& sp)
+                        reach::core::StudyParameters& sp)
 {
   if(!nh.getParam("config_name", sp.config_name))
   {
@@ -89,23 +89,24 @@ bool getStudyParameters(ros::NodeHandle& nh,
 
   return true;
 }
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "robot_reach_study_node");
   ros::NodeHandle pnh("~"), nh;
 
   // Get the study parameters
-  robot_reach_study::StudyParams sp;
+  reach::core::StudyParameters sp;
   if(!getStudyParameters(pnh, sp))
   {
     return -1;
   }
 
   // Initialize the reach study
-  robot_reach_study::ReachStudy rs (nh, sp);
+  reach::core::ReachStudy rs (nh, sp);
 
   // Run the reach study
-  if(!rs.run())
+  if(!rs.run(sp))
   {
     ROS_ERROR("Unable to perform the reach study");
     return -1;

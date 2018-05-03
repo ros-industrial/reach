@@ -1,25 +1,31 @@
-#include <robot_reach_study/interactive_ik.h>
-#include <robot_reach_study/ik_helper.h>
+#include <reach/core/reach_visualizer.h>
+#include <reach/utils/visualization_utils.h>
+#include <reach_msgs/ReachRecord.h>
+
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit/robot_state/conversions.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <robot_reach_study/utils.h>
 
 const static std::string ROBOT_STATE_TOPIC = "robot_state";
 const static std::string REACH_NEIGHBORS_TOPIC = "reach_neighbors";
 const static std::string REACH_COMPARISON_TOPIC = "reach_comparison";
 const static std::string PLANNING_SCENE_TOPIC = "scene";
 const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
+
 const static float RE_SOLVE_IK_ATTEMPTS = 3;
 const static float RE_SOLVE_IK_TIMEOUT = 0.2;
 
-namespace robot_reach_study
+namespace reach
+{
+namespace core
 {
 
-InteractiveIK::InteractiveIK(ros::NodeHandle& nh,
-                                                std::shared_ptr<Database>& db,
-                                                std::shared_ptr<IkHelper>& ik_helper)
-  : server_{INTERACTIVE_MARKER_TOPIC, "", false}
+ReachVisualizer::ReachVisualizer(ros::NodeHandle& nh,
+                                 std::shared_ptr<ReachDatabase>& db,
+                                 std::shared_ptr<IkHelper>& ik_helper)
+  : nh_(nh)
+  , db_(db)
+  , ik_helper_(ik_helper)
+  , server_(INTERACTIVE_MARKER_TOPIC)
 {
   // Generate interactive marker
   menu_handler_.insert("Show Result", [this] (const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb) {
@@ -38,17 +44,13 @@ InteractiveIK::InteractiveIK(ros::NodeHandle& nh,
     this->reachNeighborsRecursiveCB(fb);
   });
 
-  db_ = db;
-  ik_helper_ = ik_helper;
-
-  nh_ = nh;
   state_pub_ = nh.advertise<moveit_msgs::DisplayRobotState>(ROBOT_STATE_TOPIC, 1, true);
   neighbor_pub_ = nh.advertise<visualization_msgs::Marker>(REACH_NEIGHBORS_TOPIC, 1, true);
   diff_pub_ = nh.advertise<visualization_msgs::MarkerArray>(REACH_COMPARISON_TOPIC, 1, true);
   scene_pub_ = nh.advertise<moveit_msgs::PlanningScene>(PLANNING_SCENE_TOPIC, 1, true);
 }
 
-void InteractiveIK::createReachMarkers()
+void ReachVisualizer::createReachMarkers()
 {
   for (const auto& m : *db_)
   {
@@ -57,12 +59,12 @@ void InteractiveIK::createReachMarkers()
   server_.applyChanges();
 }
 
-void InteractiveIK::publishScene(const moveit_msgs::PlanningScene& msg)
+void ReachVisualizer::publishScene(const moveit_msgs::PlanningScene& msg)
 {
   scene_pub_.publish(msg);
 }
 
-void InteractiveIK::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -116,7 +118,7 @@ void InteractiveIK::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedb
   }
 }
 
-void InteractiveIK::showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -129,7 +131,7 @@ void InteractiveIK::showResultCB(const visualization_msgs::InteractiveMarkerFeed
   }
 }
 
-void InteractiveIK::showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -142,7 +144,7 @@ void InteractiveIK::showSeedCB(const visualization_msgs::InteractiveMarkerFeedba
   }
 }
 
-void InteractiveIK::reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if(!lookup)
@@ -150,7 +152,7 @@ void InteractiveIK::reachNeighborsDirectCB(const visualization_msgs::Interactive
     ROS_ERROR("Object does not exist in database");
   }
 
-  ReachRecord& reach_record = *lookup;
+  reach_msgs::ReachRecord& reach_record = *lookup;
   std::vector<std::string> reached_pts = ik_helper_->reachNeighborsDirect(db_, reach_record);
 
   publishMarkerArray(reached_pts);
@@ -158,7 +160,7 @@ void InteractiveIK::reachNeighborsDirectCB(const visualization_msgs::Interactive
   showResultCB(fb);
 }
 
-void InteractiveIK::reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if(!lookup)
@@ -166,7 +168,7 @@ void InteractiveIK::reachNeighborsRecursiveCB(const visualization_msgs::Interact
     ROS_ERROR("Object does not exist in database");
   }
 
-  ReachRecord& rec = *lookup;
+  reach_msgs::ReachRecord& rec = *lookup;
   std::vector<std::string> reached_pts;
   double joint_distance = 0.0;
 
@@ -182,7 +184,7 @@ void InteractiveIK::reachNeighborsRecursiveCB(const visualization_msgs::Interact
   showResultCB(fb);
 }
 
-void InteractiveIK::reachDiffVisualizer(std::vector<std::pair<std::string, std::shared_ptr<Database>>> data)
+void ReachVisualizer::reachDiffVisualizer(std::vector<std::pair<std::string, std::shared_ptr<reach::core::ReachDatabase>>> data)
 {
 
   const int db_num = static_cast<int>(data.size());
@@ -237,11 +239,11 @@ void InteractiveIK::reachDiffVisualizer(std::vector<std::pair<std::string, std::
   for(int i = 0; i < data[0].second->count(); ++i)
   {
     // Get the reach record message for the current point from each database
-    std::vector<ReachRecord> msgs;
+    std::vector<reach_msgs::ReachRecord> msgs;
     for(int j = 0; j < db_num; ++j)
     {
       std::string msg_id = std::to_string(i);
-      boost::optional<ReachRecord> msg = data[j].second->get(msg_id);
+      boost::optional<reach_msgs::ReachRecord> msg = data[j].second->get(msg_id);
       msgs.push_back(*msg);
     }
 
@@ -265,7 +267,7 @@ void InteractiveIK::reachDiffVisualizer(std::vector<std::pair<std::string, std::
   diff_pub_.publish(marker_array);
 }
 
-void InteractiveIK::publishMarkerArray(std::vector<std::string>& msg_ids)
+void ReachVisualizer::publishMarkerArray(std::vector<std::string>& msg_ids)
 {
   std::vector<geometry_msgs::Point> pt_array;
   if(msg_ids.size() > 0)
@@ -273,7 +275,7 @@ void InteractiveIK::publishMarkerArray(std::vector<std::string>& msg_ids)
     for (auto it = msg_ids.begin(); it != msg_ids.end(); ++it)
     {
       // Update the interactive markers that have changed
-      ReachRecord msg = *db_->get(*it);
+      reach_msgs::ReachRecord msg = *db_->get(*it);
       addRecord(msg);
 
       // Visualize points reached around input point
@@ -291,7 +293,7 @@ void InteractiveIK::publishMarkerArray(std::vector<std::string>& msg_ids)
   neighbor_pub_.publish(pt_marker);
 }
 
-void InteractiveIK::addRecord(const ReachRecord &rec)
+void ReachVisualizer::addRecord(const reach_msgs::ReachRecord &rec)
 {
   auto id = rec.id;
   auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
@@ -299,4 +301,5 @@ void InteractiveIK::addRecord(const ReachRecord &rec)
   menu_handler_.apply(server_, id);
 }
 
-} // namespace robot_reach_study
+} // namespace core
+} // namespace reach

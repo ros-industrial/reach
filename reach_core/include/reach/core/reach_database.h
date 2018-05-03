@@ -1,30 +1,17 @@
-#ifndef REACH_DATABASE_H
-#define REACH_DATABASE_H
+#ifndef REACH_CORE_REACH_DATABASE_H
+#define REACH_CORE_REACH_DATABASE_H
 
-#include <robot_reach_study/ReachDatabase.h>
+#include "reach/core/study_parameters.h"
+#include <reach_msgs/ReachDatabase.h>
 #include <boost/optional.hpp>
-#include <unordered_map>
 #include <moveit/robot_state/robot_state.h>
 #include <mutex>
+#include <unordered_map>
 
-namespace robot_reach_study
+namespace reach
 {
-/**
- * @brief makeRecord creates a ReachRecord message for the solution of the robot's IK for a given target pose
- * @param id
- * @param reached
- * @param goal
- * @param seed_state
- * @param goal_state
- * @param score
- * @return a ReachRecord message containing information about the robot pose, to be saved in the reach database
- */
-ReachRecord makeRecord(const std::string& id,
-                       const bool reached,
-                       const geometry_msgs::Pose& goal,
-                       const moveit::core::RobotState& seed_state,
-                       const moveit::core::RobotState& goal_state,
-                       const double score);
+namespace core
+{
 
 /**
  * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database also saves
@@ -37,15 +24,16 @@ ReachRecord makeRecord(const std::string& id,
  *  - avg_joint_distance: average joint distance required to travel to all of any given pose's reachable neighbors (indicative of the
  *    robot's ease of movement or "efficiency" moving from one pose to a neighboring pose
  */
-class Database
+class ReachDatabase
 {
+  using iterator = std::unordered_map<std::string, reach_msgs::ReachRecord>::iterator;
+
 public:
-  using iterator = std::unordered_map<std::string, robot_reach_study::ReachRecord>::iterator;
 
   /**
     @brief Default class constructor
    */
-  Database() = default;
+  ReachDatabase() = default;
 
   /**
    * @brief save saves the reach study database to a file at the input location
@@ -65,13 +53,13 @@ public:
    * @param id
    * @return
    */
-  boost::optional<robot_reach_study::ReachRecord> get(const std::string& id) const;
+  boost::optional<reach_msgs::ReachRecord> get(const std::string& id) const;
 
   /**
    * @brief put adds a ReachRecord message to the database
    * @param record
    */
-  void put(const robot_reach_study::ReachRecord& record);
+  void put(const reach_msgs::ReachRecord& record);
 
   /**
    * @brief count counts the number of entries in the database
@@ -90,46 +78,25 @@ public:
   void printResults();
 
   /**
-   * @brief getTotalPoseScore
+   * @brief getStudyResults
    * @return
    */
-  float getTotalPoseScore() const {return total_pose_score_;}
-
-  /**
-   * @brief getNormalizedTotalPoseScore
-   * @return
-   */
-  float getNormalizedTotalPoseScore() const {return norm_total_pose_score_;}
-
-  /**
-   * @brief getAverageNeighborsCount
-   * @return
-   */
-  float getAverageNeighborsCount() const {return avg_num_neighbors_;}
-
-  /**
-   * @brief getReachPercentage
-   * @return
-   */
-  float getReachPercentage() const {return reach_percentage_;}
-
-  /**
-   * @brief getAverageJointDistance
-   * @return
-   */
-  float getAverageJointDistance() const {return avg_joint_distance_;}
+  StudyResults getStudyResults() const
+  {
+    return results_;
+  }
 
   /**
    * @brief setAverageNeighborsCount
    * @param n
    */
-  void setAverageNeighborsCount(const float n) {avg_num_neighbors_ = n;}
+  void setAverageNeighborsCount(const float n) {results_.avg_num_neighbors = n;}
 
   /**
    * @brief setAverageJointDistance
    * @param n
    */
-  void setAverageJointDistance(const float n) {avg_joint_distance_ = n;}
+  void setAverageJointDistance(const float n) {results_.avg_joint_distance = n;}
 
   // For loops
   iterator begin()
@@ -144,17 +111,17 @@ public:
 
 private:
 
-  void putHelper(const robot_reach_study::ReachRecord& record);
+  void putHelper(const reach_msgs::ReachRecord& record);
 
-  std::unordered_map<std::string, robot_reach_study::ReachRecord> map_;
+  std::unordered_map<std::string, reach_msgs::ReachRecord> map_;
+
   mutable std::mutex mutex_;
-  float total_pose_score_ = 0.0f;
-  float norm_total_pose_score_ = 0.0f;
-  float reach_percentage_ = 0.0f;
-  float avg_num_neighbors_ = 0.0f;
-  float avg_joint_distance_ = 0.0f;
+
+  StudyResults results_;
+
 };
 
-}
+} // namespace core
+} // namespace reach
 
-#endif // REACH_DATABASE_H
+#endif // REACH_CORE_REACH_DATABASE_H

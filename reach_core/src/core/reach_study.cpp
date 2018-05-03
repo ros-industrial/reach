@@ -1,11 +1,13 @@
-#include <atomic>
+#include "reach/core/reach_study.h"
+#include "reach/utils/database_utils.h"
+#include "reach/utils/general_utils.h"
+#include "reach/utils/kinematics_utils.h"
+
+#include <reach_msgs/SampleMesh.h>
+#include <reach_msgs/ReachRecord.h>
+
 #include <eigen_conversions/eigen_msg.h>
-#include <pcl_ros/point_cloud.h>
-#include <robot_reach_study/reach_study.h>
-#include <robot_reach_study/SampleMesh.h>
-#include <robot_reach_study/utils.h>
 #include <ros/package.h>
-#include <ros/ros.h>
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
 const static double SRV_TIMEOUT = 5.0;
@@ -14,51 +16,52 @@ const static std::string SAVED_DB_NAME = "reach.db";
 const static std::string OPT_SAVED_DB_NAME = "optimized_reach.db";
 const static int MAX_NUM_OPT = 10;
 const static double PCT_IMPROVE_THRESHOLD = 0.01;
-//const static double MAJOR_LENGTH_TO_MARKER_RATIO = 50;
+
 const static int SOLUTION_ATTEMPTS = 1;
 const static float SOLUTION_TIMEOUT = 0.02;
 const static double DISCRETIZATION_ANGLE = 10.0f * (M_PI / 180.0f);
 
-namespace robot_reach_study
+namespace reach
+{
+namespace core
 {
 
-ReachStudy::ReachStudy(ros::NodeHandle& nh,
-                       StudyParams& sp)
+ReachStudy::ReachStudy(const ros::NodeHandle& nh,
+                       const StudyParameters& sp)
+  : nh_(nh)
+  , sp_(sp)
+  , helper_(new IkHelper (sp.kin_group_name, sp.manip_group_name))
+  , db_(new ReachDatabase ())
+  , visualizer_(new ReachVisualizer (nh_, db_, helper_))
+  , cloud_(new pcl::PointCloud<pcl::PointNormal> ())
 {
-  nh_ = nh;
-  sp_ = sp;
-  helper_.reset(new IkHelper (sp_.kin_group_name, sp_.manip_group_name));
-  db_.reset(new Database);
-  ik_visualizer_.reset(new InteractiveIK (nh_, db_, helper_));
-  cloud_.reset(new pcl::PointCloud<pcl::PointNormal> ());
+
 }
 
-void ReachStudy::init()
+void ReachStudy::initializeStudy(const StudyParameters& sp)
 {
   // Set the IK parameters
   helper_->setSolutionAttempts(SOLUTION_ATTEMPTS);
   helper_->setSolutionTimeout(SOLUTION_TIMEOUT);
-  helper_->setNeighborRadius(sp_.optimization_radius);
-  helper_->setCostFunction(static_cast<IkHelper::CostFunction>(sp_.cost_function));
-  helper_->setDistanceThreshold(sp_.distance_threshold);
+  helper_->setNeighborRadius(sp.optimization_radius);
+  helper_->setCostFunction(static_cast<CostFunction>(sp.cost_function));
+  helper_->setDistanceThreshold(sp.distance_threshold);
 
   // Set the visualizer parameters
-  ik_visualizer_->setMarkerFrame(sp_.fixed_frame);
-//  double marker_size = utils::getMajorLength(cloud_) / MAJOR_LENGTH_TO_MARKER_RATIO;
-//  ik_visualizer_->setMarkerScale(marker_size);
-  ik_visualizer_->setMarkerScale(sp_.optimization_radius / 2.0);
+  visualizer_->setMarkerFrame(sp.fixed_frame);
+  visualizer_->setMarkerScale(sp.optimization_radius / 2.0);
 
   // Create a directory to store results of study
-  if(!sp_.results_directory.empty() && boost::filesystem::exists(sp_.results_directory.c_str()))
+  if(!sp.results_directory.empty() && boost::filesystem::exists(sp.results_directory.c_str()))
   {
-    dir_ = sp_.results_directory + "/";
+    dir_ = sp.results_directory + "/";
   }
   else
   {
-    dir_ = ros::package::getPath("robot_reach_study") + "/results/";
+    dir_ = ros::package::getPath("reach_core") + "/results/";
     ROS_WARN("Using default results file directory: %s", dir_.c_str());
   }
-  results_dir_ =  dir_ + sp_.config_name + "/";
+  results_dir_ =  dir_ + sp.config_name + "/";
   const char* char_dir = results_dir_.c_str();
 
   if(!boost::filesystem::exists(char_dir))
@@ -68,10 +71,10 @@ void ReachStudy::init()
   }
 }
 
-bool ReachStudy::run()
+bool ReachStudy::run(const StudyParameters& sp)
 {
   // Initialize the study
-  init();
+  initializeStudy(sp);
 
   // Get the reach object point cloud
   if(!getReachObjectPointCloud())
@@ -82,22 +85,22 @@ bool ReachStudy::run()
 
   // Add the reach object mesh as a collision object in the planning scene
   std::vector<std::string> touch_links;
-  touch_links.push_back(sp_.fixed_frame);
-  if(!helper_->addCollisionObjectToScene(sp_.mesh_filename, sp_.object_frame, touch_links))
+  touch_links.push_back(sp.fixed_frame);
+  if(!helper_->addCollisionObjectToScene(sp.mesh_filename, sp.object_frame, touch_links))
   {
     ROS_ERROR("Unable to add collision object to planning scene");
     return false;
   }
 
   // Show the reach object collision object and reach object point cloud
-  if(sp_.visualize_results)
+  if(sp.visualize_results)
   {
     ros::Publisher pub = nh_.advertise<sensor_msgs::PointCloud2>(INPUT_CLOUD_TOPIC, 1, true);
     pub.publish(cloud_msg_);
 
     moveit_msgs::PlanningScene msg;
     helper_->getPlanningScene()->getPlanningSceneMsg(msg);
-    ik_visualizer_->publishScene(msg);
+    visualizer_->publishScene(msg);
   }
 
   // Attempt to load previously saved optimized reach_study database
@@ -137,20 +140,20 @@ bool ReachStudy::run()
   }
 
   // Find the average number of neighboring points can be reached by the robot from any given point
-  if(sp_.get_neighbors)
+  if(sp.get_neighbors)
   {
     // Perform the calculation if it hasn't already been done
-    if(db_->getAverageNeighborsCount() == 0.0)
+    if(db_->getStudyResults().avg_num_neighbors == 0.0)
     {
       getAverageNeighborsCount();
     }
   }
 
   // Visualize the results of the reach study
-  if(sp_.visualize_results)
+  if(sp.visualize_results)
   {
     // Compare database results
-    if(!sp_.compare_dbs.empty())
+    if(!sp.compare_dbs.empty())
     {
       if(!compareDatabases())
       {
@@ -159,7 +162,7 @@ bool ReachStudy::run()
     }
 
     // Create markers
-    ik_visualizer_->createReachMarkers();
+    visualizer_->createReachMarkers();
     ros::spin();
   }
 
@@ -169,9 +172,9 @@ bool ReachStudy::run()
 bool ReachStudy::getReachObjectPointCloud()
 {
   // Call the sample mesh service to create a point cloud of the reach object mesh
-  ros::ServiceClient client = nh_.serviceClient<SampleMesh>(SAMPLE_MESH_SRV_TOPIC);
+  ros::ServiceClient client = nh_.serviceClient<reach_msgs::SampleMesh>(SAMPLE_MESH_SRV_TOPIC);
 
-  SampleMesh srv;
+  reach_msgs::SampleMesh srv;
   srv.request.cloud_filename = sp_.pcd_filename;
   srv.request.fixed_frame = sp_.fixed_frame;
   srv.request.object_frame = sp_.object_frame;
@@ -224,12 +227,12 @@ void ReachStudy::runInitialReachStudy()
 
     if(score)
     {
-      auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
+      auto msg = utils::makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
       db_->put(msg);
     }
     else
     {
-      auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0f);
+      auto msg = utils::makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0f);
       db_->put(msg);
     }
 
@@ -265,7 +268,7 @@ void ReachStudy::optimizeReachStudyResults()
   while(pct_improve > PCT_IMPROVE_THRESHOLD && n_opt < MAX_NUM_OPT)
   {
     ROS_INFO("Entering optimization loop %d", n_opt);
-    previous_score = db_->getNormalizedTotalPoseScore();
+    previous_score = db_->getStudyResults().norm_total_pose_score;
     current_counter = 0;
     previous_pct = 0;
 
@@ -275,7 +278,7 @@ void ReachStudy::optimizeReachStudyResults()
     #pragma parallel for
     for(std::size_t i = 0; i < rand_vec.size(); ++i)
     {
-      ReachRecord msg = *(db_->get(std::to_string(rand_vec[i])));
+      reach_msgs::ReachRecord msg = *(db_->get(std::to_string(rand_vec[i])));
       if(msg.reached)
       {
         std::vector<std::string> score = helper_->reachNeighborsDirect(db_, msg);
@@ -289,7 +292,7 @@ void ReachStudy::optimizeReachStudyResults()
     // Recalculate optimized reach study results
     db_->calculateResults();
     db_->printResults();
-    pct_improve = std::abs((db_->getNormalizedTotalPoseScore() - previous_score)/previous_score);
+    pct_improve = std::abs((db_->getStudyResults().norm_total_pose_score - previous_score)/previous_score);
     ++ n_opt;
   }
 
@@ -318,7 +321,7 @@ void ReachStudy::getAverageNeighborsCount()
   #pragma parallel for
   for(int i = 0; i < db_->count(); ++i)
   {
-    boost::optional<ReachRecord> msg = db_->get(std::to_string(i));
+    boost::optional<reach_msgs::ReachRecord> msg = db_->get(std::to_string(i));
     if(msg && msg->reached)
     {
       std::vector<std::string> reached_pts;
@@ -363,16 +366,16 @@ bool ReachStudy::compareDatabases()
   }
 
   // Load databases to be compared
-  std::vector<std::pair<std::string, std::shared_ptr<Database>>> data;
+  std::vector<std::pair<std::string, std::shared_ptr<ReachDatabase>>> data;
   for(size_t i = 0; i < db_filenames.size(); ++i)
   {
-    std::shared_ptr<Database> db (new Database);
+    std::shared_ptr<ReachDatabase> db (new ReachDatabase);
     if(!db->load(db_filenames[i]))
     {
       ROS_ERROR("Cannot load database at:\n %s", db_filenames[i].c_str());
       continue;
     }
-    std::pair<std::string, std::shared_ptr<Database>> pair (sp_.compare_dbs[i], db);
+    std::pair<std::string, std::shared_ptr<ReachDatabase>> pair (sp_.compare_dbs[i], db);
     data.push_back(pair);
   }
 
@@ -382,9 +385,10 @@ bool ReachStudy::compareDatabases()
     return false;
   }
 
-  ik_visualizer_->reachDiffVisualizer(data);
+  visualizer_->reachDiffVisualizer(data);
 
   return true;
 }
 
-} // namespace robot_reach_study
+} // namespace core
+} // namespace reach
