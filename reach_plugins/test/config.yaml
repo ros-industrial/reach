@@ -1,0 +1,16 @@
+config:
+  name: "reach_plugins/ik/MoveItIKSolver"
+  distance_threshold: 0.100
+  planning_group: "gantry_manipulator"
+  evaluation_plugin:
+    name: "reach_plugins/evaluation/MultiplicativeFactory"
+    plugins:
+      - name: "reach_plugins/evaluation/ManipulabilityMoveIt"
+        planning_group: "manipulator"
+      - name: "reach_plugins/evaluation/DistancePenaltyMoveIt"
+        planning_group: "manipulator"
+        distance_threshold: 0.100
+        exponent: 2
+      - name: "reach_plugins/evaluation/JointPenaltyMoveIt"
+        planning_group: "manipulator"
+
