@@ -3,6 +3,8 @@
 #include <moveit_msgs/PlanningScene.h>
 #include <pluginlib/class_loader.h>
 #include <reach_plugins/ik/moveit_ik_solver.h>
+#include <ros/node_handle.h>
+#include <ros/subscriber.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 namespace reach_plugins

@@ -45,7 +45,7 @@ public:
                                                   const std::vector<double> &seed,
                                                   std::vector<double> &solution) override;
 
-private:
+protected:
 
   void updatePlanningScene(const moveit_msgs::PlanningSceneConstPtr& msg);
 
