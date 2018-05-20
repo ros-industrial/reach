@@ -3,6 +3,9 @@ config:
   distance_threshold: 0.100
   discretization_angle: 0.785
   planning_group: "gantry_manipulator"
+  collision_mesh_filename: "package://basf_support/meshes/basf_support/visual/bmw_m5.stl"
+  collision_mesh_frame: "reach_object"
+  touch_links: ["world"]
   evaluation_plugin:
     name: "reach_plugins/evaluation/MultiplicativeFactory"
     plugins:
@@ -12,6 +15,9 @@ config:
         planning_group: "manipulator"
         distance_threshold: 0.100
         exponent: 2
+        collision_mesh_filename: "package://basf_support/meshes/basf_support/visual/bmw_m5.stl"
+        collision_mesh_frame: "reach_object"
+        touch_links: ["world"]
       - name: "reach_plugins/evaluation/JointPenaltyMoveIt"
         planning_group: "manipulator"
 
