@@ -13,6 +13,7 @@
   <depend>pluginlib</depend>
   <depend>moveit_core</depend>
   <depend>moveit_ros_planning_interface</depend>
+  <depend>moveit_msgs</depend>
   <depend>xmlrpcpp</depend>
 
   <export>
