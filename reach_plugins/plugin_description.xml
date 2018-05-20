@@ -46,6 +46,13 @@
       An inverse kinematics solver plugin which utilizes the MoveIt framework for solving robot inverse kinematics with respect to a given planning environment
     </description>
   </class>
+  <!-- Discretized MoveIt IK Solver -->
+  <class name="reach_plugins/ik/DiscretizedMoveItIKSolver" type="reach_plugins::ik::DiscretizedMoveItIKSolver" base_class_type="reach_plugins::ik::IKSolverBase">
+    <description>
+      An inverse kinematics solver plugin which utilizes the MoveIt framework for solving robot inverse kinematics with respect to a given planning environment
+      This plugin discretizes the target pose around the Z-axis and outputs the solution with the highest score
+    </description>
+  </class>
 </library>
 
 <!-- Display Plugins -->

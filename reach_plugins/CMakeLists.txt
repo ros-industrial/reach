@@ -43,6 +43,7 @@ include_directories(
 # MoveIt IK Solver Plugin
  add_library(ik_solver_plugins
    src/ik/moveit_ik_solver.cpp
+   src/ik/discretized_moveit_ik_solver.cpp
  )
  add_dependencies(ik_solver_plugins
    ${${PROJECT_NAME}_EXPORTED_TARGETS}
