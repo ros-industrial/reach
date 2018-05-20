@@ -20,12 +20,6 @@ class PlanningScene;
 typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 }
 
-namespace ros
-{
-class NodeHandle;
-class Subscriber;
-}
-
 namespace reach_plugins
 {
 namespace evaluation
@@ -43,8 +37,6 @@ public:
 
 private:
 
-  void updatePlanningScene(const moveit_msgs::PlanningSceneConstPtr& msg);
-
   moveit::core::RobotModelConstPtr model_;
 
   const moveit::core::JointModelGroup* jmg_;
@@ -55,9 +47,11 @@ private:
 
   int exponent_;
 
-  ros::NodeHandle nh_;
+  std::string collision_mesh_filename_;
 
-  ros::Subscriber planning_scene_sub_;
+  std::string collision_mesh_frame_;
+
+  std::vector<std::string> touch_links_;
 };
 
 } // namespace evaluation
