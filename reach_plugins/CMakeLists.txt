@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   moveit_core
   moveit_ros_planning_interface
+  moveit_msgs
   xmlrpcpp
 )
 
@@ -14,6 +15,7 @@ catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
+    ${PROJECT_NAME}_utils
     evaluation_plugins
     ik_solver_plugins
   CATKIN_DEPENDS
@@ -23,6 +25,18 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+)
+
+#Utils Library
+add_library(${PROJECT_NAME}_utils
+  src/utils.cpp
+)
+add_dependencies(${PROJECT_NAME}_utils
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+target_link_libraries(${PROJECT_NAME}_utils
+  ${catkin_LIBRARIES}
 )
 
 # Evaluation Plugins
@@ -38,6 +52,7 @@ include_directories(
  )
  target_link_libraries(evaluation_plugins
    ${catkin_LIBRARIES}
+   ${PROJECT_NAME}_utils
  )
 
 # MoveIt IK Solver Plugin
@@ -51,6 +66,7 @@ include_directories(
  )
  target_link_libraries(ik_solver_plugins
    ${catkin_LIBRARIES}
+   ${PROJECT_NAME}_utils
  )
 
 # IK Plugin Test
