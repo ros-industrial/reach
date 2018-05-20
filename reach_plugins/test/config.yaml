@@ -1,6 +1,7 @@
 config:
-  name: "reach_plugins/ik/MoveItIKSolver"
+  name: "reach_plugins/ik/DiscretizedMoveItIKSolver"
   distance_threshold: 0.100
+  discretization_angle: 0.785
   planning_group: "gantry_manipulator"
   evaluation_plugin:
     name: "reach_plugins/evaluation/MultiplicativeFactory"
