@@ -1,7 +1,5 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <ros/console.h>
-#include <ros/node_handle.h>
-#include <ros/subscriber.h>
 #include <reach_plugins/ik/discretized_moveit_ik_solver.h>
 #include <xmlrpcpp/XmlRpcException.h>
 #include <algorithm>

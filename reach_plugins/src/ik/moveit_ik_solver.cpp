@@ -3,8 +3,7 @@
 #include <moveit_msgs/PlanningScene.h>
 #include <pluginlib/class_loader.h>
 #include <reach_plugins/ik/moveit_ik_solver.h>
-#include <ros/node_handle.h>
-#include <ros/subscriber.h>
+#include <reach_plugins/utils.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 namespace reach_plugins
@@ -22,6 +21,9 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
 {
   if(!config.hasMember("planning_group") ||
      !config.hasMember("distance_threshold") ||
+     !config.hasMember("collision_mesh_filename") ||
+     !config.hasMember("collision_mesh_frame") ||
+     !config.hasMember("touch_links") ||
      !config.hasMember("evaluation_plugin"))
   {
     ROS_ERROR("MoveIt IK Solver Plugin is missing one or more configuration parameters");
@@ -33,6 +35,15 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
   {
     planning_group = std::string(config["planning_group"]);
     distance_threshold_ = double(config["distance_threshold"]);
+    collision_mesh_filename_ = std::string(config["collision_mesh_filename"]);
+
+    // To-do: Check that this frame exists in TF
+    collision_mesh_frame_ = std::string(config["collision_mesh_frame"]);
+
+    for(int i = 0; i < config["touch_links"].size(); ++i)
+    {
+      touch_links_.push_back(config["touch_links"][i]);
+    }
 
     const static std::string PACKAGE = "reach_plugins";
     const static std::string EVAL_PLUGIN_BASE = "reach_plugins::evaluation::EvaluationBase";
@@ -75,7 +86,25 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
 
   scene_.reset(new planning_scene::PlanningScene (model_));
 
-  planning_scene_sub_ = nh_.subscribe("update_planning_scene", 1, &MoveItIKSolver::updatePlanningScene, this);
+  // Check that the input collision mesh frame exists
+  if(!scene_->knowsFrameTransform(collision_mesh_frame_))
+  {
+    ROS_ERROR_STREAM("Specified collision mesh frame '" << collision_mesh_frame_ << "' does not exist");
+    return false;
+  }
+
+  // Add the collision object to the planning scene
+  const std::string object_name = "reach_object";
+  moveit_msgs::CollisionObject obj = utils::createCollisionObject(collision_mesh_filename_, collision_mesh_frame_, object_name);
+  if(!scene_->processCollisionObjectMsg(obj))
+  {
+    ROS_ERROR("Failed to add collision mesh to planning scene");
+    return false;
+  }
+  else
+  {
+    scene_->getAllowedCollisionMatrixNonConst().setEntry(object_name, touch_links_, true);
+  }
 
   ROS_INFO_STREAM("Successfully initialized MoveItIKSolver plugin");
   return true;
@@ -104,14 +133,6 @@ boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Affine3d& t
   else
   {
     return {};
-  }
-}
-
-void MoveItIKSolver::updatePlanningScene(const moveit_msgs::PlanningSceneConstPtr& msg)
-{
-  if(!scene_->setPlanningSceneDiffMsg(*msg))
-  {
-    ROS_ERROR_STREAM("MoveItIKSolver failed to update planning scene");
   }
 }
 

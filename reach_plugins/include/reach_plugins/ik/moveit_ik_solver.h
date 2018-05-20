@@ -3,7 +3,6 @@
 
 #include "ik_solver_base.h"
 #include <reach_plugins/evaluation/evaluation_base.h>
-#include <moveit_msgs/PlanningScene.h>
 
 namespace moveit
 {
@@ -20,12 +19,6 @@ namespace planning_scene
 {
 class PlanningScene;
 typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
-}
-
-namespace ros
-{
-class NodeHandle;
-class Subscriber;
 }
 
 namespace reach_plugins
@@ -47,8 +40,6 @@ public:
 
 protected:
 
-  void updatePlanningScene(const moveit_msgs::PlanningSceneConstPtr& msg);
-
   bool isIKSolutionValid(moveit::core::RobotState* state,
                          const moveit::core::JointModelGroup* jmg,
                          const double* ik_solution) const;
@@ -63,9 +54,11 @@ protected:
 
   double distance_threshold_;
 
-  ros::NodeHandle nh_;
+  std::string collision_mesh_filename_;
 
-  ros::Subscriber planning_scene_sub_;
+  std::string collision_mesh_frame_;
+
+  std::vector<std::string> touch_links_;
 };
 
 } // namespace ik
