@@ -36,8 +36,6 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
     planning_group = std::string(config["planning_group"]);
     distance_threshold_ = double(config["distance_threshold"]);
     collision_mesh_filename_ = std::string(config["collision_mesh_filename"]);
-
-    // To-do: Check that this frame exists in TF
     collision_mesh_frame_ = std::string(config["collision_mesh_frame"]);
 
     for(int i = 0; i < config["touch_links"].size(); ++i)
