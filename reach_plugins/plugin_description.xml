@@ -56,3 +56,11 @@
 </library>
 
 <!-- Display Plugins -->
+<library path="lib/libreach_display_plugins">
+  <!-- MoveIt Reach Display -->
+  <class name="reach_plugins/display/MoveItReachDisplay" type="reach_plugins::display::MoveItReachDisplay" base_class_type="reach_plugins::display::ReachDisplayBase">
+    <description>
+      A reach study display plugin using the MoveIt framework
+    </description>
+  </class>
+</library>
