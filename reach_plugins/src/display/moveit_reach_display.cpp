@@ -21,7 +21,9 @@ bool MoveItReachDisplay::initialize(XmlRpc::XmlRpcValue& config)
 {
   if(!config.hasMember("planning_group") ||
      !config.hasMember("collision_mesh_filename") ||
-     !config.hasMember("collision_mesh_frame"))
+     !config.hasMember("collision_mesh_frame") ||
+     !config.hasMember("fixed_frame") ||
+     !config.hasMember("marker_scale"))
   {
     ROS_ERROR("MoveIt IK Solver Plugin is missing one or more configuration parameters");
     return false;
@@ -33,6 +35,8 @@ bool MoveItReachDisplay::initialize(XmlRpc::XmlRpcValue& config)
     planning_group = std::string(config["planning_group"]);
     collision_mesh_filename_ = std::string(config["collision_mesh_filename"]);
     collision_mesh_frame_ = std::string(config["collision_mesh_frame"]);
+    fixed_frame_ = std::string(config["fixed_frame"]);
+    marker_scale_ = double(config["marker_scale"]);
   }
   catch(const XmlRpc::XmlRpcException& ex)
   {

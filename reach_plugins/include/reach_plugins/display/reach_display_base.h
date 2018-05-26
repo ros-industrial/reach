@@ -9,6 +9,8 @@
 #include <xmlrpcpp/XmlRpcValue.h>
 
 const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
+const static std::string REACH_DIFF_TOPIC = "reach_comparison";
+const static std::string MARKER_TOPIC = "reach_neighbors";
 
 namespace reach_plugins
 {
@@ -23,7 +25,8 @@ public:
   ReachDisplayBase()
     : server_(INTERACTIVE_MARKER_TOPIC)
   {
-
+    diff_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
+    marker_pub_ = nh_.advertise<visualization_msgs::Marker>(MARKER_TOPIC, 1, true);
   }
 
   virtual ~ReachDisplayBase()
@@ -52,6 +55,46 @@ public:
                           const interactive_markers::MenuHandler::FeedbackCallback& callback)
   {
     menu_handler_.insert(menu_entry, callback);
+  }
+
+  void updateInteractiveMarker(const reach_msgs::ReachRecord& rec)
+  {
+    if(server_.erase(rec.id))
+    {
+      auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
+      server_.insert(marker);
+      menu_handler_.apply(server_, rec.id);
+      server_.applyChanges();
+    }
+    else
+    {
+      ROS_ERROR_STREAM("Failed to update interactive marker '" << rec.id << "'; marker does not alreadys exist");
+    }
+  }
+
+  void publishMarkerArray(const std::vector<std::string>& ids)
+  {
+    if(!ids.empty())
+    {
+      std::vector<geometry_msgs::Point> pt_array;
+
+      for (const std::string& id : ids)
+      {
+        visualization_msgs::InteractiveMarker marker;
+        server_.get(id, marker);
+
+        // Visualize points reached around input point
+        geometry_msgs::Point pt;
+        pt.x = marker.pose.position.x;
+        pt.y = marker.pose.position.y;
+        pt.z = marker.pose.position.z;
+        pt_array.push_back(std::move(pt));
+      }
+
+      // Create points marker, publish it, and move robot to result state for  given point
+      visualization_msgs::Marker pt_marker = utils::makeMarker(pt_array, fixed_frame_, marker_scale_);
+      marker_pub_.publish(pt_marker);
+    }
   }
 
   void compareDatabases(const std::map<std::string, reach_msgs::ReachDatabase>& data)
@@ -129,17 +172,23 @@ public:
     diff_pub_.publish(marker_array);
   }
 
+protected:
+
+  std::string fixed_frame_ = "base_frame";
+
+  double marker_scale_ = 1.0;
+
 private:
 
   interactive_markers::InteractiveMarkerServer server_;
 
   interactive_markers::MenuHandler menu_handler_;
 
-  std::string fixed_frame_;
-
-  double marker_scale_;
+  ros::NodeHandle nh_;
 
   ros::Publisher diff_pub_;
+
+  ros::Publisher marker_pub_;
 };
 typedef boost::shared_ptr<ReachDisplayBase> ReachDisplayBasePtr;
 
