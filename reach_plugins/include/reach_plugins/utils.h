@@ -47,6 +47,19 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::Re
                                                             const std::string& frame,
                                                             const double scale);
 
+/**
+ * @brief makeMarker
+ * @param pts
+ * @param frame
+ * @param scale
+ * @param ns
+ * @return
+ */
+visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts,
+                                      const std::string& frame,
+                                      const double scale,
+                                      const std::string& ns = "");
+
 } // namespace utils
 } // namespace reach_plugins
 

@@ -124,5 +124,32 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::Re
   return m;
 }
 
+visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts,
+                                      const std::string& frame,
+                                      const double scale,
+                                      const std::string& ns)
+{
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = frame;
+  marker.header.stamp = ros::Time::now();
+  marker.ns = ns;
+  marker.type = visualization_msgs::Marker::POINTS;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.scale.x = marker.scale.y = marker.scale.z = scale / NEIGHBOR_MARKER_SCALE_RATIO;
+
+  marker.color.a = 1.0; // Don't forget to set the alpha!
+  marker.color.r = 0;
+  marker.color.g = 1.0;
+  marker.color.b = 0;
+
+  for(std::size_t i = 0; i < pts.size(); ++i)
+  {
+    marker.points.push_back(pts[i]);
+  }
+
+  return marker;
+}
+
 } // namespace utils
 } // namespace reach_plugins
