@@ -25,4 +25,6 @@ reach_display:
   planning_group: "gantry_manipulator"
   collision_mesh_filename: "package://basf_support/meshes/basf_support/visual/bmw_m5.ply"
   collision_mesh_frame: "reach_object"
+  fixed_frame: "world"
+  marker_scale: 0.2
 
