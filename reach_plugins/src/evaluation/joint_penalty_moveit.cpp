@@ -1,6 +1,7 @@
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <reach_plugins/evaluation/joint_penalty_moveit.h>
+#include <reach_plugins/utils.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 namespace reach_plugins
@@ -52,17 +53,25 @@ bool JointPenaltyMoveIt::initialize(XmlRpc::XmlRpcValue& config)
   return true;
 }
 
-double JointPenaltyMoveIt::calculateScore(const std::vector<double>& pose)
+double JointPenaltyMoveIt::calculateScore(const std::map<std::string, double>& pose)
 {
   std::vector<double> max, min;
   min = joint_limits_[0];
   max = joint_limits_[1];
 
+  // Pull the joints from the planning group out of the input pose map
+  std::vector<double> pose_subset;
+  if(!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
+    return 0.0f;
+  }
+
   double penalty = 1.0;
   for(std::size_t i = 0; i < max.size(); ++i)
   {
     double range = max[i] - min[i];
-    penalty *= ((pose[i] - min[i])*(max[i] - pose[i])) / std::pow(range, 2);
+    penalty *= ((pose_subset[i] - min[i])*(max[i] - pose_subset[i])) / std::pow(range, 2);
   }
   return std::max(0.0, 1.0 - std::exp(-1.0 * penalty));
 }

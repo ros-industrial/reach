@@ -86,10 +86,18 @@ bool DistancePenaltyMoveIt::initialize(XmlRpc::XmlRpcValue& config)
   return true;
 }
 
-double DistancePenaltyMoveIt::calculateScore(const std::vector<double>& pose)
+double DistancePenaltyMoveIt::calculateScore(const std::map<std::string, double>& pose)
 {
+  // Pull the joints from the planning group out of the input pose map
+  std::vector<double> pose_subset;
+  if(!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
+    return 0.0f;
+  }
+
   moveit::core::RobotState state (model_);
-  state.setJointGroupPositions(jmg_, pose);
+  state.setJointGroupPositions(jmg_, pose_subset);
   state.update();
 
   const double dist = scene_->distanceToCollision(state, scene_->getAllowedCollisionMatrix());

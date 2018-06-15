@@ -109,24 +109,39 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
 }
 
 boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Affine3d& target,
-                                                        const std::vector<double> &seed,
-                                                        std::vector<double> &solution)
+                                                        const std::map<std::string, double>& seed,
+                                                        std::vector<double>& solution)
 {
-  moveit::core::RobotState goal_state (model_);
-  moveit::core::RobotState seed_state (model_);
+  moveit::core::RobotState state (model_);
 
-  assert(jmg_->getActiveJointModelNames().size() == seed.size());
-  seed_state.setJointGroupPositions(jmg_, seed);
-  seed_state.update();
+  const std::vector<std::string>& joint_names = jmg_->getActiveJointModelNames();
+
+  std::vector<double> seed_subset;
+  if(!utils::transcribeInputMap(seed, joint_names, seed_subset))
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
+    return {};
+  }
+
+  state.setJointGroupPositions(jmg_, seed_subset);
+  state.update();
 
   const static int SOLUTION_ATTEMPTS = 1;
   const static double SOLUTION_TIMEOUT = 0.02;
 
-  if(goal_state.setFromIK(jmg_, target, SOLUTION_ATTEMPTS, SOLUTION_TIMEOUT, boost::bind(&MoveItIKSolver::isIKSolutionValid, this, _1, _2, _3)))
+  if(state.setFromIK(jmg_, target, SOLUTION_ATTEMPTS, SOLUTION_TIMEOUT, boost::bind(&MoveItIKSolver::isIKSolutionValid, this, _1, _2, _3)))
   {
     solution.clear();
-    goal_state.copyJointGroupPositions(jmg_, solution);
-    return eval_->calculateScore(solution);
+    state.copyJointGroupPositions(jmg_, solution);
+
+    // Convert back to map
+    std::map<std::string, double> solution_map;
+    for(std::size_t i = 0; i < solution.size(); ++i)
+    {
+      solution_map.emplace(joint_names[i], solution[i]);
+    }
+
+    return eval_->calculateScore(solution_map);
   }
   else
   {
@@ -142,7 +157,7 @@ bool MoveItIKSolver::isIKSolutionValid(moveit::core::RobotState* state,
   state->update();
 
   const bool colliding = scene_->isStateColliding(*state, jmg->getName(), false);
-  const bool too_close = (scene_->distanceToCollision(*state, scene_->getAllowedCollisionMatrix()) > distance_threshold_);
+  const bool too_close = (scene_->distanceToCollision(*state, scene_->getAllowedCollisionMatrix()) < distance_threshold_);
 
   return (!colliding && !too_close);
 }

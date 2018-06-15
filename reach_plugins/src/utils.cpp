@@ -121,6 +121,9 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::Re
   control.markers.push_back(visual);
   m.controls.push_back(control);
 
+  // Set the pose of the interactive marker to be the same as the visual marker
+  m.pose = visual.pose;
+
   return m;
 }
 
@@ -149,6 +152,38 @@ visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& p
   }
 
   return marker;
+}
+
+bool transcribeInputMap(const std::map<std::string, double>& input,
+                        const std::vector<std::string>& joint_names,
+                        std::vector<double>& input_subset)
+{
+  if(joint_names.size() > input.size())
+  {
+    ROS_ERROR("Seed pose size was not at least as large as the number of joints in the planning group");
+    return false;
+  }
+
+  // Pull the joints of the planning group out of the input map
+  std::vector<double> tmp;
+  tmp.reserve(joint_names.size());
+  for(const std::string& name : joint_names)
+  {
+    const auto it = input.find(name);
+    if(it == input.end())
+    {
+      ROS_ERROR_STREAM("Joint '" << name << "' in the planning group was not in the input map");
+      return false;
+    }
+    else
+    {
+      tmp.push_back(it->second);
+    }
+  }
+
+  input_subset = std::move(tmp);
+
+  return true;
 }
 
 } // namespace utils

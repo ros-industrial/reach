@@ -1,6 +1,7 @@
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_model/joint_model_group.h>
 #include <reach_plugins/evaluation/manipulability_moveit.h>
+#include <reach_plugins/utils.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 namespace reach_plugins
@@ -50,11 +51,20 @@ bool ManipulabilityMoveIt::initialize(XmlRpc::XmlRpcValue& config)
   return true;
 }
 
-double ManipulabilityMoveIt::calculateScore(const std::vector<double>& pose)
+double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>& pose)
 {
   // Calculate manipulability of kinematic chain of input robot pose
   moveit::core::RobotState state(model_);
-  state.setJointGroupPositions(jmg_, pose);
+
+  // Take the subset of joints in the joint model group out of the input pose
+  std::vector<double> pose_subset;
+  if(!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
+  {
+    ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
+    return 0.0f;
+  }
+
+  state.setJointGroupPositions(jmg_, pose_subset);
   state.update();
 
   // Get the Jacobian matrix

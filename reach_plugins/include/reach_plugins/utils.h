@@ -60,6 +60,17 @@ visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& p
                                       const double scale,
                                       const std::string& ns = "");
 
+/**
+ * @brief validateInputMap
+ * @param input
+ * @param joint_names
+ * @param revised_input
+ * @return
+ */
+bool transcribeInputMap(const std::map<std::string, double>& input,
+                       const std::vector<std::string>& joint_names,
+                       std::vector<double>& revised_input);
+
 } // namespace utils
 } // namespace reach_plugins
 

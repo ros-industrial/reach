@@ -57,7 +57,7 @@ bool DiscretizedMoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
 }
 
 boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::Affine3d& target,
-                                                                   const std::vector<double>& seed,
+                                                                   const std::map<std::string, double>& seed,
                                                                    std::vector<double>& solution)
 {
   // Calculate the number of discretizations necessary to achieve discretization angle
