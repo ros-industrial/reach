@@ -81,14 +81,14 @@ public:
       for (const std::string& id : ids)
       {
         visualization_msgs::InteractiveMarker marker;
-        server_.get(id, marker);
+        if(!server_.get(id, marker))
+        {
+          ROS_ERROR_STREAM("Failed to get interactive marker '" << id << "' from server");
+          return;
+        }
 
         // Visualize points reached around input point
-        geometry_msgs::Point pt;
-        pt.x = marker.pose.position.x;
-        pt.y = marker.pose.position.y;
-        pt.z = marker.pose.position.z;
-        pt_array.push_back(std::move(pt));
+        pt_array.push_back(marker.pose.position);
       }
 
       // Create points marker, publish it, and move robot to result state for  given point
