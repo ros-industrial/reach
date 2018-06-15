@@ -43,7 +43,7 @@ public:
    * @return a boost optional type indicating the success of the IK solution and containing the score of the solution
    */
   virtual boost::optional<double> solveIKFromSeed(const Eigen::Affine3d& target,
-                                                  const std::vector<double>& seed,
+                                                  const std::map<std::string, double>& seed,
                                                   std::vector<double>& solution) = 0;
 
 };

@@ -26,7 +26,7 @@ public:
 
   virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
 
-  virtual double calculateScore(const std::vector<double>& pose) override;
+  virtual double calculateScore(const std::map<std::string, double>& pose) override;
 
 private:
 
