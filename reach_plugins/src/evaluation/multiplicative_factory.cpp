@@ -68,7 +68,7 @@ bool MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue& config)
 double MultiplicativeFactory::calculateScore(const std::map<std::string, double>& pose)
 {
   double score = 1.0;
-  for(const EvaluationBasePtr plugin : eval_plugins_)
+  for(const EvaluationBasePtr& plugin : eval_plugins_)
   {
     score *= plugin->calculateScore(pose);
   }

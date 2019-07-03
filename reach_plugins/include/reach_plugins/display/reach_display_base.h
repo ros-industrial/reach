@@ -42,7 +42,8 @@ public:
 
   void addInteractiveMarkerData(const reach_msgs::ReachDatabase& database)
   {
-    for (const reach_msgs::ReachRecord& rec : database.records)
+    server_.clear();
+    for(const reach_msgs::ReachRecord& rec : database.records)
     {
       auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
       server_.insert(std::move(marker));

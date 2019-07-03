@@ -39,8 +39,8 @@ bool DiscretizedMoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
   try
   {
     dt_ = std::abs(double(config["discretization_angle"]));
-    double clamped_dt = clamp<double>(dt_, 0.0f, M_PI);
-    if(dt_ != clamped_dt)
+    double clamped_dt = clamp<double>(dt_, 0.0, M_PI);
+    if(std::abs(dt_ - clamped_dt) > 1.0e-6)
     {
       ROS_WARN_STREAM("Clamping discretization angle between 0 and pi; new value is " << clamped_dt);
     }
