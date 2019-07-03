@@ -38,7 +38,7 @@ public:
 
   virtual void showEnvironment() = 0;
 
-  virtual void updateRobotPose(const std::vector<double>& pose) = 0;
+  virtual void updateRobotPose(const std::map<std::string, double>& pose) = 0;
 
   void addInteractiveMarkerData(const reach_msgs::ReachDatabase& database)
   {
