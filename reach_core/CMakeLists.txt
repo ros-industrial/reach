@@ -13,7 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   moveit_ros_planning
   pcl_ros
+  pluginlib
   reach_msgs
+  reach_plugins
   tf
   tf_conversions
   visualization_msgs
@@ -47,11 +49,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-## Utilites Library
+# Utilites Library
 add_library(reach_study_utils
   src/utils/database_utils.cpp
   src/utils/general_utils.cpp
-  src/utils/kinematics_utils.cpp
   src/utils/visualization_utils.cpp
 )
 target_link_libraries(reach_study_utils
@@ -62,7 +63,7 @@ add_dependencies(reach_study_utils
   ${catkin_EXPORTED_TARGETS}
 )
 
-## Reach Database Library
+# Reach Database Library
 add_library(reach_database
   src/core/reach_database.cpp
 )
@@ -75,7 +76,7 @@ add_dependencies(reach_database
   ${catkin_EXPORTED_TARGETS}
 )
 
-## IK Helper Library
+# IK Helper Library
 add_library(ik_helper
   src/core/ik_helper.cpp
 )
@@ -88,7 +89,7 @@ add_dependencies(ik_helper
   ${catkin_EXPORTED_TARGETS}
 )
 
-## Reach Visualizer Library
+# Reach Visualizer Library
 add_library(reach_visualizer
   src/core/reach_visualizer.cpp
 )
@@ -101,7 +102,7 @@ add_dependencies(reach_visualizer
   ${catkin_EXPORTED_TARGETS}
 )
 
-## Reach Study Library
+# Reach Study Library
 add_library(reach_study
   src/core/reach_study.cpp
 )
@@ -114,7 +115,7 @@ add_dependencies(reach_study
   ${catkin_EXPORTED_TARGETS}
 )
 
-## Reach Study Node
+# Reach Study Node
 add_executable(robot_reach_study_node
   src/robot_reach_study_node.cpp
 )

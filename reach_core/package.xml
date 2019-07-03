@@ -17,7 +17,9 @@
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning</depend>
   <depend>pcl_ros</depend>
+  <depend>pluginlib</depend>
   <depend>reach_msgs</depend>
+  <depend>reach_plugins</depend>
   <depend>tf</depend>
   <depend>tf_conversions</depend>
   <depend>visualization_msgs</depend>
