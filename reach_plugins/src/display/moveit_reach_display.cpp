@@ -89,18 +89,22 @@ void MoveItReachDisplay::showEnvironment()
   scene_pub_.publish(scene_msg);
 }
 
-void MoveItReachDisplay::updateRobotPose(const std::vector<double>& pose)
+void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& pose)
 {
-  if(pose.size() == jmg_->getActiveJointModelNames().size())
+  std::vector<std::string> joint_names = jmg_->getActiveJointModelNames();
+  std::vector<double> joints;
+  if(utils::transcribeInputMap(pose, joint_names, joints))
   {
     moveit_msgs::PlanningScene scene_msg;
-    scene_->getPlanningSceneDiffMsg(scene_msg);
-    scene_msg.robot_state.joint_state.position = pose;
+    scene_msg.is_diff = true;
+    scene_msg.robot_state.is_diff = true;
+    scene_msg.robot_state.joint_state.name = joint_names;
+    scene_msg.robot_state.joint_state.position = joints;
     scene_pub_.publish(scene_msg);
   }
   else
   {
-    ROS_ERROR("Input pose size does not match that of the joint model group");
+    ROS_ERROR("Failed to transcribe input joints");
   }
 }
 

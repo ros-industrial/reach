@@ -34,7 +34,7 @@ public:
 
   virtual void showEnvironment() override;
 
-  virtual void updateRobotPose(const std::vector<double>& pose) override;
+  virtual void updateRobotPose(const std::map<std::string, double>& pose) override;
 
 private:
 
