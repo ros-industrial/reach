@@ -1,82 +1,85 @@
-#include "reach/core/reach_study.h"
-#include "reach/utils/database_utils.h"
-#include "reach/utils/general_utils.h"
-#include "reach/utils/kinematics_utils.h"
+#include <reach/core/reach_study.h>
+#include <reach/utils/database_utils.h>
+#include <reach/utils/general_utils.h>
 
 #include <reach_msgs/SampleMesh.h>
 #include <reach_msgs/ReachRecord.h>
 
 #include <eigen_conversions/eigen_msg.h>
+#include <pluginlib/class_loader.h>
 #include <ros/package.h>
+#include <xmlrpcpp/XmlRpcException.h>
+
+#include <moveit/common_planning_interface_objects/common_objects.h>
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
 const static double SRV_TIMEOUT = 5.0;
 const static std::string INPUT_CLOUD_TOPIC = "input_cloud";
 const static std::string SAVED_DB_NAME = "reach.db";
 const static std::string OPT_SAVED_DB_NAME = "optimized_reach.db";
-const static int MAX_NUM_OPT = 10;
-const static double PCT_IMPROVE_THRESHOLD = 0.01;
-
-const static int SOLUTION_ATTEMPTS = 1;
-const static float SOLUTION_TIMEOUT = 0.02;
-const static double DISCRETIZATION_ANGLE = 10.0f * (M_PI / 180.0f);
 
 namespace reach
 {
 namespace core
 {
 
-ReachStudy::ReachStudy(const ros::NodeHandle& nh,
-                       const StudyParameters& sp)
+ReachStudy::ReachStudy(const ros::NodeHandle& nh)
   : nh_(nh)
-  , sp_(sp)
-  , helper_(new IkHelper (sp.kin_group_name, sp.manip_group_name))
-  , db_(new ReachDatabase ())
-  , visualizer_(new ReachVisualizer (nh_, db_, helper_))
   , cloud_(new pcl::PointCloud<pcl::PointNormal> ())
+  , db_(new ReachDatabase ())
+  , model_(moveit::planning_interface::getSharedRobotModel("robot_description"))
 {
 
 }
 
-void ReachStudy::initializeStudy(const StudyParameters& sp)
+bool ReachStudy::initializeStudy()
 {
-  // Set the IK parameters
-  helper_->setSolutionAttempts(SOLUTION_ATTEMPTS);
-  helper_->setSolutionTimeout(SOLUTION_TIMEOUT);
-  helper_->setNeighborRadius(sp.optimization_radius);
-  helper_->setCostFunction(static_cast<CostFunction>(sp.cost_function));
-  helper_->setDistanceThreshold(sp.distance_threshold);
+  ik_solver_.reset();
+  display_.reset();
 
-  // Remove seed states whose length is not equal to the number of joints in the kinematic chain
-  const std::size_t n_joints = helper_->getKinematicGroupJointCount();
-  auto it = std::remove_if(sp_.seed_states.begin(), sp_.seed_states.end(), [&n_joints](const std::vector<double>& state)
-  {
-    return state.size() != n_joints;
-  });
-  sp_.seed_states.erase(it, sp_.seed_states.end());
+  static const std::string PACKAGE = "reach_plugins";
+  static const std::string IK_BASE_CLASS = "reach_plugins::ik::IKSolverBase";
+  static const std::string DISPLAY_BASE_CLASS = "reach_plugins::display::ReachDisplayBase";
 
-  // Add an all zeros seed state if the seed state vector ends up being empty
-  if(sp_.seed_states.empty())
+  pluginlib::ClassLoader<reach_plugins::ik::IKSolverBase> solver_loader (PACKAGE, IK_BASE_CLASS);
+  pluginlib::ClassLoader<reach_plugins::display::ReachDisplayBase> display_loader(PACKAGE, DISPLAY_BASE_CLASS);
+
+  try
   {
-    std::vector<double> seed (helper_->getKinematicGroupJointCount(), 0.0f);
-    sp_.seed_states.push_back(std::move(seed));
+    ik_solver_ = solver_loader.createInstance(sp_.ik_solver_config["name"]);
+    display_ = display_loader.createInstance(sp_.display_config["name"]);
+  }
+  catch(const XmlRpc::XmlRpcException& ex)
+  {
+    ROS_ERROR_STREAM(ex.getMessage());
+    return false;
+  }
+  catch(const pluginlib::PluginlibException& ex)
+  {
+    ROS_ERROR_STREAM(ex.what());
+    return false;
   }
 
-  // Set the visualizer parameters
-  visualizer_->setMarkerFrame(sp.fixed_frame);
-  visualizer_->setMarkerScale(sp.optimization_radius / 2.0);
+  // Initialize the IK solver plugin and display plugin
+  if(!ik_solver_->initialize(sp_.ik_solver_config) ||
+     !display_->initialize(sp_.display_config))
+  {
+    return false;
+  }
+
+  display_->showEnvironment();
 
   // Create a directory to store results of study
-  if(!sp.results_directory.empty() && boost::filesystem::exists(sp.results_directory.c_str()))
+  if(!sp_.results_directory.empty() && boost::filesystem::exists(sp_.results_directory.c_str()))
   {
-    dir_ = sp.results_directory + "/";
+    dir_ = sp_.results_directory + "/";
   }
   else
   {
     dir_ = ros::package::getPath("reach_core") + "/results/";
     ROS_WARN("Using default results file directory: %s", dir_.c_str());
   }
-  results_dir_ =  dir_ + sp.config_name + "/";
+  results_dir_ =  dir_ + sp_.config_name + "/";
   const char* char_dir = results_dir_.c_str();
 
   if(!boost::filesystem::exists(char_dir))
@@ -84,12 +87,21 @@ void ReachStudy::initializeStudy(const StudyParameters& sp)
     boost::filesystem::path path(char_dir);
     boost::filesystem::create_directory(path);
   }
+
+  return true;
 }
 
 bool ReachStudy::run(const StudyParameters& sp)
 {
+  // Overrwrite the old study parameters
+  sp_ = sp;
+
   // Initialize the study
-  initializeStudy(sp);
+  if(!initializeStudy())
+  {
+    ROS_ERROR("Failed to initialize the reach study");
+    return false;
+  }
 
   // Get the reach object point cloud
   if(!getReachObjectPointCloud())
@@ -98,25 +110,15 @@ bool ReachStudy::run(const StudyParameters& sp)
     return false;
   }
 
-  // Add the reach object mesh as a collision object in the planning scene
-  std::vector<std::string> touch_links;
-  touch_links.push_back(sp.fixed_frame);
-  if(!helper_->addCollisionObjectToScene(sp.mesh_filename, sp.object_frame, touch_links))
-  {
-    ROS_ERROR("Unable to add collision object to planning scene");
-    return false;
-  }
-
   // Show the reach object collision object and reach object point cloud
-  if(sp.visualize_results)
+  if(sp_.visualize_results)
   {
     ros::Publisher pub = nh_.advertise<sensor_msgs::PointCloud2>(INPUT_CLOUD_TOPIC, 1, true);
     pub.publish(cloud_msg_);
-
-    moveit_msgs::PlanningScene msg;
-    helper_->getPlanningScene()->getPlanningSceneMsg(msg);
-    visualizer_->publishScene(msg);
   }
+
+  // Create markers
+  visualizer_.reset(new ReachVisualizer(db_, ik_solver_, display_, sp_.optimization.radius));
 
   // Attempt to load previously saved optimized reach_study database
   if(!db_->load(results_dir_ + OPT_SAVED_DB_NAME))
@@ -131,6 +133,7 @@ bool ReachStudy::run(const StudyParameters& sp)
       // Run the first pass of the reach study
       runInitialReachStudy();
       db_->printResults();
+      visualizer_->update();
     }
     else
     {
@@ -139,11 +142,28 @@ bool ReachStudy::run(const StudyParameters& sp)
       ROS_INFO("----------------------------------------------------");
 
       db_->printResults();
+      visualizer_->update();
     }
+
+    // Create an efficient search tree for doing nearest neighbors search
+    search_tree_.reset(new SearchTree(flann::KDTreeSingleIndexParams(1, true)));
+
+    flann::Matrix<double> dataset (new double[db_->size() * 3], db_->size(), 3);
+    for(std::size_t i = 0; i < db_->size(); ++i)
+    {
+      auto it = db_->begin();
+      std::advance(it, i);
+
+      dataset[i][0] = static_cast<double>(it->second.goal.position.x);
+      dataset[i][1] = static_cast<double>(it->second.goal.position.y);
+      dataset[i][2] = static_cast<double>(it->second.goal.position.z);
+    }
+    search_tree_->buildIndex(dataset);
 
     // Run the optimization
     optimizeReachStudyResults();
     db_->printResults();
+    visualizer_->update();
   }
   else
   {
@@ -152,33 +172,30 @@ bool ReachStudy::run(const StudyParameters& sp)
     ROS_INFO("--------------------------------------------------");
 
     db_->printResults();
+    visualizer_->update();
   }
 
   // Find the average number of neighboring points can be reached by the robot from any given point
-  if(sp.get_neighbors)
+  if(sp_.get_neighbors)
   {
     // Perform the calculation if it hasn't already been done
-    if(db_->getStudyResults().avg_num_neighbors == 0.0)
+    if(db_->getStudyResults().avg_num_neighbors == 0.0f)
     {
       getAverageNeighborsCount();
     }
   }
 
   // Visualize the results of the reach study
-  if(sp.visualize_results)
+  if(sp_.visualize_results)
   {
     // Compare database results
-    if(!sp.compare_dbs.empty())
+    if(!sp_.compare_dbs.empty())
     {
       if(!compareDatabases())
       {
         ROS_ERROR("Unable to compare the current reach study database with the other specified databases");
       }
     }
-
-    // Create markers
-    visualizer_->createReachMarkers();
-    ros::spin();
   }
 
   return true;
@@ -214,7 +231,7 @@ bool ReachStudy::getReachObjectPointCloud()
 
 void ReachStudy::runInitialReachStudy()
 {
-  // Rotation to flip the Z axis fo the surface normal point
+  // Rotation to flip the Z axis of the surface normal point
   const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
 
   // Loop through all points in point cloud and get IK solution
@@ -231,36 +248,44 @@ void ReachStudy::runInitialReachStudy()
     tgt_frame = utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
     tgt_frame = tgt_frame * tool_z_rot;
 
-    // Solve IK using setfromIKDiscretized
-    std::vector<reach_msgs::ReachRecord> records (sp_.seed_states.size());
-    for(std::size_t j = 0; j < sp_.seed_states.size(); ++j)
+    // Get the seed position
+    const std::vector<std::string>& joint_names = model_->getJointModelGroup(sp_.kin_group_name)->getActiveJointModelNames();
+    const std::vector<double> seed (joint_names.size(), 0.0);
+
+    std::map<std::string, double> seed_map;
+    for(std::size_t n = 0; n < joint_names.size(); ++n)
     {
-      // Create robot state objects for goal and seed to be filled by ik_helper
-      moveit::core::RobotState seed_state(helper_->getCurrentRobotState());
-      seed_state.setJointGroupPositions(sp_.kin_group_name, sp_.seed_states[j]);
-      seed_state.update();
-      moveit::core::RobotState goal_state(seed_state);
-
-      boost::optional<double> score = helper_->solveDiscretizedIKFromSeed(tgt_frame, DISCRETIZATION_ANGLE, seed_state, goal_state);
-      geometry_msgs::Pose tgt_pose;
-      tf::poseEigenToMsg(tgt_frame, tgt_pose);
-
-      if(score)
-      {
-        records[j] = utils::makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
-      }
-      else
-      {
-        records[j] = utils::makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0f);
-      }
+      seed_map.emplace(joint_names[n], seed[n]);
     }
 
-    std::sort(records.begin(), records.end(), [](const reach_msgs::ReachRecord& a, const reach_msgs::ReachRecord& b)
-    {
-      return a.score > b.score;
-    });
+    // Solve IK
+    std::vector<double> solution;
+    boost::optional<double> score = ik_solver_->solveIKFromSeed(tgt_frame, seed_map, solution);
 
-    db_->put(records.front());
+    // Create objects to save in the reach record
+    geometry_msgs::Pose tgt_pose;
+    tf::poseEigenToMsg(tgt_frame, tgt_pose);
+    moveit::core::RobotState seed_state(model_);
+    moveit::core::RobotState goal_state(model_);
+
+    seed_state.setJointGroupPositions(sp_.kin_group_name, seed);
+    seed_state.update();
+    goal_state.setJointGroupPositions(sp_.kin_group_name, seed);
+    goal_state.update();
+
+    if(score)
+    {
+      goal_state.setJointGroupPositions(sp_.kin_group_name, solution);
+      goal_state.update();
+
+      auto msg = utils::makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
+      db_->put(msg);
+    }
+    else
+    {
+      auto msg = utils::makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0);
+      db_->put(msg);
+    }
 
     // Print function progress
     current_counter++;
@@ -278,11 +303,8 @@ void ReachStudy::optimizeReachStudyResults()
   ROS_INFO("Beginning optimization");
 
   // Create sequential vector to be randomized
-  std::vector<int> rand_vec;
-  for(int i = 0; i < db_->count(); ++i)
-  {
-    rand_vec.push_back(i);
-  }
+  std::vector<std::size_t> rand_vec (db_->size());
+  std::iota(rand_vec.begin(), rand_vec.end(), 0);
 
   // Iterate
   std::atomic<int> current_counter, previous_pct;
@@ -291,7 +313,7 @@ void ReachStudy::optimizeReachStudyResults()
   float previous_score = 0.0;
   float pct_improve = 1.0;
 
-  while(pct_improve > PCT_IMPROVE_THRESHOLD && n_opt < MAX_NUM_OPT)
+  while(pct_improve > sp_.optimization.step_improvement_threshold && n_opt < sp_.optimization.max_steps)
   {
     ROS_INFO("Entering optimization loop %d", n_opt);
     previous_score = db_->getStudyResults().norm_total_pose_score;
@@ -304,10 +326,12 @@ void ReachStudy::optimizeReachStudyResults()
     #pragma parallel for
     for(std::size_t i = 0; i < rand_vec.size(); ++i)
     {
-      reach_msgs::ReachRecord msg = *(db_->get(std::to_string(rand_vec[i])));
+      auto it = db_->begin();
+      std::advance(it, rand_vec[i]);
+      reach_msgs::ReachRecord msg = it->second;
       if(msg.reached)
       {
-        std::vector<std::string> score = helper_->reachNeighborsDirect(db_, msg);
+        NeighborReachResult result = reachNeighborsDirect(db_, msg, ik_solver_, sp_.optimization.radius); //, search_tree_);
       }
 
       // Print function progress
@@ -335,26 +359,23 @@ void ReachStudy::getAverageNeighborsCount()
   ROS_INFO("--------------------------------------------");
   ROS_INFO("Beginning average neighbor count calculation");
 
-  // Change the solution planning group
-  helper_->setKinematicJointModelGroup(sp_.manip_group_name);
-
   std::atomic<int> current_counter, previous_pct, neighbor_count;
   current_counter = previous_pct = neighbor_count = 0;
   std::atomic<double> total_joint_distance;
-  const int total = db_->count();
+  const int total = db_->size();
 
   // Iterate
   #pragma parallel for
-  for(int i = 0; i < db_->count(); ++i)
+  for(auto it = db_->begin(); it != db_->end(); ++it)
   {
-    boost::optional<reach_msgs::ReachRecord> msg = db_->get(std::to_string(i));
-    if(msg && msg->reached)
+    reach_msgs::ReachRecord msg = it->second;
+    if(msg.reached)
     {
-      std::vector<std::string> reached_pts;
-      double joint_distance = 0.0;
-      helper_->reachNeighborsRecursive(db_, *msg, reached_pts, joint_distance);
-      neighbor_count += static_cast<int>(reached_pts.size() - 1);
-      total_joint_distance = total_joint_distance + joint_distance;
+      NeighborReachResult result;
+      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result); //, search_tree_);
+
+      neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
+      total_joint_distance = total_joint_distance + result.joint_distance;
     }
 
     // Print function progress
@@ -362,14 +383,12 @@ void ReachStudy::getAverageNeighborsCount()
     utils::integerProgressPrinter(current_counter, previous_pct, total);
   }
 
-  float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->count());
+  float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->size());
   float avg_joint_distance = static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
 
-  ROS_INFO("Average number of neighbors reached: %f", avg_neighbor_count);
-  ROS_INFO("Average joint distance: %f", avg_joint_distance);
+  ROS_INFO_STREAM("Average number of neighbors reached: " << avg_neighbor_count);
+  ROS_INFO_STREAM("Average joint distance: " << avg_joint_distance);
   ROS_INFO("------------------------------------------------");
-
-  helper_->setKinematicJointModelGroup(sp_.kin_group_name);
 
   db_->setAverageNeighborsCount(avg_neighbor_count);
   db_->setAverageJointDistance(avg_joint_distance);
@@ -392,17 +411,16 @@ bool ReachStudy::compareDatabases()
   }
 
   // Load databases to be compared
-  std::vector<std::pair<std::string, std::shared_ptr<ReachDatabase>>> data;
+  std::map<std::string, reach_msgs::ReachDatabase> data;
   for(size_t i = 0; i < db_filenames.size(); ++i)
   {
-    std::shared_ptr<ReachDatabase> db (new ReachDatabase);
-    if(!db->load(db_filenames[i]))
+    ReachDatabase db;
+    if(!db.load(db_filenames[i]))
     {
       ROS_ERROR("Cannot load database at:\n %s", db_filenames[i].c_str());
       continue;
     }
-    std::pair<std::string, std::shared_ptr<ReachDatabase>> pair (sp_.compare_dbs[i], db);
-    data.push_back(pair);
+    data.emplace(sp_.compare_dbs[i], db.toReachDatabaseMsg());
   }
 
   if(data.size() < 2)
@@ -411,7 +429,7 @@ bool ReachStudy::compareDatabases()
     return false;
   }
 
-  visualizer_->reachDiffVisualizer(data);
+  display_->compareDatabases(data);
 
   return true;
 }
