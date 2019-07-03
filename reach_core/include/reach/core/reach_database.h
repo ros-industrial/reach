@@ -4,7 +4,6 @@
 #include "reach/core/study_parameters.h"
 #include <reach_msgs/ReachDatabase.h>
 #include <boost/optional.hpp>
-#include <moveit/robot_state/robot_state.h>
 #include <mutex>
 #include <unordered_map>
 
@@ -65,7 +64,7 @@ public:
    * @brief count counts the number of entries in the database
    * @return
    */
-  int count();
+  std::size_t size() const;
 
   /**
    * @brief calculateResults calculates the results of the reach study and saves them to internal class members
@@ -109,6 +108,8 @@ public:
     return map_.end();
   }
 
+  reach_msgs::ReachDatabase toReachDatabaseMsg();
+
 private:
 
   void putHelper(const reach_msgs::ReachRecord& record);
@@ -118,8 +119,8 @@ private:
   mutable std::mutex mutex_;
 
   StudyResults results_;
-
 };
+typedef std::shared_ptr<ReachDatabase> ReachDatabasePtr;
 
 } // namespace core
 } // namespace reach
