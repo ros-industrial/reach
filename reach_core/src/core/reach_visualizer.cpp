@@ -23,11 +23,11 @@ ReachVisualizer::ReachVisualizer(ReachDatabasePtr db,
   using CBType = interactive_markers::MenuHandler::FeedbackCallback;
   using FBType = visualization_msgs::InteractiveMarkerFeedbackConstPtr;
 
-  CBType show_result_cb = [this](const FBType& fb){return this->showResultCB(fb);};
-  CBType show_seed_cb = [this](const FBType& fb){return this->showSeedCB(fb);};
-  CBType re_solve_ik_cb = [this](const FBType& fb){return this->reSolveIKCB(fb);};
-  CBType neighbors_direct_cb = [this](const FBType& fb){return this->reachNeighborsDirectCB(fb);};
-  CBType neighbors_recursive_cb = [this](const FBType& fb){return this->reachNeighborsRecursiveCB(fb);};
+  CBType show_result_cb = boost::bind(&ReachVisualizer::showResultCB, this, _1);
+  CBType show_seed_cb = boost::bind(&ReachVisualizer::showSeedCB, this, _1);
+  CBType re_solve_ik_cb = boost::bind(&ReachVisualizer::reSolveIKCB, this, _1);
+  CBType neighbors_direct_cb = boost::bind(&ReachVisualizer::reachNeighborsDirectCB, this, _1);
+  CBType neighbors_recursive_cb = boost::bind(&ReachVisualizer::reachNeighborsRecursiveCB, this, _1);
 
   display_->createMenuFunction("Show Result", show_result_cb);
   display_->createMenuFunction("Show Seed Position", show_seed_cb);
