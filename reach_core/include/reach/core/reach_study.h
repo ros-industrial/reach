@@ -4,8 +4,9 @@
 #include <reach/core/study_parameters.h>
 #include <reach/core/ik_helper.h>
 #include <reach/core/reach_visualizer.h>
-#include <reach_plugins/ik/ik_solver_base.h>
+#include <reach/plugins/ik_solver_base.h>
 #include <pcl_ros/point_cloud.h>
+#include <pluginlib/class_loader.h>
 #include <sensor_msgs/PointCloud2.h>
 
 namespace moveit
@@ -64,9 +65,11 @@ private:
   
   ReachDatabasePtr db_;
 
-  reach_plugins::ik::IKSolverBasePtr ik_solver_;
-
-  reach_plugins::display::ReachDisplayBasePtr display_;
+  // Plugins
+  pluginlib::ClassLoader<reach::plugins::IKSolverBase> solver_loader_;
+  pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader_;
+  reach::plugins::IKSolverBasePtr ik_solver_;
+  reach::plugins::DisplayBasePtr display_;
   
   ReachVisualizerPtr visualizer_;
 

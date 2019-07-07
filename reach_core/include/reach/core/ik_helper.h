@@ -3,7 +3,7 @@
 
 #include <reach/core/reach_database.h>
 #include <reach/core/study_parameters.h>
-#include <reach_plugins/ik/ik_solver_base.h>
+#include <reach/plugins/ik_solver_base.h>
 
 #include <boost/optional.hpp>
 #include <flann/flann.h>
@@ -25,13 +25,13 @@ typedef std::shared_ptr<SearchTree> SearchTreePtr;
 
 NeighborReachResult reachNeighborsDirect(std::shared_ptr<ReachDatabase> db,
                                          const reach_msgs::ReachRecord& rec,
-                                         reach_plugins::ik::IKSolverBasePtr solver,
+                                         reach::plugins::IKSolverBasePtr solver,
                                          const double radius,
                                          SearchTreePtr search_tree = nullptr);
 
 void reachNeighborsRecursive(std::shared_ptr<ReachDatabase> db,
                              const reach_msgs::ReachRecord& msg,
-                             reach_plugins::ik::IKSolverBasePtr solver,
+                             reach::plugins::IKSolverBasePtr solver,
                              const double radius,
                              NeighborReachResult result,
                              SearchTreePtr search_tree = nullptr);

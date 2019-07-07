@@ -23,10 +23,16 @@ namespace reach
 namespace core
 {
 
+static const std::string PACKAGE = "reach_core";
+static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
+static const std::string DISPLAY_BASE_CLASS = "reach::plugins::ReachDisplayBase";
+
 ReachStudy::ReachStudy(const ros::NodeHandle& nh)
   : nh_(nh)
   , cloud_(new pcl::PointCloud<pcl::PointNormal> ())
   , db_(new ReachDatabase ())
+  , solver_loader_(PACKAGE, IK_BASE_CLASS)
+  , display_loader_(PACKAGE, DISPLAY_BASE_CLASS)
   , model_(moveit::planning_interface::getSharedRobotModel("robot_description"))
 {
 
@@ -37,17 +43,10 @@ bool ReachStudy::initializeStudy()
   ik_solver_.reset();
   display_.reset();
 
-  static const std::string PACKAGE = "reach_plugins";
-  static const std::string IK_BASE_CLASS = "reach_plugins::ik::IKSolverBase";
-  static const std::string DISPLAY_BASE_CLASS = "reach_plugins::display::ReachDisplayBase";
-
-  pluginlib::ClassLoader<reach_plugins::ik::IKSolverBase> solver_loader (PACKAGE, IK_BASE_CLASS);
-  pluginlib::ClassLoader<reach_plugins::display::ReachDisplayBase> display_loader(PACKAGE, DISPLAY_BASE_CLASS);
-
   try
   {
-    ik_solver_ = solver_loader.createInstance(sp_.ik_solver_config["name"]);
-    display_ = display_loader.createInstance(sp_.display_config["name"]);
+    ik_solver_ = solver_loader_.createInstance(sp_.ik_solver_config["name"]);
+    display_ = display_loader_.createInstance(sp_.display_config["name"]);
   }
   catch(const XmlRpc::XmlRpcException& ex)
   {

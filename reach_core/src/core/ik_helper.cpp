@@ -66,7 +66,7 @@ std::vector<reach_msgs::ReachRecord> getNeighborsFLANN(const reach_msgs::ReachRe
 
 NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db,
                                          const reach_msgs::ReachRecord& rec,
-                                         reach_plugins::ik::IKSolverBasePtr solver,
+                                         reach::plugins::IKSolverBasePtr solver,
                                          const double radius,
                                          SearchTreePtr search_tree)
 {
@@ -129,7 +129,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db,
 
 void reachNeighborsRecursive(ReachDatabasePtr db,
                              const reach_msgs::ReachRecord& rec,
-                             reach_plugins::ik::IKSolverBasePtr solver,
+                             reach::plugins::IKSolverBasePtr solver,
                              const double radius,
                              NeighborReachResult result,
                              SearchTreePtr search_tree)

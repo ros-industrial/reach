@@ -25,8 +25,8 @@ namespace core
 {
 
 ReachVisualizer::ReachVisualizer(ReachDatabasePtr db,
-                                 reach_plugins::ik::IKSolverBasePtr solver,
-                                 reach_plugins::display::ReachDisplayBasePtr display,
+                                 reach::plugins::IKSolverBasePtr solver,
+                                 reach::plugins::DisplayBasePtr display,
                                  const double neighbor_radius,
                                  SearchTreePtr search_tree)
   : db_(db)

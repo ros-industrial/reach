@@ -2,8 +2,9 @@
 #define REACH_CORE_STUDY_VISUALIZER_H
 
 #include <reach/core/reach_database.h>
+#include <reach/plugins/reach_display_base.h>
+#include <reach/plugins/ik_solver_base.h>
 #include <reach/core/ik_helper.h>
-#include <reach_plugins/display/reach_display_base.h>
 
 namespace reach
 {
@@ -27,8 +28,8 @@ public:
    * @param search_tree
    */
   ReachVisualizer(ReachDatabasePtr db,
-                  reach_plugins::ik::IKSolverBasePtr solver,
-                  reach_plugins::display::ReachDisplayBasePtr display,
+                  reach::plugins::IKSolverBasePtr solver,
+                  reach::plugins::DisplayBasePtr display,
                   const double neighbor_radius,
                   SearchTreePtr search_tree = nullptr);
 
@@ -48,9 +49,9 @@ private:
 
   ReachDatabasePtr db_;
 
-  reach_plugins::ik::IKSolverBasePtr solver_;
+  reach::plugins::IKSolverBasePtr solver_;
 
-  reach_plugins::display::ReachDisplayBasePtr display_;
+  reach::plugins::DisplayBasePtr display_;
 
   SearchTreePtr search_tree_;
 
