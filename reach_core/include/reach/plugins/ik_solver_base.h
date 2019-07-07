@@ -1,14 +1,14 @@
-#ifndef REACH_PLUGINS_IK_IK_SOLVER_BASE_H
-#define REACH_PLUGINS_IK_IK_SOLVER_BASE_H
+#ifndef REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
+#define REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 
 #include <boost/optional.hpp>
 #include <vector>
 #include <xmlrpcpp/XmlRpcValue.h>
 #include <Eigen/Dense>
 
-namespace reach_plugins
+namespace reach
 {
-namespace ik
+namespace plugins
 {
 
 /**
@@ -49,7 +49,7 @@ public:
 };
 typedef boost::shared_ptr<IKSolverBase> IKSolverBasePtr;
 
-} // namespace ik
-} // namespace reach_plugins
+} // namespace plugins
+} // namespace reach
 
-#endif // REACH_PLUGINS_IK_IK_SOLVER_BASE_H
+#endif // REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H

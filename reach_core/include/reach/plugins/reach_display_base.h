@@ -1,10 +1,10 @@
-#ifndef REACH_PLUGINS_REACH_DISPLAY_BASE_H
-#define REACH_PLUGINS_REACH_DISPLAY_BASE_H
+#ifndef REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
+#define REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
 
 #include <interactive_markers/interactive_marker_server.h>
 #include <interactive_markers/menu_handler.h>
 #include <reach_msgs/ReachDatabase.h>
-#include <reach_plugins/utils.h>
+#include "reach/utils/visualization_utils.h"
 #include <visualization_msgs/MarkerArray.h>
 #include <xmlrpcpp/XmlRpcValue.h>
 
@@ -12,24 +12,24 @@ const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
 const static std::string REACH_DIFF_TOPIC = "reach_comparison";
 const static std::string MARKER_TOPIC = "reach_neighbors";
 
-namespace reach_plugins
+namespace reach
 {
-namespace display
+namespace plugins
 {
 
-class ReachDisplayBase
+class DisplayBase
 {
 
 public:
 
-  ReachDisplayBase()
+  DisplayBase()
     : server_(INTERACTIVE_MARKER_TOPIC)
   {
     diff_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
     marker_pub_ = nh_.advertise<visualization_msgs::Marker>(MARKER_TOPIC, 1, true);
   }
 
-  virtual ~ReachDisplayBase()
+  virtual ~DisplayBase()
   {
 
   }
@@ -191,9 +191,9 @@ private:
 
   ros::Publisher marker_pub_;
 };
-typedef boost::shared_ptr<ReachDisplayBase> ReachDisplayBasePtr;
+typedef boost::shared_ptr<DisplayBase> DisplayBasePtr;
 
-} // namespace display
-} // namespace reach_plugins
+} // namespace plugins
+} // namespace reach
 
-#endif // REACH_PLUGINS_REACH_DISPLAY_BASE_H
+#endif // REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H

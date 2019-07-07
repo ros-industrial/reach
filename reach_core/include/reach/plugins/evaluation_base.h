@@ -1,13 +1,13 @@
-#ifndef REACH_PLUGINS_EVALUATION_EVALUATION_BASE
-#define REACH_PLUGINS_EVALUATION_EVALUATION_BASE
+#ifndef REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE
+#define REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE
 
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <xmlrpcpp/XmlRpcValue.h>
 
-namespace reach_plugins
+namespace reach
 {
-namespace evaluation
+namespace plugins
 {
 
 /**
@@ -43,7 +43,7 @@ public:
 };
 typedef boost::shared_ptr<EvaluationBase> EvaluationBasePtr;
 
-} // namespace evaluation
-} // namespace reach_plugins
+} // namespace plugins
+} // namespace reach
 
-#endif // REACH_PLUGINS_EVALUATION_EVALUATION_BASE
+#endif // REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE
