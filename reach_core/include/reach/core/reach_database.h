@@ -13,6 +13,30 @@ namespace core
 {
 
 /**
+ * @brief makeRecord
+ * @param id
+ * @param reached
+ * @param goal
+ * @param seed_state
+ * @param goal_state
+ * @param score
+ * @return
+ */
+reach_msgs::ReachRecord makeRecord(const std::string &id,
+                                   const bool reached,
+                                   const geometry_msgs::Pose &goal,
+                                   const sensor_msgs::JointState& seed_state,
+                                   const sensor_msgs::JointState& goal_state,
+                                   const double score);
+
+/**
+ * @brief toMap
+ * @param state
+ * @return
+ */
+std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState& state);
+
+/**
  * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database also saves
  * several key meta-results of the reach study:
  *  - reach_percentage: the percentage of all attempted poses that were reachable

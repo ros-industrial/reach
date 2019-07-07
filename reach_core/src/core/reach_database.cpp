@@ -1,5 +1,5 @@
 #include <reach/core/reach_database.h>
-#include <reach/utils/database_utils.h>
+#include <reach/utils/serialization_utils.h>
 
 namespace
 {
@@ -28,6 +28,33 @@ namespace reach
 {
 namespace core
 {
+
+reach_msgs::ReachRecord makeRecord(const std::string& id,
+                                   const bool reached,
+                                   const geometry_msgs::Pose& goal,
+                                   const sensor_msgs::JointState& seed_state,
+                                   const sensor_msgs::JointState& goal_state,
+                                   const double score)
+{
+  reach_msgs::ReachRecord r;
+  r.id = id;
+  r.goal = goal;
+  r.reached = reached;
+  r.seed_state = seed_state;
+  r.goal_state = goal_state;
+  r.score = score;
+  return r;
+}
+
+std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState& state)
+{
+  std::map<std::string, double> out;
+  for(std::size_t i = 0; i < state.name.size(); ++i)
+  {
+    out.emplace(state.name[i], state.position[i]);
+  }
+  return out;
+}
 
 void ReachDatabase::save(const std::string &filename) const
 {

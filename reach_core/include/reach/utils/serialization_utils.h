@@ -61,23 +61,6 @@ bool fromFile(const std::string& path,
   return true;
 }
 
-/**
- * @brief makeRecord creates a ReachRecord message for the solution of the robot's IK for a given target pose
- * @param id
- * @param reached
- * @param goal
- * @param seed_state
- * @param goal_state
- * @param score
- * @return a ReachRecord message containing information about the robot pose, to be saved in the reach database
- */
-reach_msgs::ReachRecord makeRecord(const std::string& id,
-                                   const bool reached,
-                                   const geometry_msgs::Pose& goal,
-                                   const moveit::core::RobotState& seed_state,
-                                   const moveit::core::RobotState& goal_state,
-                                   const double score);
-
 } // namespace utils
 } // namespace reach
 
