@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>reach_plugins</name>
+  <name>moveit_reach_plugins</name>
   <version>0.0.0</version>
   <description>The reach_plugins package</description>
 
