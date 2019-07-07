@@ -46,6 +46,12 @@ public:
                                                   const std::map<std::string, double>& seed,
                                                   std::vector<double>& solution) = 0;
 
+  /**
+   * @brief getJointNames
+   * @return
+   */
+  virtual std::vector<std::string> getJointNames() const = 0;
+
 };
 typedef boost::shared_ptr<IKSolverBase> IKSolverBasePtr;
 
