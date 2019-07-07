@@ -162,6 +162,11 @@ bool MoveItIKSolver::isIKSolutionValid(moveit::core::RobotState* state,
   return (!colliding && !too_close);
 }
 
+std::vector<std::string> MoveItIKSolver::getJointNames() const
+{
+  return jmg_->getActiveJointModelNames();
+}
+
 } // namespace ik
 } // namespace moveit_reach_plugins
 

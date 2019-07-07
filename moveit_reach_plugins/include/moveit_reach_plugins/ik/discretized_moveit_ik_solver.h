@@ -19,6 +19,7 @@ public:
   virtual boost::optional<double> solveIKFromSeed(const Eigen::Affine3d& target,
                                                   const std::map<std::string, double>& seed,
                                                   std::vector<double>& solution) override;
+
 protected:
 
   double dt_;

@@ -39,6 +39,8 @@ public:
                                                   const std::map<std::string, double> &seed,
                                                   std::vector<double> &solution) override;
 
+  virtual std::vector<std::string> getJointNames() const override;
+
 protected:
 
   bool isIKSolutionValid(moveit::core::RobotState* state,
