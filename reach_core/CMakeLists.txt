@@ -7,15 +7,13 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
   geometry_msgs
   interactive_markers
-  message_generation
-  message_runtime
   moveit_core
   moveit_msgs
   moveit_ros_planning
+  moveit_ros_planning_interface
   pcl_ros
   pluginlib
   reach_msgs
-  reach_plugins
   tf
   tf_conversions
   visualization_msgs
@@ -40,8 +38,19 @@ catkin_package(
     reach_visualizer
     reach_study
   CATKIN_DEPENDS
+    eigen_conversions
+    geometry_msgs
+    interactive_markers
     moveit_core
     moveit_msgs
+    moveit_ros_planning
+    moveit_ros_planning_interface
+    pcl_ros
+    pluginlib
+    reach_msgs
+    tf
+    tf_conversions
+    visualization_msgs
 )
 
 include_directories(
