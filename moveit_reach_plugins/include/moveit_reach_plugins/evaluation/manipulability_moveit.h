@@ -1,7 +1,7 @@
-#ifndef REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H
-#define REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H
+#ifndef MOVEIT_REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H
+#define MOVEIT_REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H
 
-#include "evaluation_base.h"
+#include <reach/plugins/evaluation_base.h>
 
 namespace moveit
 {
@@ -13,12 +13,12 @@ class JointModelGroup;
 }
 }
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace evaluation
 {
 
-class ManipulabilityMoveIt : public EvaluationBase
+class ManipulabilityMoveIt : public reach::plugins::EvaluationBase
 {
 public:
 
@@ -36,6 +36,6 @@ private:
 };
 
 } // namespace evaluation
-} // reach_plugins
+} // namepsace moveit_reach_plugins
 
-#endif // REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H
+#endif // MOVEIT_REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H

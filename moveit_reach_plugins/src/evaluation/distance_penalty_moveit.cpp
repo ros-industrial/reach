@@ -1,16 +1,16 @@
+#include "moveit_reach_plugins/evaluation/distance_penalty_moveit.h"
+#include "moveit_reach_plugins/utils.h"
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <reach_plugins/evaluation/distance_penalty_moveit.h>
-#include <reach_plugins/utils.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace evaluation
 {
 
 DistancePenaltyMoveIt::DistancePenaltyMoveIt()
-  : EvaluationBase()
+  : reach::plugins::EvaluationBase()
 {
 
 }
@@ -105,7 +105,7 @@ double DistancePenaltyMoveIt::calculateScore(const std::map<std::string, double>
 }
 
 } // namespace evaluation
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach_plugins::evaluation::DistancePenaltyMoveIt, reach_plugins::evaluation::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::DistancePenaltyMoveIt, reach::plugins::EvaluationBase)

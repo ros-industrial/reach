@@ -1,9 +1,9 @@
-#ifndef REACH_PLUGINS_IK_DISCRETIZED_MOVEIT_IK_SOLVER_H
-#define REACH_PLUGINS_IK_DISCRETIZED_MOVEIT_IK_SOLVER_H
+#ifndef MOVEIT_REACH_PLUGINS_IK_DISCRETIZED_MOVEIT_IK_SOLVER_H
+#define MOVEIT_REACH_PLUGINS_IK_DISCRETIZED_MOVEIT_IK_SOLVER_H
 
 #include "moveit_ik_solver.h"
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace ik
 {
@@ -25,6 +25,6 @@ protected:
 };
 
 } // namespace ik
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
-#endif // REACH_PLUGINS_IK_DISCRETIZED_MOVEIT_IK_SOLVER_H
+#endif // MOVEIT_REACH_PLUGINS_IK_DISCRETIZED_MOVEIT_IK_SOLVER_H

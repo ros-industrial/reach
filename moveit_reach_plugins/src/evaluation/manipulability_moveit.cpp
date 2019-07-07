@@ -1,16 +1,16 @@
+#include "moveit_reach_plugins/evaluation/manipulability_moveit.h"
+#include "moveit_reach_plugins/utils.h"
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_model/joint_model_group.h>
-#include <reach_plugins/evaluation/manipulability_moveit.h>
-#include <reach_plugins/utils.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace evaluation
 {
 
 ManipulabilityMoveIt::ManipulabilityMoveIt()
-  : EvaluationBase()
+  : reach::plugins::EvaluationBase()
 {
 
 }
@@ -82,7 +82,7 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
 }
 
 } // namespace evaluation
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach_plugins::evaluation::ManipulabilityMoveIt, reach_plugins::evaluation::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveIt, reach::plugins::EvaluationBase)

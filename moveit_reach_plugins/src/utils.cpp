@@ -1,4 +1,4 @@
-#include <reach_plugins/utils.h>
+#include "moveit_reach_plugins/utils.h"
 
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_operations.h>
@@ -9,7 +9,7 @@
 const static double ARROW_SCALE_RATIO = 6.0;
 const static double NEIGHBOR_MARKER_SCALE_RATIO = ARROW_SCALE_RATIO / 2.0;
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace utils
 {

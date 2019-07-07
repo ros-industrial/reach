@@ -1,18 +1,22 @@
+#include "moveit_reach_plugins/ik/moveit_ik_solver.h"
+#include "moveit_reach_plugins/utils.h"
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <pluginlib/class_loader.h>
-#include <reach_plugins/ik/moveit_ik_solver.h>
-#include <reach_plugins/utils.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace ik
 {
 
+const static std::string PACKAGE = "reach_core";
+const static std::string EVAL_PLUGIN_BASE = "reach::plugins::EvaluationBase";
+
 MoveItIKSolver::MoveItIKSolver()
-  : IKSolverBase()
+  : reach::plugins::IKSolverBase()
+  , class_loader_(PACKAGE, EVAL_PLUGIN_BASE)
 {
 
 }
@@ -43,13 +47,9 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
       touch_links_.push_back(config["touch_links"][i]);
     }
 
-    const static std::string PACKAGE = "reach_plugins";
-    const static std::string EVAL_PLUGIN_BASE = "reach_plugins::evaluation::EvaluationBase";
-    pluginlib::ClassLoader<evaluation::EvaluationBase> loader(PACKAGE, EVAL_PLUGIN_BASE);
-
     try
     {
-      eval_ = loader.createInstance(config["evaluation_plugin"]["name"]);
+      eval_ = class_loader_.createInstance(config["evaluation_plugin"]["name"]);
     }
     catch(const pluginlib::ClassLoaderException& ex)
     {
@@ -126,8 +126,8 @@ boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Affine3d& t
   state.setJointGroupPositions(jmg_, seed_subset);
   state.update();
 
-  const static int SOLUTION_ATTEMPTS = 1;
-  const static double SOLUTION_TIMEOUT = 0.02;
+  const static int SOLUTION_ATTEMPTS = 3;
+  const static double SOLUTION_TIMEOUT = 0.2;
 
   if(state.setFromIK(jmg_, target, SOLUTION_ATTEMPTS, SOLUTION_TIMEOUT, boost::bind(&MoveItIKSolver::isIKSolutionValid, this, _1, _2, _3)))
   {
@@ -163,7 +163,7 @@ bool MoveItIKSolver::isIKSolutionValid(moveit::core::RobotState* state,
 }
 
 } // namespace ik
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach_plugins::ik::MoveItIKSolver, reach_plugins::ik::IKSolverBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::ik::MoveItIKSolver, reach::plugins::IKSolverBase)

@@ -1,18 +1,19 @@
+#include "moveit_reach_plugins/display/moveit_reach_display.h"
+#include "moveit_reach_plugins/utils.h"
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <reach_plugins/display/moveit_reach_display.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 const static std::string PLANNING_SCENE_TOPIC = "planning_scene_display";
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace display
 {
 
 MoveItReachDisplay::MoveItReachDisplay()
-  : ReachDisplayBase()
+  : reach::plugins::DisplayBase()
 {
 
 }
@@ -109,7 +110,7 @@ void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& po
 }
 
 } // namespace display
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach_plugins::display::MoveItReachDisplay, reach_plugins::display::ReachDisplayBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::display::MoveItReachDisplay, reach::plugins::DisplayBase)

@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <pluginlib/class_loader.h>
-#include <reach_plugins/display/reach_display_base.h>
-#include <reach_plugins/ik/ik_solver_base.h>
+#include <reach/plugins/reach_display_base.h>
+#include <reach/plugins/ik_solver_base.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 template<typename T>
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  reach_plugins::display::ReachDisplayBasePtr display_plugin;
-  pluginlib::ClassLoader<reach_plugins::display::ReachDisplayBase> display_loader ("reach_plugins", "reach_plugins::display::ReachDisplayBase");
-  if(!loadPlugin<reach_plugins::display::ReachDisplayBase>(display_config, display_loader, display_plugin))
+  reach::plugins::DisplayBasePtr display_plugin;
+  pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader ("reach_core", "reach::plugins::DisplayBase");
+  if(!loadPlugin<reach::plugins::DisplayBase>(display_config, display_loader, display_plugin))
   {
     ROS_ERROR("Failed to load reach display plugin");
     return -1;
@@ -67,9 +67,9 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  reach_plugins::ik::IKSolverBasePtr ik_solver_plugin;
-  pluginlib::ClassLoader<reach_plugins::ik::IKSolverBase> ik_solver_loader ("reach_plugins", "reach_plugins::ik::IKSolverBase");
-  if(!loadPlugin<reach_plugins::ik::IKSolverBase>(ik_solver_config, ik_solver_loader, ik_solver_plugin))
+  reach::plugins::IKSolverBasePtr ik_solver_plugin;
+  pluginlib::ClassLoader<reach::plugins::IKSolverBase> ik_solver_loader ("reach_core", "reach::plugins::IKSolverBase");
+  if(!loadPlugin<reach::plugins::IKSolverBase>(ik_solver_config, ik_solver_loader, ik_solver_plugin))
   {
     ROS_ERROR("Failed to load IK solver plugin");
     return -1;

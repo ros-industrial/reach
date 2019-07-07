@@ -1,7 +1,7 @@
-#ifndef REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
-#define REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
+#ifndef MOVEIT_REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
+#define MOVEIT_REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
 
-#include "evaluation_base.h"
+#include <reach/plugins/evaluation_base.h>
 #include <moveit_msgs/PlanningScene.h>
 
 namespace moveit
@@ -20,12 +20,12 @@ class PlanningScene;
 typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 }
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace evaluation
 {
 
-class DistancePenaltyMoveIt : public EvaluationBase
+class DistancePenaltyMoveIt : public reach::plugins::EvaluationBase
 {
 public:
 
@@ -55,6 +55,6 @@ private:
 };
 
 } // namespace evaluation
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
-#endif // REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
+#endif // MOVEIT_REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H

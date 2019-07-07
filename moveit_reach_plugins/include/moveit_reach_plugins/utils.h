@@ -1,5 +1,5 @@
-#ifndef REACH_PLUGINS_KINEMATICS_UTILS_H
-#define REACH_PLUGINS_KINEMATICS_UTILS_H
+#ifndef MOVEIT_REACH_PLUGINS_KINEMATICS_UTILS_H
+#define MOVEIT_REACH_PLUGINS_KINEMATICS_UTILS_H
 
 #include <string>
 #include <moveit_msgs/CollisionObject.h>
@@ -7,7 +7,7 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/InteractiveMarker.h>
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace utils
 {
@@ -72,6 +72,6 @@ bool transcribeInputMap(const std::map<std::string, double>& input,
                        std::vector<double>& revised_input);
 
 } // namespace utils
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
-#endif // REACH_PLUGINS_KINEMATICS_UTILS_H
+#endif // MOVEIT_REACH_PLUGINS_KINEMATICS_UTILS_H

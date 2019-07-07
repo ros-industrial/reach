@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_msgs
   moveit_ros_planning_interface
   pluginlib
+  reach_core
   reach_msgs
   visualization_msgs
   xmlrpcpp
@@ -29,6 +30,7 @@ catkin_package(
     moveit_core
     moveit_msgs
     moveit_ros_planning_interface
+    reach_core
     reach_msgs
     pluginlib
     visualization_msgs
@@ -40,7 +42,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-#Utils Library
+# Utils Library
 add_library(${PROJECT_NAME}_utils
   src/utils.cpp
 )
@@ -57,7 +59,6 @@ add_library(evaluation_plugins
   src/evaluation/manipulability_moveit.cpp
   src/evaluation/joint_penalty_moveit.cpp
   src/evaluation/distance_penalty_moveit.cpp
-  src/evaluation/multiplicative_factory.cpp
 )
 add_dependencies(evaluation_plugins
   ${${PROJECT_NAME}_EXPORTED_TARGETS}

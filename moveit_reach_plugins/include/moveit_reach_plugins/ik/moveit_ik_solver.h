@@ -1,8 +1,9 @@
-#ifndef REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
-#define REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
+#ifndef MOVEIT_REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
+#define MOVEIT_REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
 
-#include "ik_solver_base.h"
-#include <reach_plugins/evaluation/evaluation_base.h>
+#include <reach/plugins/ik_solver_base.h>
+#include <reach/plugins/evaluation_base.h>
+#include <pluginlib/class_loader.h>
 
 namespace moveit
 {
@@ -21,12 +22,12 @@ class PlanningScene;
 typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 }
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace ik
 {
 
-class MoveItIKSolver : public IKSolverBase
+class MoveItIKSolver : public reach::plugins::IKSolverBase
 {
 public:
 
@@ -50,7 +51,9 @@ protected:
 
   const moveit::core::JointModelGroup* jmg_;
 
-  evaluation::EvaluationBasePtr eval_;
+  pluginlib::ClassLoader<reach::plugins::EvaluationBase> class_loader_;
+
+  reach::plugins::EvaluationBasePtr eval_;
 
   double distance_threshold_;
 
@@ -62,6 +65,6 @@ protected:
 };
 
 } // namespace ik
-} // namespack reach_plugins
+} // namespack moveit_reach_plugins
 
-#endif // REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
+#endif // MOVEIT_REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H

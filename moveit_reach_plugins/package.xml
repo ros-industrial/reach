@@ -2,7 +2,7 @@
 <package format="2">
   <name>moveit_reach_plugins</name>
   <version>0.0.0</version>
-  <description>The reach_plugins package</description>
+  <description>The moveit_reach_plugins package</description>
 
   <maintainer email="mripperger@swri.org">mripperger</maintainer>
   <author email="mripperger@swri.org">mripperger</author>
@@ -16,12 +16,13 @@
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>pluginlib</depend>
+  <depend>reach_core</depend>
   <depend>reach_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
 
   <export>
-    <reach_plugins plugin="${prefix}/plugin_description.xml"/>
+    <reach_core plugin="${prefix}/plugin_description.xml"/>
   </export>
 
 </package>

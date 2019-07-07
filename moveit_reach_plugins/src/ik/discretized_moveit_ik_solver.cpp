@@ -1,6 +1,6 @@
+#include "moveit_reach_plugins/ik/discretized_moveit_ik_solver.h"
 #include <eigen_conversions/eigen_msg.h>
 #include <ros/console.h>
-#include <reach_plugins/ik/discretized_moveit_ik_solver.h>
 #include <xmlrpcpp/XmlRpcException.h>
 #include <algorithm>
 
@@ -17,7 +17,7 @@ T clamp(const T& val,
 
 } // namespace anonymous
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace ik
 {
@@ -96,7 +96,7 @@ boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::
 }
 
 } // namespace ik
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach_plugins::ik::DiscretizedMoveItIKSolver, reach_plugins::ik::IKSolverBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::ik::DiscretizedMoveItIKSolver, reach::plugins::IKSolverBase)

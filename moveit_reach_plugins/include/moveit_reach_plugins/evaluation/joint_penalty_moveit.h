@@ -1,7 +1,7 @@
-#ifndef REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
-#define REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
+#ifndef MOVEIT_REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
+#define MOVEIT_REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
 
-#include "evaluation_base.h"
+#include <reach/plugins/evaluation_base.h>
 
 namespace moveit
 {
@@ -13,12 +13,12 @@ class JointModelGroup;
 }
 }
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace evaluation
 {
 
-class JointPenaltyMoveIt : public EvaluationBase
+class JointPenaltyMoveIt : public reach::plugins::EvaluationBase
 {
 public:
 
@@ -40,6 +40,6 @@ private:
 };
 
 } // namespace evaluation
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
-#endif // REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
+#endif // MOVEIT_REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H

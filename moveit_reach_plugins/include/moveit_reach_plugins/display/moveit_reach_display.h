@@ -1,7 +1,7 @@
-#ifndef REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
-#define REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
+#ifndef MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
+#define MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 
-#include "reach_display_base.h"
+#include <reach/plugins/reach_display_base.h>
 
 namespace moveit
 {
@@ -19,12 +19,12 @@ class PlanningScene;
 typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 }
 
-namespace reach_plugins
+namespace moveit_reach_plugins
 {
 namespace display
 {
 
-class MoveItReachDisplay : public ReachDisplayBase
+class MoveItReachDisplay : public reach::plugins::DisplayBase
 {
 public:
 
@@ -54,6 +54,6 @@ private:
 };
 
 } // namespace display
-} // namespace reach_plugins
+} // namespace moveit_reach_plugins
 
-#endif // REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
+#endif // MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
