@@ -1,15 +1,18 @@
-#include <pluginlib/class_loader.h>
-#include <reach_plugins/evaluation/multiplicative_factory.h>
+#include "reach/plugins/multiplicative_factory.h"
 #include <ros/console.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
-namespace reach_plugins
+namespace reach
 {
-namespace evaluation
+namespace plugins
 {
+
+const static std::string PACKAGE = "reach_core";
+const static std::string PLUGIN_BASE_NAME = "reach::plugins::EvaluationBase";
 
 MultiplicativeFactory::MultiplicativeFactory()
   : EvaluationBase()
+  , class_loader_(PACKAGE, PLUGIN_BASE_NAME)
 {
 
 }
@@ -22,10 +25,6 @@ bool MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue& config)
 
     eval_plugins_.reserve(plugin_configs.size());
 
-    const static std::string PACKAGE = "reach_plugins";
-    const static std::string PLUGIN_BASE_NAME = "reach_plugins::evaluation::EvaluationBase";
-    pluginlib::ClassLoader<EvaluationBase> loader (PACKAGE, PLUGIN_BASE_NAME);
-
     for(int i = 0; i < plugin_configs.size(); ++i)
     {
       XmlRpc::XmlRpcValue& plugin_config = plugin_configs[i];
@@ -34,7 +33,7 @@ bool MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue& config)
       EvaluationBasePtr plugin;
       try
       {
-        plugin = loader.createInstance(name);
+        plugin = class_loader_.createInstance(name);
       }
       catch(const pluginlib::ClassLoaderException& ex)
       {
@@ -75,8 +74,8 @@ double MultiplicativeFactory::calculateScore(const std::map<std::string, double>
   return score;
 }
 
-} // namespace evaluation
-} // namespace reach_plugins
+} // namespace plugins
+} // namespace reach
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach_plugins::evaluation::MultiplicativeFactory, reach_plugins::evaluation::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(reach::plugins::MultiplicativeFactory, reach::plugins::EvaluationBase)

@@ -1,0 +1,9 @@
+<library path="lib/libplugins">
+  <!-- Multiplicative Factory -->
+  <class name="reach_core/plugins/MultiplicativeFactory" type="reach::plugins::MultiplicativeFactory" base_class_type="reach::plugins::EvaluationBase">
+    <description>
+      A pose evaluation plugin which loads other pose evaluation plugins and returns a score for an input pose that is the product of the scores of each individual plugin.
+      This plugin allows for the use of any combination of other pose evaulation plugins.
+    </description>
+  </class>
+</library>

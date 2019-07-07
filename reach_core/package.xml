@@ -24,4 +24,8 @@
   <depend>tf_conversions</depend>
   <depend>visualization_msgs</depend>
 
+  <export>
+    <reach_core plugin="${prefix}/plugin_description.xml"/>
+  </export>
+
 </package>

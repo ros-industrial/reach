@@ -37,6 +37,7 @@ catkin_package(
     ik_helper
     reach_visualizer
     reach_study
+    plugins
   CATKIN_DEPENDS
     eigen_conversions
     geometry_msgs
@@ -122,6 +123,14 @@ target_link_libraries(reach_study
 add_dependencies(reach_study
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
+)
+
+# Plugins Library
+add_library(plugins
+  src/plugins/multiplicative_factory.cpp
+)
+target_link_libraries(plugins
+  ${catkin_LIBRARIES}
 )
 
 # Reach Study Node
