@@ -23,7 +23,7 @@ namespace core
 
 static const std::string PACKAGE = "reach_core";
 static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
-static const std::string DISPLAY_BASE_CLASS = "reach::plugins::ReachDisplayBase";
+static const std::string DISPLAY_BASE_CLASS = "reach::plugins::DisplayBase";
 
 ReachStudy::ReachStudy(const ros::NodeHandle& nh)
   : nh_(nh)
