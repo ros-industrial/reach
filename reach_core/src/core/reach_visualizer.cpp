@@ -3,22 +3,6 @@
 #include <reach_msgs/ReachRecord.h>
 #include <eigen_conversions/eigen_msg.h>
 
-namespace
-{
-
-std::map<std::string, double> toMap(const sensor_msgs::JointState& state)
-{
-  std::map<std::string, double> out;
-  for(std::size_t i = 0; i < state.name.size(); ++i)
-  {
-    out.emplace(state.name[i], state.position[i]);
-  }
-
-  return out;
-}
-
-} // namespace anonymous
-
 namespace reach
 {
 namespace core
@@ -65,8 +49,8 @@ void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFee
   boost::optional<reach_msgs::ReachRecord> lookup = db_->get(fb->marker_name);
   if(lookup)
   {
-    const std::vector<double>& seed_pose = lookup->seed_state.joint_state.position;
-    const std::vector<std::string>& joint_names = lookup->seed_state.joint_state.name;
+    const std::vector<double>& seed_pose = lookup->seed_state.position;
+    const std::vector<std::string>& joint_names = lookup->seed_state.name;
     std::map<std::string, double> seed_map;
     for(std::size_t i = 0; i < joint_names.size(); ++i)
     {
@@ -87,11 +71,11 @@ void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFee
 
       lookup->reached = true;
       lookup->score = *score;
-      lookup->goal_state.joint_state.position = goal_pose;
+      lookup->goal_state.position = goal_pose;
 
       // Update the interactive marker server
       display_->updateInteractiveMarker(*lookup);
-      display_->updateRobotPose(toMap(lookup->goal_state.joint_state));
+      display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
 
       // Update the database
       db_->put(*lookup);
@@ -112,7 +96,7 @@ void ReachVisualizer::showResultCB(const visualization_msgs::InteractiveMarkerFe
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
   {
-    display_->updateRobotPose(toMap(lookup->goal_state.joint_state));
+    display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
   }
   else
   {
@@ -125,7 +109,7 @@ void ReachVisualizer::showSeedCB(const visualization_msgs::InteractiveMarkerFeed
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
   {
-    display_->updateRobotPose(toMap(lookup->seed_state.joint_state));
+    display_->updateRobotPose(jointStateMsgToMap(lookup->seed_state));
   }
   else
   {
@@ -140,7 +124,7 @@ void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::Interacti
   {
     NeighborReachResult result = reachNeighborsDirect(db_, *lookup, solver_, neighbor_radius_, search_tree_);
 
-    display_->updateRobotPose(toMap(lookup->goal_state.joint_state));
+    display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
     display_->publishMarkerArray(result.reached_pts);
 
     ROS_INFO("%lu points are reachable from this pose", result.reached_pts.size());
@@ -160,7 +144,7 @@ void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::Intera
     NeighborReachResult result;
     reachNeighborsRecursive(db_, *lookup, solver_, neighbor_radius_, result, search_tree_);
 
-    display_->updateRobotPose(toMap(lookup->goal_state.joint_state));
+    display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
     display_->publishMarkerArray(result.reached_pts);
     ROS_INFO("%lu points are reachable from this pose", result.reached_pts.size());
     ROS_INFO("Total joint distance to all neighbors: %f", result.joint_distance);

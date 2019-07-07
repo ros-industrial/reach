@@ -1,5 +1,5 @@
 #include <reach/core/reach_study.h>
-#include <reach/utils/database_utils.h>
+#include <reach/utils/serialization_utils.h>
 #include <reach/utils/general_utils.h>
 
 #include <reach_msgs/SampleMesh.h>
@@ -9,8 +9,6 @@
 #include <pluginlib/class_loader.h>
 #include <ros/package.h>
 #include <xmlrpcpp/XmlRpcException.h>
-
-#include <moveit/common_planning_interface_objects/common_objects.h>
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
 const static double SRV_TIMEOUT = 5.0;
@@ -33,7 +31,6 @@ ReachStudy::ReachStudy(const ros::NodeHandle& nh)
   , db_(new ReachDatabase ())
   , solver_loader_(PACKAGE, IK_BASE_CLASS)
   , display_loader_(PACKAGE, DISPLAY_BASE_CLASS)
-  , model_(moveit::planning_interface::getSharedRobotModel("robot_description"))
 {
 
 }
@@ -248,41 +245,29 @@ void ReachStudy::runInitialReachStudy()
     tgt_frame = tgt_frame * tool_z_rot;
 
     // Get the seed position
-    const std::vector<std::string>& joint_names = model_->getJointModelGroup(sp_.kin_group_name)->getActiveJointModelNames();
-    const std::vector<double> seed (joint_names.size(), 0.0);
-
-    std::map<std::string, double> seed_map;
-    for(std::size_t n = 0; n < joint_names.size(); ++n)
-    {
-      seed_map.emplace(joint_names[n], seed[n]);
-    }
+    sensor_msgs::JointState seed_state;
+    seed_state.name = ik_solver_->getJointNames();
+    seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
 
     // Solve IK
     std::vector<double> solution;
-    boost::optional<double> score = ik_solver_->solveIKFromSeed(tgt_frame, seed_map, solution);
+    boost::optional<double> score = ik_solver_->solveIKFromSeed(tgt_frame, jointStateMsgToMap(seed_state), solution);
 
     // Create objects to save in the reach record
     geometry_msgs::Pose tgt_pose;
     tf::poseEigenToMsg(tgt_frame, tgt_pose);
-    moveit::core::RobotState seed_state(model_);
-    moveit::core::RobotState goal_state(model_);
 
-    seed_state.setJointGroupPositions(sp_.kin_group_name, seed);
-    seed_state.update();
-    goal_state.setJointGroupPositions(sp_.kin_group_name, seed);
-    goal_state.update();
+    sensor_msgs::JointState goal_state (seed_state);
 
     if(score)
     {
-      goal_state.setJointGroupPositions(sp_.kin_group_name, solution);
-      goal_state.update();
-
-      auto msg = utils::makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
+      goal_state.position = solution;
+      auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
       db_->put(msg);
     }
     else
     {
-      auto msg = utils::makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0);
+      auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0);
       db_->put(msg);
     }
 

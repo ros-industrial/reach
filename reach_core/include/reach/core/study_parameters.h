@@ -43,11 +43,8 @@ struct StudyParameters
   bool visualize_results;
   bool get_neighbors;
   std::vector<std::string> compare_dbs;
-
-  // TO-DO: Get rid of these if possible
   std::string fixed_frame;
   std::string object_frame;
-  std::string kin_group_name;
 };
 
 } // namespace core

@@ -88,9 +88,9 @@ NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db,
   if(!neighbors.empty())
   {
     std::map<std::string, double> previous_solution;
-    for(std::size_t i = 0; i < rec.goal_state.joint_state.position.size(); ++i)
+    for(std::size_t i = 0; i < rec.goal_state.position.size(); ++i)
     {
-      previous_solution.emplace(rec.goal_state.joint_state.name[i], rec.goal_state.joint_state.position[i]);
+      previous_solution.emplace(rec.goal_state.name[i], rec.goal_state.position[i]);
     }
 
     for(std::size_t i = 0; i < neighbors.size(); ++i)
@@ -113,8 +113,8 @@ NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db,
         {
           // Overwrite Reach Record msg parameters with new results
           msg.reached = true;
-          msg.seed_state.joint_state.position = rec.goal_state.joint_state.position;
-          msg.goal_state.joint_state.position = new_solution;
+          msg.seed_state.position = rec.goal_state.position;
+          msg.goal_state.position = new_solution;
           msg.score = *score;
           db->put(msg);
         }
@@ -153,12 +153,12 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
   {
     for(std::size_t i = 0; i < neighbors.size(); ++i)
     {      
-      const std::vector<double>& current_pose = rec.goal_state.joint_state.position;
+      const std::vector<double>& current_pose = rec.goal_state.position;
 
       std::map<std::string, double> current_pose_map;
       for(std::size_t i = 0; i < current_pose.size(); ++i)
       {
-        current_pose_map.emplace(rec.goal_state.joint_state.name[i], current_pose[i]);
+        current_pose_map.emplace(rec.goal_state.name[i], current_pose[i]);
       }
 
       // Check if the current potential point has been solved previously in the recursion chain
@@ -180,8 +180,8 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
 
           // Store information in new reach record object
           reach_msgs::ReachRecord new_rec (neighbors[i]);
-          new_rec.seed_state.joint_state.position = current_pose;
-          new_rec.goal_state.joint_state.position = new_pose;
+          new_rec.seed_state.position = current_pose;
+          new_rec.goal_state.position = new_pose;
           new_rec.reached = true;
           new_rec.score = *score;
 

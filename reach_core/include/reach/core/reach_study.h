@@ -9,15 +9,6 @@
 #include <pluginlib/class_loader.h>
 #include <sensor_msgs/PointCloud2.h>
 
-namespace moveit
-{
-namespace core
-{
-class RobotModel;
-typedef std::shared_ptr<const RobotModel> RobotModelConstPtr;
-}
-}
-
 namespace reach
 {
 namespace core
@@ -74,8 +65,6 @@ private:
   ReachVisualizerPtr visualizer_;
 
   SearchTreePtr search_tree_;
-
-  moveit::core::RobotModelConstPtr model_;
   
   std::string dir_;
   

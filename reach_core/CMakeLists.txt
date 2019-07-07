@@ -7,10 +7,6 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
   geometry_msgs
   interactive_markers
-  moveit_core
-  moveit_msgs
-  moveit_ros_planning
-  moveit_ros_planning_interface
   pcl_ros
   pluginlib
   reach_msgs
@@ -42,10 +38,6 @@ catkin_package(
     eigen_conversions
     geometry_msgs
     interactive_markers
-    moveit_core
-    moveit_msgs
-    moveit_ros_planning
-    moveit_ros_planning_interface
     pcl_ros
     pluginlib
     reach_msgs
@@ -61,7 +53,6 @@ include_directories(
 
 # Utilites Library
 add_library(reach_study_utils
-  src/utils/database_utils.cpp
   src/utils/general_utils.cpp
   src/utils/visualization_utils.cpp
 )
