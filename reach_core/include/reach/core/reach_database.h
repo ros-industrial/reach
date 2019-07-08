@@ -4,7 +4,6 @@
 #include "reach/core/study_parameters.h"
 #include <reach_msgs/ReachDatabase.h>
 #include <boost/optional.hpp>
-#include <moveit/robot_state/robot_state.h>
 #include <mutex>
 #include <unordered_map>
 
@@ -12,6 +11,30 @@ namespace reach
 {
 namespace core
 {
+
+/**
+ * @brief makeRecord
+ * @param id
+ * @param reached
+ * @param goal
+ * @param seed_state
+ * @param goal_state
+ * @param score
+ * @return
+ */
+reach_msgs::ReachRecord makeRecord(const std::string &id,
+                                   const bool reached,
+                                   const geometry_msgs::Pose &goal,
+                                   const sensor_msgs::JointState& seed_state,
+                                   const sensor_msgs::JointState& goal_state,
+                                   const double score);
+
+/**
+ * @brief toMap
+ * @param state
+ * @return
+ */
+std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState& state);
 
 /**
  * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database also saves
@@ -65,7 +88,7 @@ public:
    * @brief count counts the number of entries in the database
    * @return
    */
-  int count();
+  std::size_t size() const;
 
   /**
    * @brief calculateResults calculates the results of the reach study and saves them to internal class members
@@ -109,6 +132,8 @@ public:
     return map_.end();
   }
 
+  reach_msgs::ReachDatabase toReachDatabaseMsg();
+
 private:
 
   void putHelper(const reach_msgs::ReachRecord& record);
@@ -118,8 +143,8 @@ private:
   mutable std::mutex mutex_;
 
   StudyResults results_;
-
 };
+typedef std::shared_ptr<ReachDatabase> ReachDatabasePtr;
 
 } // namespace core
 } // namespace reach

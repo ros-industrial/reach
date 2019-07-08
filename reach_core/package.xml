@@ -13,13 +13,15 @@
   <depend>eigen_conversions</depend>
   <depend>geometry_msgs</depend>
   <depend>interactive_markers</depend>
-  <depend>moveit_core</depend>
-  <depend>moveit_msgs</depend>
-  <depend>moveit_ros_planning</depend>
   <depend>pcl_ros</depend>
+  <depend>pluginlib</depend>
   <depend>reach_msgs</depend>
   <depend>tf</depend>
   <depend>tf_conversions</depend>
   <depend>visualization_msgs</depend>
+
+  <export>
+    <reach_core plugin="${prefix}/plugin_description.xml"/>
+  </export>
 
 </package>

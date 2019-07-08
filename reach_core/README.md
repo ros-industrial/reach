@@ -1,18 +1,24 @@
-# Robot Reach Study
-## Installation
-Before building the Robot Reach Study package, install the following packages:
-- PCL 1.8
-- VTK 7.1
-- vtk_viewer
-  - `git clone https://raesgit.datasys.swri.edu/agoins/10.R8706.git`
-- tool_path_planner
-  - `git clone https://raesgit.datasys.swri.edu/agoins/10.R8706.git`
+# REACH Core
 
-![Robot Reach Study][1]
+## Approach
 
-## Description
+The REACH core package provides the framework for the reach study process, defined in the diagram below:
 
-The Robot Reach Study package is a tool that allows the user to visualize and quantitatively evaluate the reach capability of
-a specified robot configuration (i.e. robot, work cell, rail) for a given object.
+![Reach Study Flow Diagram][1]
 
-[1]: robot_reach_study.gif
+## Interfaces
+
+The REACH core package also provides the interface definition for the required reach study functions:
+
+1. Robot Pose Evaluator
+    - Calculates a numerical score for an input robot pose
+    - Example numerical measures of reachability
+      - Robot manipulability
+      - Distance from closest collision
+1. Inverse Kinematics Solver
+    - Calculates the inverse kinematics solution for the robot at an input 6 degree-of-freedom Cartesian target
+    - Contains an evaluator interface to assign a value to the resulting IK solution
+1. Reach Display
+    - Provides interactive markers for the target positions to display reachability status and visualize the robot goal and seed poses at those targets
+
+[1]: docs/reach_study_flow_diagram.png

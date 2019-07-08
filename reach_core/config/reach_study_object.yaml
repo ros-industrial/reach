@@ -1,18 +1,18 @@
-fixed_frame:
-object_frame:
-results_directory:
+fixed_frame: ""
+object_frame: ""
+results_directory: ""
+pcd_filename: ""
+get_avg_neighbor_count: false
+compare_dbs: []
+visualize_results: true
 
-reach_object:
-  mesh_filename:
-  pcd_filename:
-  optimization_radius:
+optimization:
+  radius: 0.4
+  max_steps: 10
+  step_improvement_threshold: 0.01
 
-planning_group:
-  kinematics:
-  manipulability:
+ik_solver_config:
+  name: ""
 
-constraints:
-  get_avg_neighbor_count:
-  cost_function:
-  distance_threshold:
-  compare_dbs:
+display_config:
+  name: ""

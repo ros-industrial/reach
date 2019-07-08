@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
-    <arg name="reach_object" default="reach_study_object"/>
-    <arg name="config_name" default="reach_study_object"/>
+    <arg name="config_file"/>
+    <arg name="config_name"/>
 
     <node name="robot_reach_study_node" pkg="reach_core" type="robot_reach_study_node" output="screen" required="true">
       <rosparam command="load" file="$(arg reach_object)"/>

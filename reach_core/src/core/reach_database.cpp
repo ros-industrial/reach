@@ -1,38 +1,65 @@
-#include "reach/core/reach_database.h"
-#include "reach/utils/database_utils.h"
+#include <reach/core/reach_database.h>
+#include <reach/utils/serialization_utils.h>
 
-namespace // private utils namespace
+namespace
 {
 
-reach_msgs::ReachDatabase
-toReachDatabase(const std::unordered_map<std::string,
-                reach_msgs::ReachRecord>& db)
+reach_msgs::ReachDatabase toReachDatabase(const std::unordered_map<std::string, reach_msgs::ReachRecord>& map,
+                                          const reach::core::StudyResults& results)
 {
   reach_msgs::ReachDatabase msg;
-  for (const auto& record : db)
+  for (auto it = map.begin(); it != map.end(); ++it)
   {
-    msg.records.push_back(record.second);
+    msg.records.push_back(it->second);
   }
+
+  msg.total_pose_score = results.total_pose_score;
+  msg.norm_total_pose_score = results.norm_total_pose_score;
+  msg.reach_percentage = results.reach_percentage;
+  msg.avg_num_neighbors = results.avg_num_neighbors;
+  msg.avg_joint_distance = results.avg_joint_distance;
+
   return msg;
 }
 
-} // end private namespace
+} // namespace anonymous
 
 namespace reach
 {
 namespace core
 {
 
+reach_msgs::ReachRecord makeRecord(const std::string& id,
+                                   const bool reached,
+                                   const geometry_msgs::Pose& goal,
+                                   const sensor_msgs::JointState& seed_state,
+                                   const sensor_msgs::JointState& goal_state,
+                                   const double score)
+{
+  reach_msgs::ReachRecord r;
+  r.id = id;
+  r.goal = goal;
+  r.reached = reached;
+  r.seed_state = seed_state;
+  r.goal_state = goal_state;
+  r.score = score;
+  return r;
+}
+
+std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState& state)
+{
+  std::map<std::string, double> out;
+  for(std::size_t i = 0; i < state.name.size(); ++i)
+  {
+    out.emplace(state.name[i], state.position[i]);
+  }
+  return out;
+}
+
 void ReachDatabase::save(const std::string &filename) const
 {
   std::lock_guard<std::mutex> lock {mutex_};
-  reach_msgs::ReachDatabase msg = toReachDatabase(map_);
-
-  msg.total_pose_score = results_.total_pose_score;
-  msg.norm_total_pose_score = results_.norm_total_pose_score;
-  msg.reach_percentage = results_.reach_percentage;
-  msg.avg_num_neighbors = results_.avg_num_neighbors;
-  msg.avg_joint_distance = results_.avg_joint_distance;
+  reach_msgs::ReachDatabase msg = toReachDatabase(map_, results_);
 
   if (!reach::utils::toFile(filename, msg))
   {
@@ -87,18 +114,16 @@ void ReachDatabase::putHelper(const reach_msgs::ReachRecord &record)
   map_[record.id] = record;
 }
 
-int ReachDatabase::count()
+std::size_t ReachDatabase::size() const
 {
-  int count = 0;
-  for(auto it = this->begin(); it != this->end(); ++it) {++count;}
-  return count;
+  return map_.size();
 }
 
 void ReachDatabase::calculateResults()
 {
   unsigned int success = 0, total = 0;
   double score = 0.0;
-  for(int i = 0; i < this->count(); ++i)
+  for(int i = 0; i < this->size(); ++i)
   {
     reach_msgs::ReachRecord msg = *this->get(std::to_string(i));
 
@@ -112,7 +137,7 @@ void ReachDatabase::calculateResults()
   }
   const float pct_success = static_cast<float>(success) / static_cast<float>(total);
 
-  results_.reach_percentage = 100.0 * pct_success;
+  results_.reach_percentage = 100.0f * pct_success;
   results_.total_pose_score = score;
   results_.norm_total_pose_score = score / pct_success;
 }
@@ -120,12 +145,17 @@ void ReachDatabase::calculateResults()
 void ReachDatabase::printResults()
 {
   ROS_INFO("------------------------------------------------");
-  ROS_INFO("Percent Reached = %f", results_.reach_percentage);
-  ROS_INFO("Total points score = %f", results_.total_pose_score);
-  ROS_INFO("Normalized total points score = %f", results_.norm_total_pose_score);
-  ROS_INFO("Average reachable neighbors = %f", results_.avg_num_neighbors);
-  ROS_INFO("Average joint distance = %f", results_.avg_joint_distance);
-  ROS_INFO("------------------------------------------------");
+  ROS_INFO_STREAM("Percent Reached = " << results_.reach_percentage);
+  ROS_INFO_STREAM("Total points score = " << results_.total_pose_score);
+  ROS_INFO_STREAM("Normalized total points score = " << results_.norm_total_pose_score);
+  ROS_INFO_STREAM("Average reachable neighbors = " << results_.avg_num_neighbors);
+  ROS_INFO_STREAM("Average joint distance = " << results_.avg_joint_distance);
+  ROS_INFO_STREAM("------------------------------------------------");
+}
+
+reach_msgs::ReachDatabase ReachDatabase::toReachDatabaseMsg()
+{
+  return toReachDatabase(map_, results_);
 }
 
 } // namespace core
