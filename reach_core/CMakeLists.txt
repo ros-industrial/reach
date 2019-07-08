@@ -118,7 +118,7 @@ add_dependencies(reach_study
 
 # Plugins Library
 add_library(plugins
-  src/plugins/multiplicative_factory.cpp
+  src/plugins/impl/multiplicative_factory.cpp
 )
 target_link_libraries(plugins
   ${catkin_LIBRARIES}

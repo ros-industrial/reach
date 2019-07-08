@@ -1,5 +1,5 @@
-#ifndef REACH_CORE_PLUGINS_MULTIPLICATIVE_FACTORY_H
-#define REACH_CORE_PLUGINS_MULTIPLICATIVE_FACTORY_H
+#ifndef REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H
+#define REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H
 
 #include "reach/plugins/evaluation_base.h"
 #include "pluginlib/class_loader.h"
@@ -29,4 +29,4 @@ private:
 } // namespace plugins
 } // namespace reach
 
-#endif // REACH_CORE_PLUGINS_MULTIPLICATIVE_FACTORY_H
+#endif // REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H

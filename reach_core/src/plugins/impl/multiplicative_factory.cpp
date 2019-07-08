@@ -1,4 +1,4 @@
-#include "reach/plugins/multiplicative_factory.h"
+#include "reach/plugins/impl/multiplicative_factory.h"
 #include <ros/console.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
