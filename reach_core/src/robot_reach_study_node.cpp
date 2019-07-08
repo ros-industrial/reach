@@ -25,7 +25,6 @@ bool getStudyParameters(ros::NodeHandle& nh,
      !get(nh, "optimization/radius", sp.optimization.radius) ||
      !get(nh, "optimization/max_steps", sp.optimization.max_steps) ||
      !get(nh, "optimization/step_improvement_threshold", sp.optimization.step_improvement_threshold) ||
-     !get(nh, "planning_group", sp.kin_group_name) ||
      !get(nh, "get_avg_neighbor_count", sp.get_neighbors) ||
      !get(nh, "compare_dbs", sp.compare_dbs) ||
      !get(nh, "visualize_results", sp.visualize_results) ||
