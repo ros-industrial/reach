@@ -19,11 +19,11 @@ void integerProgressPrinter(std::atomic<int>& current_counter,
   previous_pct = current_pct;
 }
 
-Eigen::Affine3d createFrame(const Eigen::Vector3f& pt,
+Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt,
                             const Eigen::Vector3f& norm)
 {
   // Initialize coordinate frame and set XYZ location
-  Eigen::Affine3f p = Eigen::Affine3f::Identity();
+  Eigen::Isometry3f p = Eigen::Isometry3f::Identity();
   p.matrix()(0, 3) = pt(0);
   p.matrix()(1, 3) = pt(1);
   p.matrix()(2, 3) = pt(2);

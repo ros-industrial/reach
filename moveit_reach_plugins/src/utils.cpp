@@ -54,7 +54,7 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r,
   marker.type = visualization_msgs::Marker::ARROW;
   marker.action = visualization_msgs::Marker::ADD;
 
-  Eigen::Affine3d goal_eigen;
+  Eigen::Isometry3d goal_eigen;
   tf::poseMsgToEigen(r.goal, goal_eigen);
 
   // Transform arrow such that arrow x-axis points along goal pose z-axis (Rviz convention)

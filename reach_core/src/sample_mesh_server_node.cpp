@@ -83,7 +83,7 @@ bool getSampledMesh(reach_msgs::SampleMeshRequest& req,
     return false;
   }
 
-  Eigen::Affine3d transform;
+  Eigen::Isometry3d transform;
   tf::transformTFToEigen(object_tf, transform);
   pcl::PointCloud<pcl::PointNormal> transformed_cloud;
   pcl::transformPointCloudWithNormals(cloud, transformed_cloud, transform.matrix());

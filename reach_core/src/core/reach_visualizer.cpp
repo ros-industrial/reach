@@ -57,7 +57,7 @@ void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFee
       seed_map.emplace(joint_names[i], seed_pose[i]);
     }
 
-    Eigen::Affine3d target;
+    Eigen::Isometry3d target;
     tf::poseMsgToEigen(lookup->goal, target);
 
     // Re-solve IK at the selected marker

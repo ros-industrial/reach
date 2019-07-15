@@ -6,6 +6,7 @@
 #include <reach_msgs/ReachRecord.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/InteractiveMarker.h>
+#include <boost/optional.hpp>
 
 namespace moveit_reach_plugins
 {

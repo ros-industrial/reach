@@ -96,7 +96,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db,
     for(std::size_t i = 0; i < neighbors.size(); ++i)
     {
       // Initialize new target pose and new empty robot goal state
-      Eigen::Affine3d target;
+      Eigen::Isometry3d target;
       tf::poseMsgToEigen(neighbors[i].goal, target);
 
       // Use current point's IK solution as seed
@@ -165,7 +165,7 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
       if(std::find(result.reached_pts.begin(), result.reached_pts.end(), neighbors[i].id) == std::end(result.reached_pts))
       {
         std::vector<double> new_pose;
-        Eigen::Affine3d target;
+        Eigen::Isometry3d target;
         tf::poseMsgToEigen(neighbors[i].goal, target);
 
         // Use current point's IK solution as seed
