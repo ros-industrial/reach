@@ -2,8 +2,6 @@
 
 **R**obotic **E**valuation **A**nd **C**omparison **H**euristic
 
-(Because all cool software packages need a kitschy acronym)
-
 ![Robot Reach Study][1]
 
 ![Reach Study Heat Map][2]
