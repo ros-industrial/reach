@@ -5,6 +5,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <visualization_msgs/InteractiveMarker.h>
+#include <boost/optional.hpp>
 
 namespace reach
 {

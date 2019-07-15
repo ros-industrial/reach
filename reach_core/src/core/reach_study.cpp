@@ -5,6 +5,7 @@
 #include <reach_msgs/SampleMesh.h>
 #include <reach_msgs/ReachRecord.h>
 
+#include <numeric>
 #include <eigen_conversions/eigen_msg.h>
 #include <pluginlib/class_loader.h>
 #include <ros/package.h>

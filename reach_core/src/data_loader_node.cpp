@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 const static std::string RESULTS_FOLDER_NAME = "results";
 const static std::string OPT_DB_NAME = "optimized_reach.db";
