@@ -25,7 +25,7 @@ void integerProgressPrinter(std::atomic<int>& current_counter,
  * @param norm
  * @return
  */
-Eigen::Affine3d createFrame(const Eigen::Vector3f& pt,
+Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt,
                             const Eigen::Vector3f& norm);
 
 } // namespace utils

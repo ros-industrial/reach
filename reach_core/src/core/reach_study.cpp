@@ -241,7 +241,7 @@ void ReachStudy::runInitialReachStudy()
   {
     // Get pose from point cloud array
     const pcl::PointNormal& pt = cloud_->points[i];
-    Eigen::Affine3d tgt_frame;
+    Eigen::Isometry3d tgt_frame;
     tgt_frame = utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
     tgt_frame = tgt_frame * tool_z_rot;
 

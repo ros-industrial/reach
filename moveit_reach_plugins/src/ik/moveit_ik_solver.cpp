@@ -108,7 +108,7 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
   return true;
 }
 
-boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Affine3d& target,
+boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& target,
                                                         const std::map<std::string, double>& seed,
                                                         std::vector<double>& solution)
 {

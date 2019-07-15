@@ -16,7 +16,7 @@ public:
 
   virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
 
-  virtual boost::optional<double> solveIKFromSeed(const Eigen::Affine3d& target,
+  virtual boost::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
                                                   const std::map<std::string, double>& seed,
                                                   std::vector<double>& solution) override;
 

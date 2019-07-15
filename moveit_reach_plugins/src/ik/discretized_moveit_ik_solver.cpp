@@ -56,7 +56,7 @@ bool DiscretizedMoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
   return true;
 }
 
-boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::Affine3d& target,
+boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& target,
                                                                    const std::map<std::string, double>& seed,
                                                                    std::vector<double>& solution)
 {
@@ -69,7 +69,7 @@ boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::
 
   for(int i = 0; i < n_discretizations; ++i)
   {
-    Eigen::Affine3d discretized_target (target * Eigen::AngleAxisd (double(i)*dt_, Eigen::Vector3d::UnitZ()));
+    Eigen::Isometry3d discretized_target (target * Eigen::AngleAxisd (double(i)*dt_, Eigen::Vector3d::UnitZ()));
     std::vector<double> tmp_solution;
 
     boost::optional<double> score = MoveItIKSolver::solveIKFromSeed(discretized_target, seed, tmp_solution);
