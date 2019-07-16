@@ -37,6 +37,10 @@ catkin_package(
     xmlrpcpp
 )
 
+###########
+## BUILD ##
+###########
+
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
@@ -106,4 +110,27 @@ add_dependencies(ik_plugin_test
 )
 target_link_libraries(ik_plugin_test
   ${catkin_LIBRARIES}
+)
+
+#############
+## INSTALL ##
+#############
+
+install(
+  TARGETS
+    ${PROJECT_NAME}_utils
+    evaluation_plugins
+    ik_solver_plugins
+    reach_display_plugins
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(FILES plugin_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
