@@ -16,7 +16,7 @@
 #ifndef MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 #define MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 
-#include <reach/plugins/reach_display_base.h>
+#include <reach_core/plugins/reach_display_base.h>
 
 namespace moveit
 {

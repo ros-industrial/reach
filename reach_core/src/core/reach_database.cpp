@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach/core/reach_database.h>
-#include <reach/utils/serialization_utils.h>
+#include <reach_core/reach_database.h>
+#include <reach_core/utils/serialization_utils.h>
 
 namespace
 {

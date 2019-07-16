@@ -15,8 +15,8 @@
  */
 #include <ros/ros.h>
 #include <pluginlib/class_loader.h>
-#include <reach/plugins/reach_display_base.h>
-#include <reach/plugins/ik_solver_base.h>
+#include <reach_core/plugins/reach_display_base.h>
+#include <reach_core/plugins/ik_solver_base.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 template<typename T>

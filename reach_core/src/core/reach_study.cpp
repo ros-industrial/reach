@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach/core/reach_study.h>
-#include <reach/utils/serialization_utils.h>
-#include <reach/utils/general_utils.h>
+#include <reach_core/reach_study.h>
+#include <reach_core/utils/serialization_utils.h>
+#include <reach_core/utils/general_utils.h>
 
 #include <reach_msgs/SampleMesh.h>
 #include <reach_msgs/ReachRecord.h>

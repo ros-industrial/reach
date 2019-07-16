@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach/plugins/impl/multiplicative_factory.h"
+#include "reach_core/plugins/impl/multiplicative_factory.h"
 #include <ros/console.h>
 #include <xmlrpcpp/XmlRpcException.h>
 

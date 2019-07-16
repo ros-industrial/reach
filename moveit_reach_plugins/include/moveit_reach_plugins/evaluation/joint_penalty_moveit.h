@@ -16,7 +16,7 @@
 #ifndef MOVEIT_REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
 #define MOVEIT_REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
 
-#include <reach/plugins/evaluation_base.h>
+#include <reach_core/plugins/evaluation_base.h>
 
 namespace moveit
 {

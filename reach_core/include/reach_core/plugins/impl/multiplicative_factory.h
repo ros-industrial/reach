@@ -16,7 +16,7 @@
 #ifndef REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H
 #define REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H
 
-#include "reach/plugins/evaluation_base.h"
+#include "reach_core/plugins/evaluation_base.h"
 #include "pluginlib/class_loader.h"
 
 namespace reach

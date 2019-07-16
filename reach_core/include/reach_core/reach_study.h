@@ -16,10 +16,10 @@
 #ifndef REACH_CORE_REACH_STUDY_H
 #define REACH_CORE_REACH_STUDY_H
 
-#include <reach/core/study_parameters.h>
-#include <reach/core/ik_helper.h>
-#include <reach/core/reach_visualizer.h>
-#include <reach/plugins/ik_solver_base.h>
+#include <reach_core/study_parameters.h>
+#include <reach_core/ik_helper.h>
+#include <reach_core/reach_visualizer.h>
+#include <reach_core/plugins/ik_solver_base.h>
 #include <pcl_ros/point_cloud.h>
 #include <pluginlib/class_loader.h>
 #include <sensor_msgs/PointCloud2.h>

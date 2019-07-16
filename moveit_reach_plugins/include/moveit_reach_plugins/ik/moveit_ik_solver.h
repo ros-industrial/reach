@@ -16,8 +16,8 @@
 #ifndef MOVEIT_REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
 #define MOVEIT_REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
 
-#include <reach/plugins/ik_solver_base.h>
-#include <reach/plugins/evaluation_base.h>
+#include <reach_core/plugins/ik_solver_base.h>
+#include <reach_core/plugins/evaluation_base.h>
 #include <pluginlib/class_loader.h>
 
 namespace moveit
