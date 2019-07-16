@@ -15,8 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
 )
 
-find_package(cmake_modules REQUIRED)
-
 find_package(OpenMP)
 if(OPENMP_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -45,6 +43,10 @@ catkin_package(
     tf_conversions
     visualization_msgs
 )
+
+###########
+## BUILD ##
+###########
 
 include_directories(
   include
@@ -160,4 +162,36 @@ target_link_libraries(data_loader
 add_dependencies(data_loader
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
+)
+
+#############
+## INSTALL ##
+#############
+
+install(
+  TARGETS
+    reach_study_utils
+    reach_database
+    ik_helper
+    reach_visualizer
+    reach_study
+    plugins
+    robot_reach_study_node
+    sample_mesh_server
+    data_loader
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(FILES plugin_description.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

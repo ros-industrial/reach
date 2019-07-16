@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach/core/reach_study.h"
-#include "reach/core/study_parameters.h"
+#include "reach_core/reach_study.h"
+#include "reach_core/study_parameters.h"
 
 template<typename T>
 bool get(const ros::NodeHandle& nh,

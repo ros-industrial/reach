@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach/utils/general_utils.h"
+#include "reach_core/utils/general_utils.h"
 #include <ros/console.h>
 
 namespace reach

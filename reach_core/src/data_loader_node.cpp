@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach/core/reach_database.h"
+#include "reach_core/reach_database.h"
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <boost/filesystem.hpp>

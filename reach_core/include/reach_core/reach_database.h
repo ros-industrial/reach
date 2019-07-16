@@ -16,7 +16,7 @@
 #ifndef REACH_CORE_REACH_DATABASE_H
 #define REACH_CORE_REACH_DATABASE_H
 
-#include "reach/core/study_parameters.h"
+#include "reach_core/study_parameters.h"
 #include <reach_msgs/ReachDatabase.h>
 #include <boost/optional.hpp>
 #include <mutex>

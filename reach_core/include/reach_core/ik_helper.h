@@ -16,9 +16,9 @@
 #ifndef REACH_CORE_IK_HELPER_H
 #define REACH_CORE_IK_HELPER_H
 
-#include <reach/core/reach_database.h>
-#include <reach/core/study_parameters.h>
-#include <reach/plugins/ik_solver_base.h>
+#include <reach_core/reach_database.h>
+#include <reach_core/study_parameters.h>
+#include <reach_core/plugins/ik_solver_base.h>
 
 #include <boost/optional.hpp>
 #include <flann/flann.h>

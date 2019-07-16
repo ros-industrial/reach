@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach/utils/visualization_utils.h"
+#include "reach_core/utils/visualization_utils.h"
 #include <eigen_conversions/eigen_msg.h>
 #include <pcl/features/moment_of_inertia_estimation.h>
 

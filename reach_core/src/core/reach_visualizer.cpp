@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach/core/reach_visualizer.h>
-#include <reach/utils/visualization_utils.h>
+#include <reach_core/reach_visualizer.h>
+#include <reach_core/utils/visualization_utils.h>
 #include <reach_msgs/ReachRecord.h>
 #include <eigen_conversions/eigen_msg.h>
 

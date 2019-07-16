@@ -16,10 +16,10 @@
 #ifndef REACH_CORE_STUDY_VISUALIZER_H
 #define REACH_CORE_STUDY_VISUALIZER_H
 
-#include <reach/core/reach_database.h>
-#include <reach/plugins/reach_display_base.h>
-#include <reach/plugins/ik_solver_base.h>
-#include <reach/core/ik_helper.h>
+#include <reach_core/reach_database.h>
+#include <reach_core/plugins/reach_display_base.h>
+#include <reach_core/plugins/ik_solver_base.h>
+#include <reach_core/ik_helper.h>
 
 namespace reach
 {

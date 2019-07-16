@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include <eigen_conversions/eigen_msg.h>
-#include <reach/core/ik_helper.h>
+#include <reach_core/ik_helper.h>
 
 namespace reach
 {
