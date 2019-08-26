@@ -26,8 +26,8 @@ The package is comprised of several packages:
 ## Installation
 
 ```
-git clone https://raesgit.datasys.swri.edu/mripperger/robot_reach_study.git`
-cd robot_reach_study
+git clone https://github.com/ros-industrial/reach.git`
+cd reach
 rosdep install --from-paths src --ignore-src -r -y
 catkin build
 ```
