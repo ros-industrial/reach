@@ -1,4 +1,6 @@
 # REACH
+![](https://travis-ci.com/ros-industrial/reach.svg?branch=master)
+![](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 
 **R**obotic **E**valuation **A**nd **C**omparison **H**euristic
 
