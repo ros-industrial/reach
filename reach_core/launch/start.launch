@@ -4,7 +4,7 @@
     <arg name="config_name"/>
 
     <node name="robot_reach_study_node" pkg="reach_core" type="robot_reach_study_node" output="screen" required="true">
-      <rosparam command="load" file="$(arg reach_object)"/>
+      <rosparam command="load" file="$(arg config_file)"/>
       <param name="config_name" value="$(arg config_name)"/>
     </node>
 </launch>
