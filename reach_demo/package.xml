@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>reach_demo</name>
+  <version>0.0.0</version>
+  <description>The reach_demo package</description>
+
+  <maintainer email="michael.ripperger@swri.org">Michael Ripperger</maintainer>
+  <author email="michael.ripperger@swri.org">Michael Ripperger</author>
+
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>moveit_reach_plugins</exec_depend>
+  <exec_depend>reach_core</exec_depend>
+</package>
