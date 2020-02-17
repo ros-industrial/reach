@@ -34,6 +34,10 @@ rosdep install --from-paths src --ignore-src -r -y
 catkin build
 ```
 
+## Demo
+
+A simple demonstration of the capability of this repository is provided in the `reach_demo` package. See the [instructions](reach_demo/README.md) for details on how to run the demo.
+
 ## Usage
 
 1. Create a URDF of your robot system
