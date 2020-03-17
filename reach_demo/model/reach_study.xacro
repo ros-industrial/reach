@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <robot name="reach_study" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find reach_demo)/model/motoman_sia20d_macro.xacro" />
+  <xacro:include filename="$(find reach_demo)/model/motoman_sia20d/motoman_sia20d_macro.xacro" />
   <xacro:motoman_sia20d prefix=""/>
 
   <link name="reach_object"/>
