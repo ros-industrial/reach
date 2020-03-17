@@ -12,4 +12,5 @@
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>moveit_reach_plugins</exec_depend>
   <exec_depend>reach_core</exec_depend>
+  <test_depend>rostest</test_depend>
 </package>
