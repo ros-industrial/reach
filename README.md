@@ -28,7 +28,7 @@ The package is comprised of several packages:
 ## Installation
 
 ```
-git clone https://github.com/ros-industrial/reach.git`
+git clone https://github.com/ros-industrial/reach.git
 cd reach
 rosdep install --from-paths src --ignore-src -r -y
 catkin build
