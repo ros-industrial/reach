@@ -10,8 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pluginlib
   reach_msgs
-  tf
-  tf_conversions
+  tf2_ros
+  tf2_eigen
   visualization_msgs
 )
 
@@ -39,8 +39,8 @@ catkin_package(
     pcl_ros
     pluginlib
     reach_msgs
-    tf
-    tf_conversions
+    tf2_ros
+    tf2_eigen
     visualization_msgs
 )
 
@@ -53,7 +53,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# Utilites Library
+# Utilities Library
 add_library(reach_study_utils
   src/utils/general_utils.cpp
   src/utils/visualization_utils.cpp
@@ -139,14 +139,14 @@ add_dependencies(robot_reach_study_node
   ${catkin_EXPORTED_TARGETS}
 )
 
-# Sample Mesh Server Node
-add_executable(sample_mesh_server
-  src/sample_mesh_server_node.cpp
+# Load Point Cloud Server Node
+add_executable(load_point_cloud_server_node
+  src/load_point_cloud_server_node.cpp
 )
-target_link_libraries(sample_mesh_server
+target_link_libraries(load_point_cloud_server_node
   ${catkin_LIBRARIES}
 )
-add_dependencies(sample_mesh_server
+add_dependencies(load_point_cloud_server_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
@@ -177,7 +177,7 @@ install(
     reach_study
     plugins
     robot_reach_study_node
-    sample_mesh_server
+    load_point_cloud_server_node
     data_loader
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
