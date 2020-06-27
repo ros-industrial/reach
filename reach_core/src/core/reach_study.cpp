@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,7 @@
 #include <reach_core/utils/serialization_utils.h>
 #include <reach_core/utils/general_utils.h>
 
-#include <reach_msgs/SampleMesh.h>
+#include <reach_msgs/LoadPointCloud.h>
 #include <reach_msgs/ReachRecord.h>
 
 #include <numeric>
@@ -216,24 +216,27 @@ bool ReachStudy::run(const StudyParameters& sp)
 bool ReachStudy::getReachObjectPointCloud()
 {
   // Call the sample mesh service to create a point cloud of the reach object mesh
-  ros::ServiceClient client = nh_.serviceClient<reach_msgs::SampleMesh>(SAMPLE_MESH_SRV_TOPIC);
+  ros::ServiceClient client = nh_.serviceClient<reach_msgs::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC);
 
-  reach_msgs::SampleMesh srv;
+  reach_msgs::LoadPointCloud srv;
   srv.request.cloud_filename = sp_.pcd_filename;
   srv.request.fixed_frame = sp_.fixed_frame;
   srv.request.object_frame = sp_.object_frame;
 
   client.waitForExistence(ros::Duration (SRV_TIMEOUT));
-  if(client.call(srv))
+  if(!client.call(srv))
   {
-    cloud_msg_ = srv.response.cloud;
-    pcl::fromROSMsg(cloud_msg_, *cloud_);
-  }
-  else
-  {
-    ROS_ERROR("Failed to load reach object point cloud");
+    ROS_ERROR_STREAM("Failed to call point cloud loading service '" << client.getService() << "'");
     return false;
   }
+  else if(!srv.response.success)
+  {
+    ROS_ERROR_STREAM(srv.response.message);
+    return false;
+  }
+
+  cloud_msg_ = srv.response.cloud;
+  pcl::fromROSMsg(cloud_msg_, *cloud_);
 
   cloud_msg_.header.frame_id = sp_.fixed_frame;
   cloud_msg_.header.stamp = ros::Time::now();

@@ -6,7 +6,7 @@
     <param name="visualize_results" value="$(arg rviz)"/>
     <include file="$(arg robot)"/>
 
-    <node name="sample_mesh_server" pkg="reach_core" type="sample_mesh_server" output="screen" required="true"/>
+    <node name="load_point_cloud_server" pkg="reach_core" type="load_point_cloud_server_node" output="screen" required="true"/>
 
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find reach_core)/config/reach_study_config.rviz" if="$(arg rviz)"/>
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>

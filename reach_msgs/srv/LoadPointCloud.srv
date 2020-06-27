@@ -6,3 +6,5 @@ string object_frame
 ---
 # Response Data
 sensor_msgs/PointCloud2 cloud
+bool success
+string message

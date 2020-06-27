@@ -10,8 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pluginlib
   reach_msgs
-  tf
-  tf_conversions
+  tf2_ros
+  tf2_eigen
   visualization_msgs
 )
 
@@ -26,12 +26,8 @@ catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
-    reach_study_utils
-    reach_database
-    ik_helper
-    reach_visualizer
-    reach_study
-    plugins
+    ${PROJECT_NAME}
+    ${PROJECT_NAME}_plugins
   CATKIN_DEPENDS
     eigen_conversions
     geometry_msgs
@@ -39,8 +35,8 @@ catkin_package(
     pcl_ros
     pluginlib
     reach_msgs
-    tf
-    tf_conversions
+    tf2_ros
+    tf2_eigen
     visualization_msgs
 )
 
@@ -53,76 +49,27 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# Utilites Library
-add_library(reach_study_utils
+# Reach Study Library
+add_library(${PROJECT_NAME}
+  # Utilities
   src/utils/general_utils.cpp
   src/utils/visualization_utils.cpp
-)
-target_link_libraries(reach_study_utils
-  ${catkin_LIBRARIES}
-)
-add_dependencies(reach_study_utils
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-# Reach Database Library
-add_library(reach_database
+  # Tools
   src/core/reach_database.cpp
-)
-target_link_libraries(reach_database
-  ${catkin_LIBRARIES}
-  reach_study_utils
-)
-add_dependencies(reach_database
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-# IK Helper Library
-add_library(ik_helper
   src/core/ik_helper.cpp
-)
-target_link_libraries(ik_helper
-  ${catkin_LIBRARIES}
-  reach_database
-)
-add_dependencies(ik_helper
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-# Reach Visualizer Library
-add_library(reach_visualizer
   src/core/reach_visualizer.cpp
-)
-target_link_libraries(reach_visualizer
-  ${catkin_LIBRARIES}
-  ik_helper
-)
-add_dependencies(reach_visualizer
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-# Reach Study Library
-add_library(reach_study
+  # Reach Study
   src/core/reach_study.cpp
 )
-target_link_libraries(reach_study
+target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  reach_visualizer
-)
-add_dependencies(reach_study
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
 )
 
 # Plugins Library
-add_library(plugins
+add_library(${PROJECT_NAME}_plugins
   src/plugins/impl/multiplicative_factory.cpp
 )
-target_link_libraries(plugins
+target_link_libraries(${PROJECT_NAME}_plugins
   ${catkin_LIBRARIES}
 )
 
@@ -132,21 +79,21 @@ add_executable(robot_reach_study_node
 )
 target_link_libraries(robot_reach_study_node
   ${catkin_LIBRARIES}
-  reach_study
+  ${PROJECT_NAME}
 )
 add_dependencies(robot_reach_study_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 
-# Sample Mesh Server Node
-add_executable(sample_mesh_server
-  src/sample_mesh_server_node.cpp
+# Load Point Cloud Server Node
+add_executable(load_point_cloud_server_node
+  src/load_point_cloud_server_node.cpp
 )
-target_link_libraries(sample_mesh_server
+target_link_libraries(load_point_cloud_server_node
   ${catkin_LIBRARIES}
 )
-add_dependencies(sample_mesh_server
+add_dependencies(load_point_cloud_server_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
@@ -157,7 +104,7 @@ add_executable(data_loader
 )
 target_link_libraries(data_loader
   ${catkin_LIBRARIES}
-  reach_database
+  ${PROJECT_NAME}
 )
 add_dependencies(data_loader
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
@@ -170,14 +117,10 @@ add_dependencies(data_loader
 
 install(
   TARGETS
-    reach_study_utils
-    reach_database
-    ik_helper
-    reach_visualizer
-    reach_study
-    plugins
+    ${PROJECT_NAME}
+    ${PROJECT_NAME}_plugins
     robot_reach_study_node
-    sample_mesh_server
+    load_point_cloud_server_node
     data_loader
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

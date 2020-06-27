@@ -15,7 +15,7 @@ add_message_files(
 
 add_service_files(
   FILES
-    SampleMesh.srv
+    LoadPointCloud.srv
 )
 
 generate_messages(
