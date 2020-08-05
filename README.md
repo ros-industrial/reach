@@ -56,7 +56,7 @@ A simple demonstration of the capability of this repository is provided in the `
     ```
 1. Run the reach study analysis
     ```
-    roslaunch reach_core run.launch config_file:=<config_file.yaml> config_name:=<arbitrary_config>
+    roslaunch reach_core start.launch config_file:=<config_file.yaml> config_name:=<arbitrary_config>
     ```
 
 [1]: reach_core/docs/reach_study.png
