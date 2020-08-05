@@ -111,6 +111,15 @@ add_dependencies(data_loader
   ${catkin_EXPORTED_TARGETS}
 )
 
+##########
+## TEST ##
+##########
+
+if(CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(${PROJECT_NAME}_plugin_utest test/plugin_utest.cpp)
+  target_link_libraries(${PROJECT_NAME}_plugin_utest ${PROJECT_NAME} ${catkin_LIBRARIES})
+endif()
+
 #############
 ## INSTALL ##
 #############
