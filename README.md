@@ -64,8 +64,8 @@ The algorithm searches for alignment of the TCP Z-axis with the pointcloud norma
 ## Hints
 
 1. Ensure the object mesh scale and the point cloud scale match and are correct in RViz. It is common to be off by a factor of 1000.
-1. If it is OK for a robot link to collision with the mesh, add the link to "touch_links" fields in the config file.
-1. A different IK solver may yield better results than the defaul. A good choice is TracIK. Typically this is configured in kinematics.yaml.
+1. If it is OK for a robot link to collide with the mesh, add the link to "touch_links" fields in the config file.
+1. A different IK solver may yield better results than the default. A good choice is TracIK. Typically this is configured in kinematics.yaml.
 
 [1]: reach_core/docs/reach_study.png
 [2]: reach_core/docs/heat_map_colorized_mesh.png
