@@ -17,8 +17,8 @@
 #define REACH_UTILS_DATABASE_UTILS_H
 
 #include <fstream>
-#include <moveit/robot_state/robot_state.h>
 #include <reach_msgs/ReachRecord.h>
+#include "ros/console.h"
 #include <ros/serialization.h>
 #include <string>
 
