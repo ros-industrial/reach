@@ -13,6 +13,7 @@
   <depend>eigen_conversions</depend>
   <depend>geometry_msgs</depend>
   <depend>interactive_markers</depend>
+  <depend>moveit_core</depend>
   <depend>pcl_ros</depend>
   <depend>pluginlib</depend>
   <depend>reach_msgs</depend>

@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
   geometry_msgs
   interactive_markers
+  moveit_core
   pcl_ros
   pluginlib
   reach_msgs
@@ -32,6 +33,7 @@ catkin_package(
     eigen_conversions
     geometry_msgs
     interactive_markers
+    moveit_core
     pcl_ros
     pluginlib
     reach_msgs
