@@ -1,43 +1,69 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(reach_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-  message_generation
-  geometry_msgs
-  sensor_msgs
-)
+# Default to C++17
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-add_message_files(
-  FILES
-    ReachRecord.msg
-    ReachDatabase.msg
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-W -Wall -Wextra
+      -Wwrite-strings -Wunreachable-code -Wpointer-arith
+      -Winit-self -Wredundant-decls
+      -Wno-unused-parameter -Wno-unused-function)
+endif()
 
-add_service_files(
-  FILES
-    LoadPointCloud.srv
-)
-
-generate_messages(
-  DEPENDENCIES
+set(THIS_PACKAGE_INCLUDE_DEPENDS
+    builtin_interfaces
+    std_msgs
     geometry_msgs
+  rosidl_default_generators
+  rosidl_default_runtime
     sensor_msgs
 )
 
-catkin_package(
-  CATKIN_DEPENDS
-    message_runtime
-    geometry_msgs
-    sensor_msgs
+find_package(ament_cmake REQUIRED)
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach()
+
+set(msg_files
+    "msg/ReachRecord.msg"
+    "msg/ReachDatabase.msg"
 )
+
+set(srv_files
+    "srv/LoadPointCloud.srv"
+)
+
+#generate_messages(
+#  DEPENDENCIES
+#    geometry_msgs
+#    sensor_msgs
+#)
+
+#catkin_package(
+#  CATKIN_DEPENDS
+#    message_runtime
+#    geometry_msgs
+#    sensor_msgs
+#)
 
 ###########
 ## Build ##
 ###########
 
-include_directories(
-  ${catkin_INCLUDE_DIRS}
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  ${srv_files}
+  DEPENDENCIES
+    builtin_interfaces
+    std_msgs
+    geometry_msgs
+    sensor_msgs
 )
+
 
 #############
 ## Install ##
@@ -46,3 +72,11 @@ include_directories(
 #############
 ## Testing ##
 #############
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_export_dependencies(rosidl_default_runtime)
+ament_package()

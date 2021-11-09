@@ -4,11 +4,16 @@
   <version>0.1.0</version>
   <description>The reach_core package</description>
 
-  <license>Apache 2.0</license>
   <author email="michael.ripperger@swri.org">Michael Ripperger</author>
   <maintainer email="michael.ripperger@swri.org">Michael Ripperger</maintainer>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <license>Apache 2.0</license>
+
+  <url type="website">https://github.com/ros-industrial/reach</url>
+  <url type="bugtracker">https://github.com/ros-industrial/reach/issues</url>
+  <url type="repository">https://github.com/ros-industrial/reach/</url>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>eigen_conversions</depend>
   <depend>geometry_msgs</depend>
