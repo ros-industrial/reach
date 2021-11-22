@@ -28,11 +28,12 @@ The package is comprised of several packages:
 ## Installation
 
 ```
-cd ~/catkin_ws/src
-git clone https://github.com/ros-industrial/reach.git
+cd ~/colcon_ws/src
+git clone https://github.com/ros-industrial/reach.git -b ros2
 cd ..
-rosdep install --from-paths src --ignore-src -r -y
-catkin build
+colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
+colcon mixin update default
+colcon build --symlink-install --mixin rel-with-deb-info compile-commands ccache
 ```
 
 ## Demo
