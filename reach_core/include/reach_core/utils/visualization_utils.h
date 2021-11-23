@@ -24,36 +24,36 @@
 
 namespace reach
 {
-    namespace utils
-    {
+       namespace utils
+       {
 
-        /**
+              /**
  * @brief makeInteractiveMarker
  * @param r
  * @param frame
  * @param scale
  * @return
  */
-        visualization_msgs::Marker
-        makeVisual(const reach_msgs::msg::ReachRecord &r,
-                   const std::string &frame,
-                   const double scale,
-                   const std::string &ns = "reach",
-                   const boost::optional<std::vector<float>> &color = {});
+              visualization_msgs::msg::Marker
+              makeVisual(const reach_msgs::msg::ReachRecord &r,
+                         const std::string &frame,
+                         const double scale,
+                         const std::string &ns = "reach",
+                         const boost::optional<std::vector<float>> &color = {});
 
-        /**
+              /**
  * @brief makeInteractiveMarker
  * @param r
  * @param frame
  * @param scale
  * @return
  */
-        visualization_msgs::InteractiveMarker
-        makeInteractiveMarker(const reach_msgs::msg::ReachRecord &r,
-                              const std::string &frame,
-                              const double scale);
+              visualization_msgs::msg::InteractiveMarker
+              makeInteractiveMarker(const reach_msgs::msg::ReachRecord &r,
+                                    const std::string &frame,
+                                    const double scale);
 
-        /**
+              /**
  * @brief makeMarker
  * @param pts
  * @param frame
@@ -61,20 +61,20 @@ namespace reach
  * @param ns
  * @return
  */
-        visualization_msgs::Marker
-        makeMarker(const std::vector<geometry_msgs::Point> &pts,
-                   const std::string &frame,
-                   const double scale,
-                   const std::string &ns = "");
+              visualization_msgs::msg::Marker
+              makeMarker(const std::vector<geometry_msgs::msg::Point> &pts,
+                         const std::string &frame,
+                         const double scale,
+                         const std::string &ns = "");
 
-        /**
+              /**
  * @brief getMajorLength
  * @param cloud
  * @return
  */
-        double getMajorLength(pcl::PointCloud<pcl::PointNormal>::Ptr cloud);
+              double getMajorLength(pcl::PointCloud<pcl::PointNormal>::Ptr cloud);
 
-    } // namespace utils
+       } // namespace utils
 } // namespace reach
 
 #endif // REACH_UTILS_VISUALIZATION_UTILS_H

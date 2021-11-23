@@ -25,21 +25,21 @@ namespace reach
   namespace utils
   {
 
-    visualization_msgs::Marker makeVisual(const reach_msgs::msg::ReachRecord &r,
-                                          const std::string &frame,
-                                          const double scale,
-                                          const std::string &ns,
-                                          const boost::optional<std::vector<float>> &color)
+    visualization_msgs::msg::Marker makeVisual(const reach_msgs::msg::ReachRecord &r,
+                                               const std::string &frame,
+                                               const double scale,
+                                               const std::string &ns,
+                                               const boost::optional<std::vector<float>> &color)
     {
       static int idx = 0;
 
-      visualization_msgs::Marker marker;
+      visualization_msgs::msg::Marker marker;
       marker.header.frame_id = frame;
       marker.header.stamp = ros::Time::now();
       marker.ns = ns;
       marker.id = idx++;
-      marker.type = visualization_msgs::Marker::ARROW;
-      marker.action = visualization_msgs::Marker::ADD;
+      marker.type = visualization_msgs::msg::Marker::ARROW;
+      marker.action = visualization_msgs::msg::Marker::ADD;
 
       Eigen::Isometry3d goal_eigen;
       tf::poseMsgToEigen(r.goal, goal_eigen);
@@ -90,9 +90,9 @@ namespace reach
       return marker;
     }
 
-    visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::msg::ReachRecord &r,
-                                                                const std::string &frame,
-                                                                const double scale)
+    visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(const reach_msgs::msg::ReachRecord &r,
+                                                                     const std::string &frame,
+                                                                     const double scale)
     {
       visualization_msgs::InteractiveMarker m;
       m.header.frame_id = frame;
@@ -100,7 +100,7 @@ namespace reach
 
       // Control
       visualization_msgs::InteractiveMarkerControl control;
-      control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+      control.interaction_mode = visualization_msgs::msg::InteractiveMarkerControl::BUTTON;
       control.always_visible = true;
 
       // Visuals
@@ -111,17 +111,17 @@ namespace reach
       return m;
     }
 
-    visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point> &pts,
-                                          const std::string &frame,
-                                          const double scale,
-                                          const std::string &ns)
+    visualization_msgs::msg::Marker makeMarker(const std::vector<geometry_msgs::Point> &pts,
+                                               const std::string &frame,
+                                               const double scale,
+                                               const std::string &ns)
     {
       visualization_msgs::Marker marker;
       marker.header.frame_id = frame;
       marker.header.stamp = ros::Time::now();
       marker.ns = ns;
-      marker.type = visualization_msgs::Marker::POINTS;
-      marker.action = visualization_msgs::Marker::ADD;
+      marker.type = visualization_msgs::msg::Marker::POINTS;
+      marker.action = visualization_msgs::msg::Marker::ADD;
 
       marker.scale.x = marker.scale.y = marker.scale.z = scale / NEIGHBOR_MARKER_SCALE_RATIO;
 

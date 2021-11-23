@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <rclcpp/rclcpp.hpp>
 #include <reach_core/reach_database.h>
 #include <reach_core/utils/serialization_utils.h>
 
@@ -43,12 +44,16 @@ namespace reach
 {
   namespace core
   {
+    namespace
+    {
+      const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_database");
+    }
 
     reach_msgs::msg::ReachRecord makeRecord(const std::string &id,
                                             const bool reached,
-                                            const geometry_msgs::Pose &goal,
-                                            const sensor_msgs::JointState &seed_state,
-                                            const sensor_msgs::JointState &goal_state,
+                                            const geometry_msgs::msg::Pose &goal,
+                                            const sensor_msgs::msg::JointState &seed_state,
+                                            const sensor_msgs::msg::JointState &goal_state,
                                             const double score)
     {
       reach_msgs::msg::ReachRecord r;
@@ -61,7 +66,7 @@ namespace reach
       return r;
     }
 
-    std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState &state)
+    std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::msg::JointState &state)
     {
       std::map<std::string, double> out;
       for (std::size_t i = 0; i < state.name.size(); ++i)
@@ -159,13 +164,13 @@ namespace reach
 
     void ReachDatabase::printResults()
     {
-      ROS_INFO("------------------------------------------------");
-      ROS_INFO_STREAM("Percent Reached = " << results_.reach_percentage);
-      ROS_INFO_STREAM("Total points score = " << results_.total_pose_score);
-      ROS_INFO_STREAM("Normalized total points score = " << results_.norm_total_pose_score);
-      ROS_INFO_STREAM("Average reachable neighbors = " << results_.avg_num_neighbors);
-      ROS_INFO_STREAM("Average joint distance = " << results_.avg_joint_distance);
-      ROS_INFO_STREAM("------------------------------------------------");
+      RCLCPP_INFO(LOGGER, "------------------------------------------------");
+      RCLCPP_INFO_STREAM(LOGGER, "Percent Reached = " << results_.reach_percentage);
+      RCLCPP_INFO_STREAM(LOGGER, "Total points score = " << results_.total_pose_score);
+      RCLCPP_INFO_STREAM(LOGGER, "Normalized total points score = " << results_.norm_total_pose_score);
+      RCLCPP_INFO_STREAM(LOGGER, "Average reachable neighbors = " << results_.avg_num_neighbors);
+      RCLCPP_INFO_STREAM(LOGGER, "Average joint distance = " << results_.avg_joint_distance);
+      RCLCPP_INFO_STREAM(LOGGER, "------------------------------------------------");
     }
 
     reach_msgs::msg::ReachDatabase ReachDatabase::toReachDatabaseMsg()

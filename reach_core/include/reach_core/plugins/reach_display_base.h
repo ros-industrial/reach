@@ -45,8 +45,8 @@ namespace reach
       DisplayBase()
           : server_(INTERACTIVE_MARKER_TOPIC)
       {
-        diff_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
-        marker_pub_ = nh_.advertise<visualization_msgs::Marker>(MARKER_TOPIC, 1, true);
+        diff_pub_ = nh_.advertise<visualization_msgs::msg::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
+        marker_pub_ = nh_.advertise<visualization_msgs::msg::Marker>(MARKER_TOPIC, 1, true);
       }
 
       virtual ~DisplayBase()
@@ -96,11 +96,11 @@ namespace reach
       {
         if (!ids.empty())
         {
-          std::vector<geometry_msgs::Point> pt_array;
+          std::vector<geometry_msgs::msg::Point> pt_array;
 
           for (const std::string &id : ids)
           {
-            visualization_msgs::InteractiveMarker marker;
+            visualization_msgs::msg::InteractiveMarker marker;
             if (!server_.get(id, marker))
             {
               RCLCPP_ERROR_STREAM(LOGGER, "Failed to get interactive marker '" << id << "' from server");
@@ -112,7 +112,7 @@ namespace reach
           }
 
           // Create points marker, publish it, and move robot to result state for  given point
-          visualization_msgs::Marker pt_marker = utils::makeMarker(pt_array, fixed_frame_, marker_scale_);
+          visualization_msgs::msg::Marker pt_marker = utils::makeMarker(pt_array, fixed_frame_, marker_scale_);
           marker_pub_.publish(pt_marker);
         }
       }
@@ -165,7 +165,7 @@ namespace reach
         boost::optional<std::vector<float>> arrow_color = color;
 
         // Create Rviz marker array
-        visualization_msgs::MarkerArray marker_array;
+        visualization_msgs::msg::MarkerArray marker_array;
 
         // Iterate over all records in the databases and compare whether or not they were reached in that database
         for (std::size_t i = 0; i < n_records; ++i)
