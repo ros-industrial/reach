@@ -45,8 +45,8 @@ namespace reach
       DisplayBase()
           : server_(INTERACTIVE_MARKER_TOPIC)
       {
-        diff_pub_ = nh_.advertise<visualization_msgs::msg::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
-        marker_pub_ = nh_.advertise<visualization_msgs::msg::Marker>(MARKER_TOPIC, 1, true);
+        diff_pub_ = node_.create_publisher<visualization_msgs::msg::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
+        marker_pub_ = node_.create_publisher<visualization_msgs::msg::Marker>(MARKER_TOPIC, 1, true);
       }
 
       virtual ~DisplayBase()
@@ -204,7 +204,7 @@ namespace reach
 
       std::shared_ptr<rclcpp::Node> node_;
 
-      rclcpp::Publisher<visualization_msgs::msg::Marker> diff_pub_;
+      rclcpp::Publisher<visualization_msgs::msg::MarkerArray> diff_pub_;
 
       rclcpp::Publisher<visualization_msgs::msg::Marker> marker_pub_;
     };
