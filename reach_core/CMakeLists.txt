@@ -82,8 +82,8 @@ add_library(${PROJECT_NAME}
   # Reach Study
   src/core/reach_study.cpp
 )
-# target_link_libraries(${PROJECT_NAME}
-# )
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins
+)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Plugins Library
@@ -109,10 +109,11 @@ ament_target_dependencies(robot_reach_study_node
 add_executable(load_point_cloud_server_node
   src/load_point_cloud_server_node.cpp
 )
-target_link_libraries(load_point_cloud_server_node
+target_link_libraries(load_point_cloud_server_node ${PROJECT_NAME}
 )
 ament_target_dependencies(load_point_cloud_server_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
 # Data Loader Node
@@ -124,6 +125,7 @@ target_link_libraries(data_loader
 )
 ament_target_dependencies(data_loader
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
 ##########
