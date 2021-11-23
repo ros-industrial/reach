@@ -16,10 +16,11 @@
 #ifndef REACH_UTILS_VISUALIZATION_UTILS_H
 #define REACH_UTILS_VISUALIZATION_UTILS_H
 
-#include <reach_msgs/msg/reach_record.h>
-#include <pcl/point_cloud.h>
+#include <reach_msgs/msg/reach_record.hpp>
+// #include <pcl_ros/point_cloud.hpp>
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_types.h>
-#include <visualization_msgs/msg/interactive_marker.h>
+#include <visualization_msgs/msg/interactive_marker.hpp>
 #include <boost/optional.hpp>
 
 namespace reach

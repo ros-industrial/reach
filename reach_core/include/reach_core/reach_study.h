@@ -20,9 +20,10 @@
 #include <reach_core/ik_helper.h>
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/plugins/ik_solver_base.h>
-#include <pcl_ros/point_cloud.hpp>
-#include <pluginlib/class_loader.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+// #include <pcl_ros/point_cloud.hpp>
+#include <pluginlib/class_loader.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 namespace reach
 {

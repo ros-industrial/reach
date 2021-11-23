@@ -184,7 +184,7 @@ namespace reach
           if (code != 0 && code != n_perm - 1)
           {
             std::string ns = {ns_vec[static_cast<std::size_t>(code)]};
-            visualization_msgs::Marker arrow_marker = utils::makeVisual(data.begin()->second.records[i], fixed_frame_, marker_scale_, ns, {arrow_color});
+            visualization_msgs::msg::Marker arrow_marker = utils::makeVisual(data.begin()->second.records[i], fixed_frame_, marker_scale_, ns, {arrow_color});
             marker_array.markers.push_back(arrow_marker);
           }
         }

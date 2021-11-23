@@ -17,11 +17,11 @@
 #include <reach_core/utils/serialization_utils.h>
 #include <reach_core/utils/general_utils.h>
 
-#include <reach_msgs/LoadPointCloud.h>
-#include <reach_msgs/msg/ReachRecord.h>
+#include <reach_msgs/srv/load_point_cloud.hpp>
+#include <reach_msgs/msg/reach_record.hpp>
 
 #include <numeric>
-#include <eigen_conversions/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <pluginlib/class_loader.h>
 #include <ros/package.h>
 #include <xmlrpcpp/XmlRpcException.h>

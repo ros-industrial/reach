@@ -37,7 +37,7 @@ namespace reach
     {
       // Create menu functions for the display and tie them to members of this class
       using CBType = interactive_markers::MenuHandler::FeedbackCallback;
-      using FBType = visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr;
+      using FBType = visualization_msgs::msg::InteractiveMarkerFeedback;
 
       CBType show_result_cb = boost::bind(&ReachVisualizer::showResultCB, this, _1);
       CBType show_seed_cb = boost::bind(&ReachVisualizer::showSeedCB, this, _1);

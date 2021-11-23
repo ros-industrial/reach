@@ -112,7 +112,7 @@ namespace reach
         {
           // Initialize new target pose and new empty robot goal state
           Eigen::Isometry3d target;
-          tf::poseMsgToEigen(neighbors[i].goal, target);
+          tf2::fromMsg(neighbors[i].goal, target);
 
           // Use current point's IK solution as seed
           std::vector<double> new_solution;
@@ -181,7 +181,7 @@ namespace reach
           {
             std::vector<double> new_pose;
             Eigen::Isometry3d target;
-            tf::poseMsgToEigen(neighbors[i].goal, target);
+            tf2::fromMsg(neighbors[i].goal, target);
 
             // Use current point's IK solution as seed
             boost::optional<double> score = solver->solveIKFromSeed(target, current_pose_map, new_pose);

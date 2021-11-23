@@ -9,6 +9,7 @@ find_package(interactive_markers REQUIRED)
 find_package(moveit_core REQUIRED)
 # find_package(PCL REQUIRED)
 find_package(pcl_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(reach_msgs REQUIRED)
@@ -27,12 +28,13 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   geometry_msgs
   interactive_markers
   moveit_core
-  pcl_ros
+  # pcl_ros
+  pcl_conversions
   pluginlib
   rclcpp
   reach_msgs
-  tf2_ros
   tf2_eigen
+  tf2_ros
   visualization_msgs
 )
 

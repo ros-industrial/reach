@@ -42,7 +42,7 @@ namespace reach
       marker.action = visualization_msgs::msg::Marker::ADD;
 
       Eigen::Isometry3d goal_eigen;
-      tf::poseMsgToEigen(r.goal, goal_eigen);
+      tf2::fromMsg(r.goal, goal_eigen);
 
       // Transform arrow such that arrow x-axis points along goal pose z-axis (Rviz convention)
       // convert msg parameter goal to Eigen matrix
@@ -53,8 +53,8 @@ namespace reach
       goal_eigen = goal_eigen * rot_flip_normal * rot_x_to_z;
 
       // Convert back to geometry_msgs pose
-      geometry_msgs::Pose msg;
-      tf::poseEigenToMsg(goal_eigen, msg);
+      geometry_msgs::msg::Pose msg;
+      tf2::toMsg(goal_eigen, msg);
       marker.pose = msg;
 
       marker.scale.x = scale;
@@ -94,12 +94,12 @@ namespace reach
                                                                      const std::string &frame,
                                                                      const double scale)
     {
-      visualization_msgs::InteractiveMarker m;
+      visualization_msgs::msg::InteractiveMarker m;
       m.header.frame_id = frame;
       m.name = r.id;
 
       // Control
-      visualization_msgs::InteractiveMarkerControl control;
+      visualization_msgs::msg::InteractiveMarkerControl control;
       control.interaction_mode = visualization_msgs::msg::InteractiveMarkerControl::BUTTON;
       control.always_visible = true;
 
@@ -111,12 +111,12 @@ namespace reach
       return m;
     }
 
-    visualization_msgs::msg::Marker makeMarker(const std::vector<geometry_msgs::Point> &pts,
+    visualization_msgs::msg::Marker makeMarker(const std::vector<geometry_msgs::msg::Point> &pts,
                                                const std::string &frame,
                                                const double scale,
                                                const std::string &ns)
     {
-      visualization_msgs::Marker marker;
+      visualization_msgs::msg::Marker marker;
       marker.header.frame_id = frame;
       marker.header.stamp = ros::Time::now();
       marker.ns = ns;
