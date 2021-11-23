@@ -21,9 +21,9 @@
 #include <reach_msgs/msg/reach_record.hpp>
 
 #include <numeric>
-#include <tf2_eigen/tf2_eigen.hpp>
+#include <tf2_eigen/tf2_eigen.h>
 #include <pluginlib/class_loader.h>
-#include <ros/package.h>
+// #include <ros/package.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";

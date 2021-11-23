@@ -202,11 +202,11 @@ namespace reach
 
       interactive_markers::MenuHandler menu_handler_;
 
-      ros::NodeHandle nh_;
+      std::shared_ptr<rclcpp::Node> node_;
 
-      ros::Publisher diff_pub_;
+      rclcpp::Publisher<visualization_msgs::msg::Marker> diff_pub_;
 
-      ros::Publisher marker_pub_;
+      rclcpp::Publisher<visualization_msgs::msg::Marker> marker_pub_;
     };
     typedef boost::shared_ptr<DisplayBase> DisplayBasePtr;
 
