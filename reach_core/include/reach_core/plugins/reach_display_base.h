@@ -18,9 +18,10 @@
 
 #include <interactive_markers/interactive_marker_server.hpp>
 #include <interactive_markers/menu_handler.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <reach_msgs/msg/reach_database.h>
 #include "reach_core/utils/visualization_utils.h"
-#include <visualization_msgs/msg/MarkerArray.h>
+#include <visualization_msgs/msg/marker_array.hpp>
 #include <xmlrpcpp/XmlRpcValue.h>
 
 const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
@@ -29,6 +30,11 @@ const static std::string MARKER_TOPIC = "reach_neighbors";
 
 namespace reach
 {
+  namespace
+  {
+    const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_servo.reach_display_base");
+  }
+
   namespace plugins
   {
 
@@ -82,7 +88,7 @@ namespace reach
         }
         else
         {
-          ROS_ERROR_STREAM("Failed to update interactive marker '" << rec.id << "'; marker does not alreadys exist");
+          RCLCPP_ERROR_STREAM(LOGGER, "Failed to update interactive marker '" << rec.id << "'; marker does not alreadys exist");
         }
       }
 
@@ -97,7 +103,7 @@ namespace reach
             visualization_msgs::InteractiveMarker marker;
             if (!server_.get(id, marker))
             {
-              ROS_ERROR_STREAM("Failed to get interactive marker '" << id << "' from server");
+              RCLCPP_ERROR_STREAM(LOGGER, "Failed to get interactive marker '" << id << "' from server");
               return;
             }
 
@@ -121,7 +127,7 @@ namespace reach
         {
           if (it->second.records.size() != n_records)
           {
-            ROS_FATAL("Mismatched database sizes");
+            RCLCPP_FATAL(LOGGER, "Mismatched database sizes");
           }
         }
 

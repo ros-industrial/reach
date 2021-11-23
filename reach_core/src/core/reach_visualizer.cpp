@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <rclcpp/rclcpp.hpp>
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/utils/visualization_utils.h>
-// #include <reach_msgs/msg/ReachRecord.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <reach_msgs/msg/reach_record.hpp>
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace reach
 {
   namespace core
   {
+    namespace
+    {
+      const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_visualizer");
+    }
 
     ReachVisualizer::ReachVisualizer(ReachDatabasePtr db,
                                      reach::plugins::IKSolverBasePtr solver,
@@ -32,7 +37,7 @@ namespace reach
     {
       // Create menu functions for the display and tie them to members of this class
       using CBType = interactive_markers::MenuHandler::FeedbackCallback;
-      using FBType = visualization_msgs::InteractiveMarkerFeedbackConstPtr;
+      using FBType = visualization_msgs::msg::InteractiveMarkerFeedbackConstPtr;
 
       CBType show_result_cb = boost::bind(&ReachVisualizer::showResultCB, this, _1);
       CBType show_seed_cb = boost::bind(&ReachVisualizer::showSeedCB, this, _1);
@@ -55,7 +60,7 @@ namespace reach
       display_->addInteractiveMarkerData(db_->toReachDatabaseMsg());
     }
 
-    void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+    void ReachVisualizer::reSolveIKCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
     {
       boost::optional<reach_msgs::msg::ReachRecord> lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -78,7 +83,7 @@ namespace reach
         // Update the database if the IK solution was valid
         if (score)
         {
-          ROS_INFO("Solution found for point");
+          RCLCPP_INFO(LOGGER, "Solution found for point");
 
           lookup->reached = true;
           lookup->score = *score;
@@ -93,16 +98,16 @@ namespace reach
         }
         else
         {
-          ROS_INFO("No solution found for point");
+          RCLCPP_INFO(LOGGER, "No solution found for point");
         }
       }
       else
       {
-        ROS_ERROR_STREAM("Record '" << fb->marker_name << "' does not exist in the reach database");
+        RCLCPP_ERROR_STREAM(LOGGER, "Record '" << fb->marker_name << "' does not exist in the reach database");
       }
     }
 
-    void ReachVisualizer::showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+    void ReachVisualizer::showResultCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -111,11 +116,11 @@ namespace reach
       }
       else
       {
-        ROS_ERROR_STREAM("Record '" << fb->marker_name << "' does not exist in the reach database");
+        RCLCPP_ERROR_STREAM(LOGGER, "Record '" << fb->marker_name << "' does not exist in the reach database");
       }
     }
 
-    void ReachVisualizer::showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+    void ReachVisualizer::showSeedCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -124,11 +129,11 @@ namespace reach
       }
       else
       {
-        ROS_ERROR_STREAM("Record '" << fb->marker_name << "' does not exist in the reach database");
+        RCLCPP_ERROR_STREAM(LOGGER, "Record '" << fb->marker_name << "' does not exist in the reach database");
       }
     }
 
-    void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+    void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -138,16 +143,16 @@ namespace reach
         display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
         display_->publishMarkerArray(result.reached_pts);
 
-        ROS_INFO("%lu points are reachable from this pose", result.reached_pts.size());
+        RCLCPP_INFO(LOGGER, "%lu points are reachable from this pose", result.reached_pts.size());
         showResultCB(fb);
       }
       else
       {
-        ROS_ERROR_STREAM("Record '" << fb->marker_name << "' does not exist in the reach database");
+        RCLCPP_ERROR_STREAM(LOGGER, "Record '" << fb->marker_name << "' does not exist in the reach database");
       }
     }
 
-    void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+    void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -157,13 +162,13 @@ namespace reach
 
         display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
         display_->publishMarkerArray(result.reached_pts);
-        ROS_INFO("%lu points are reachable from this pose", result.reached_pts.size());
-        ROS_INFO("Total joint distance to all neighbors: %f", result.joint_distance);
+        RCLCPP_INFO(LOGGER, "%lu points are reachable from this pose", result.reached_pts.size());
+        RCLCPP_INFO(LOGGER, "Total joint distance to all neighbors: %f", result.joint_distance);
         showResultCB(fb);
       }
       else
       {
-        ROS_ERROR_STREAM("Record '" << fb->marker_name << "' does not exist in the reach database");
+        RCLCPP_ERROR_STREAM(LOGGER, "Record '" << fb->marker_name << "' does not exist in the reach database");
       }
     }
 

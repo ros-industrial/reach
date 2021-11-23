@@ -21,6 +21,7 @@
   <depend>moveit_core</depend>
   <depend>pcl_ros</depend>
   <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
   <depend>reach_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_eigen</depend>

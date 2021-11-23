@@ -20,75 +20,73 @@
 #include <reach_core/ik_helper.h>
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/plugins/ik_solver_base.h>
-#include <pcl_ros/point_cloud.h>
+#include <pcl_ros/point_cloud.hpp>
 #include <pluginlib/class_loader.h>
 #include <sensor_msgs/PointCloud2.h>
 
 namespace reach
 {
-namespace core
-{
+  namespace core
+  {
 
-/**
+    /**
  * @brief The ReachStudy class
  */
-class ReachStudy
-{
-public:
-
-  /**
+    class ReachStudy
+    {
+    public:
+      /**
    * @brief ReachStudy
    * @param nh
    */
-  ReachStudy(const ros::NodeHandle& nh);
+      ReachStudy(const ros::NodeHandle &nh);
 
-  /**
+      /**
    * @brief run
    * @param sp
    * @return
    */
-  bool run(const StudyParameters& sp);
+      bool run(const StudyParameters &sp);
 
-private:
+    private:
+      bool initializeStudy();
 
-  bool initializeStudy();
+      bool getReachObjectPointCloud();
 
-  bool getReachObjectPointCloud();
+      void runInitialReachStudy();
 
-  void runInitialReachStudy();
+      void optimizeReachStudyResults();
 
-  void optimizeReachStudyResults();
+      void getAverageNeighborsCount();
 
-  void getAverageNeighborsCount();
+      bool compareDatabases();
 
-  bool compareDatabases();
+      ros::NodeHandle nh_;
 
-  ros::NodeHandle nh_;
-  
-  StudyParameters sp_;
-  
-  pcl::PointCloud<pcl::PointNormal>::Ptr cloud_;
-  
-  ReachDatabasePtr db_;
+      StudyParameters sp_;
 
-  // Plugins
-  pluginlib::ClassLoader<reach::plugins::IKSolverBase> solver_loader_;
-  pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader_;
-  reach::plugins::IKSolverBasePtr ik_solver_;
-  reach::plugins::DisplayBasePtr display_;
-  
-  ReachVisualizerPtr visualizer_;
+      pcl::PointCloud<pcl::PointNormal>::Ptr cloud_;
 
-  SearchTreePtr search_tree_;
-  
-  std::string dir_;
-  
-  std::string results_dir_;
-  
-  sensor_msgs::PointCloud2 cloud_msg_;
-};
+      ReachDatabasePtr db_;
 
-} // namespace core
+      // Plugins
+      pluginlib::ClassLoader<reach::plugins::IKSolverBase> solver_loader_;
+      pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader_;
+      reach::plugins::IKSolverBasePtr ik_solver_;
+      reach::plugins::DisplayBasePtr display_;
+
+      ReachVisualizerPtr visualizer_;
+
+      SearchTreePtr search_tree_;
+
+      std::string dir_;
+
+      std::string results_dir_;
+
+      sensor_msgs::PointCloud2 cloud_msg_;
+    };
+
+  } // namespace core
 } // namespace reach
 
 #endif // REACH_CORE_REACH_STUDY_H

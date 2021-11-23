@@ -3,13 +3,14 @@ project(reach_core)
 
 add_compile_options(-std=c++14)
 
-find_package(tf2_eigen_kdl REQUIRED)
+find_package(ament_cmake REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(interactive_markers REQUIRED)
 find_package(moveit_core REQUIRED)
 # find_package(PCL REQUIRED)
 find_package(pcl_ros REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(rclcpp REQUIRED)
 find_package(reach_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
@@ -84,8 +85,8 @@ add_library(${PROJECT_NAME}
   # Reach Study
   src/core/reach_study.cpp
 )
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins
-)
+# target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins
+# )
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Plugins Library

@@ -17,13 +17,14 @@
 // #include <ros/console.h>
 #include <rclcpp/rclcpp.hpp>
 #include <xmlrpcpp/XmlRpcException.h>
-namespace
-{
-  const rclcpp::Logger LOGGER = rclcpp::get_logger("reach.multiplicative_factory");
-}
 
 namespace reach
 {
+  namespace
+  {
+    const rclcpp::Logger LOGGER = rclcpp::get_logger("reach.multiplicative_factory");
+  }
+
   namespace plugins
   {
 

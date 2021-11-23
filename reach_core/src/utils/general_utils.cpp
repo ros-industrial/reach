@@ -15,12 +15,13 @@
  */
 #include "reach_core/utils/general_utils.h"
 #include <rclcpp/rclcpp.hpp>
-namespace
-{
-  const rclcpp::Logger LOGGER = rclcpp::get_logger("reach.general_utils");
-}
+
 namespace reach
 {
+  namespace
+  {
+    const rclcpp::Logger LOGGER = rclcpp::get_logger("reach.general_utils");
+  }
   namespace utils
   {
 
