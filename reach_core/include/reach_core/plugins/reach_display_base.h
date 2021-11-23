@@ -16,11 +16,11 @@
 #ifndef REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
 #define REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
 
-#include <interactive_markers/interactive_marker_server.h>
-#include <interactive_markers/menu_handler.h>
-#include <reach_msgs/ReachDatabase.h>
+#include <interactive_markers/interactive_marker_server.hpp>
+#include <interactive_markers/menu_handler.hpp>
+#include <reach_msgs/msg/reach_database.h>
 #include "reach_core/utils/visualization_utils.h"
-#include <visualization_msgs/MarkerArray.h>
+#include <visualization_msgs/msg/MarkerArray.h>
 #include <xmlrpcpp/XmlRpcValue.h>
 
 const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";

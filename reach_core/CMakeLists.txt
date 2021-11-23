@@ -6,6 +6,7 @@ add_compile_options(-std=c++14)
 find_package(tf2_eigen_kdl REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(interactive_markers REQUIRED)
+find_package(moveit_core REQUIRED)
 # find_package(PCL REQUIRED)
 find_package(pcl_ros REQUIRED)
 find_package(pluginlib REQUIRED)
@@ -24,6 +25,7 @@ endif()
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   geometry_msgs
   interactive_markers
+  moveit_core
   pcl_ros
   pluginlib
   rclcpp

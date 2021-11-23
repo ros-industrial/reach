@@ -51,7 +51,7 @@ namespace reach
           EvaluationBasePtr plugin;
           try
           {
-            plugin = class_loader_.createInstance(name);
+            plugin = class_loader_.createSharedInstance(name);
           }
           catch (const pluginlib::ClassLoaderException &ex)
           {

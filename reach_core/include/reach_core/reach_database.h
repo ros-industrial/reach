@@ -17,17 +17,17 @@
 #define REACH_CORE_REACH_DATABASE_H
 
 #include "reach_core/study_parameters.h"
-#include <reach_msgs/msg/reach_database.h>
+#include <reach_msgs/msg/reach_database.hpp>
 #include <boost/optional.hpp>
 #include <mutex>
 #include <unordered_map>
 
 namespace reach
 {
-  namespace core
-  {
+   namespace core
+   {
 
-    /**
+      /**
  * @brief makeRecord
  * @param id
  * @param reached
@@ -37,21 +37,21 @@ namespace reach
  * @param score
  * @return
  */
-    reach_msgs::msg::ReachRecord makeRecord(const std::string &id,
-                                            const bool reached,
-                                            const geometry_msgs::Pose &goal,
-                                            const sensor_msgs::msg::JointState &seed_state,
-                                            const sensor_msgs::msg::JointState &goal_state,
-                                            const double score);
+      reach_msgs::msg::ReachRecord makeRecord(const std::string &id,
+                                              const bool reached,
+                                              const geometry_msgs::msg::Pose &goal,
+                                              const sensor_msgs::msg::JointState &seed_state,
+                                              const sensor_msgs::msg::JointState &goal_state,
+                                              const double score);
 
-    /**
+      /**
  * @brief toMap
  * @param state
  * @return
  */
-    std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::msg::JointState &state);
+      std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::msg::JointState &state);
 
-    /**
+      /**
  * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database also saves
  * several key meta-results of the reach study:
  *  - reach_percentage: the percentage of all attempted poses that were reachable
@@ -62,104 +62,104 @@ namespace reach
  *  - avg_joint_distance: average joint distance required to travel to all of any given pose's reachable neighbors (indicative of the
  *    robot's ease of movement or "efficiency" moving from one pose to a neighboring pose
  */
-    class ReachDatabase
-    {
-      using iterator = std::unordered_map<std::string, reach_msgs::msg::ReachRecord>::iterator;
+      class ReachDatabase
+      {
+         using iterator = std::unordered_map<std::string, reach_msgs::msg::ReachRecord>::iterator;
 
-    public:
-      /**
+      public:
+         /**
     @brief Default class constructor
    */
-      ReachDatabase() = default;
+         ReachDatabase() = default;
 
-      /**
+         /**
    * @brief save saves the reach study database to a file at the input location
    * @param filename
    */
-      void save(const std::string &filename) const;
+         void save(const std::string &filename) const;
 
-      /**
+         /**
    * @brief load loads a saved reach study database from the input location
    * @param filename
    * @return true on success, false on failure
    */
-      bool load(const std::string &filename);
+         bool load(const std::string &filename);
 
-      /**
+         /**
    * @brief get returns a ReachRecord message from the database
    * @param id
    * @return
    */
-      boost::optional<reach_msgs::msg::ReachRecord> get(const std::string &id) const;
+         boost::optional<reach_msgs::msg::ReachRecord> get(const std::string &id) const;
 
-      /**
+         /**
    * @brief put adds a ReachRecord message to the database
    * @param record
    */
-      void put(const reach_msgs::msg::ReachRecord &record);
+         void put(const reach_msgs::msg::ReachRecord &record);
 
-      /**
+         /**
    * @brief count counts the number of entries in the database
    * @return
    */
-      std::size_t size() const;
+         std::size_t size() const;
 
-      /**
+         /**
    * @brief calculateResults calculates the results of the reach study and saves them to internal class members
    */
-      void calculateResults();
+         void calculateResults();
 
-      /**
+         /**
    * @brief printResults prints the calculated results of the reach study to the terminal
    */
-      void printResults();
+         void printResults();
 
-      /**
+         /**
    * @brief getStudyResults
    * @return
    */
-      StudyResults getStudyResults() const
-      {
-        return results_;
-      }
+         StudyResults getStudyResults() const
+         {
+            return results_;
+         }
 
-      /**
+         /**
    * @brief setAverageNeighborsCount
    * @param n
    */
-      void setAverageNeighborsCount(const float n) { results_.avg_num_neighbors = n; }
+         void setAverageNeighborsCount(const float n) { results_.avg_num_neighbors = n; }
 
-      /**
+         /**
    * @brief setAverageJointDistance
    * @param n
    */
-      void setAverageJointDistance(const float n) { results_.avg_joint_distance = n; }
+         void setAverageJointDistance(const float n) { results_.avg_joint_distance = n; }
 
-      // For loops
-      iterator begin()
-      {
-        return map_.begin();
-      }
+         // For loops
+         iterator begin()
+         {
+            return map_.begin();
+         }
 
-      iterator end()
-      {
-        return map_.end();
-      }
+         iterator end()
+         {
+            return map_.end();
+         }
 
-      reach_msgs::msg::ReachDatabase toReachDatabaseMsg();
+         reach_msgs::msg::ReachDatabase toReachDatabaseMsg();
 
-    private:
-      void putHelper(const reach_msgs::msg::ReachRecord &record);
+      private:
+         void putHelper(const reach_msgs::msg::ReachRecord &record);
 
-      std::unordered_map<std::string, reach_msgs::msg::ReachRecord> map_;
+         std::unordered_map<std::string, reach_msgs::msg::ReachRecord> map_;
 
-      mutable std::mutex mutex_;
+         mutable std::mutex mutex_;
 
-      StudyResults results_;
-    };
-    typedef std::shared_ptr<ReachDatabase> ReachDatabasePtr;
+         StudyResults results_;
+      };
+      typedef std::shared_ptr<ReachDatabase> ReachDatabasePtr;
 
-  } // namespace core
+   } // namespace core
 } // namespace reach
 
 #endif // REACH_CORE_REACH_DATABASE_H
