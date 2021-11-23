@@ -24,13 +24,16 @@
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
 
-bool hasNormals(pcl::PCLPointCloud2& cloud)
+bool hasNormals(pcl::PCLPointCloud2 &cloud)
 {
-  auto nx = std::find_if(cloud.fields.begin(), cloud.fields.end(), [] (pcl::PCLPointField& field) {return field.name == "normal_x";});
-  auto ny = std::find_if(cloud.fields.begin(), cloud.fields.end(), [] (pcl::PCLPointField& field) {return field.name == "normal_y";});
-  auto nz = std::find_if(cloud.fields.begin(), cloud.fields.end(), [] (pcl::PCLPointField& field) {return field.name == "normal_z";});
+  auto nx = std::find_if(cloud.fields.begin(), cloud.fields.end(), [](pcl::PCLPointField &field)
+                         { return field.name == "normal_x"; });
+  auto ny = std::find_if(cloud.fields.begin(), cloud.fields.end(), [](pcl::PCLPointField &field)
+                         { return field.name == "normal_y"; });
+  auto nz = std::find_if(cloud.fields.begin(), cloud.fields.end(), [](pcl::PCLPointField &field)
+                         { return field.name == "normal_z"; });
 
-  if(nx == cloud.fields.end() || ny == cloud.fields.end() || nz == cloud.fields.end())
+  if (nx == cloud.fields.end() || ny == cloud.fields.end() || nz == cloud.fields.end())
   {
     return false;
   }
@@ -40,11 +43,11 @@ bool hasNormals(pcl::PCLPointCloud2& cloud)
   }
 }
 
-bool getSampledMesh(reach_msgs::LoadPointCloudRequest& req,
-                    reach_msgs::LoadPointCloudResponse& res)
+bool getSampledMesh(reach_msgs::LoadPointCloudRequest &req,
+                    reach_msgs::LoadPointCloudResponse &res)
 {
   // Check if file exists
-  if(!boost::filesystem::exists(req.cloud_filename))
+  if (!boost::filesystem::exists(req.cloud_filename))
   {
     res.message = "File '" + req.cloud_filename + "' does not exist";
     res.success = false;
@@ -53,14 +56,14 @@ bool getSampledMesh(reach_msgs::LoadPointCloudRequest& req,
   }
 
   pcl::PCLPointCloud2 cloud_msg;
-  if(pcl::io::loadPCDFile(req.cloud_filename, cloud_msg) == -1)
+  if (pcl::io::loadPCDFile(req.cloud_filename, cloud_msg) == -1)
   {
     res.message = "Unable to load point cloud from '" + req.cloud_filename + "'";
     res.success = false;
     return true;
   }
 
-  if(!hasNormals(cloud_msg))
+  if (!hasNormals(cloud_msg))
   {
     res.message = "Point cloud file does not contain normals. Please regenerate the cloud with "
                   "normal vectors";
@@ -83,7 +86,7 @@ bool getSampledMesh(reach_msgs::LoadPointCloudRequest& req,
                                                                 ros::Duration(5.0));
     transform = tf2::transformToEigen(tf.transform);
   }
-  catch(const tf2::TransformException& ex)
+  catch (const tf2::TransformException &ex)
   {
     res.message = ex.what();
     res.success = false;

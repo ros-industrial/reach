@@ -15,7 +15,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>eigen_conversions</depend>
+  <depend>tf2_eigen_kdl</depend>
   <depend>geometry_msgs</depend>
   <depend>interactive_markers</depend>
   <depend>pcl_ros</depend>
@@ -23,8 +23,9 @@
   <depend>reach_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_eigen</depend>
-  <depend>visualization_msgs</depend>
-  <test_depend>rosunit</test_depend>
+  <depend>visualization_msgs</depend> 
+  <!-- Got some errors, had to install libxmlrpcpp-dev ?-->
+  <!-- <test_depend>rosunit</test_depend> -->
 
   <export>
     <reach_core plugin="${prefix}/plugin_description.xml"/>
