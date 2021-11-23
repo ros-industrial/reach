@@ -6,7 +6,7 @@ add_compile_options(-std=c++14)
 find_package(tf2_eigen_kdl REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(interactive_markers REQUIRED)
-find_package(PCL REQUIRED)
+# find_package(PCL REQUIRED)
 find_package(pcl_ros REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(reach_msgs REQUIRED)
@@ -22,11 +22,11 @@ if(OPENMP_FOUND)
 endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
-  eigen_conversions
   geometry_msgs
   interactive_markers
   pcl_ros
   pluginlib
+  rclcpp
   reach_msgs
   tf2_ros
   tf2_eigen
@@ -36,7 +36,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 ament_export_include_directories(include)
 
 ament_export_libraries(
-  sec/${PROJECT_NAME}
+  src/${PROJECT_NAME}
   src/${PROJECT_NAME}_plugins
 )
 
@@ -69,6 +69,7 @@ include_directories(
   include
 )
 include_directories(${PCL_INCLUDE_DIRS})
+
 # Reach Study Library
 add_library(${PROJECT_NAME}
   # Utilities
@@ -81,15 +82,17 @@ add_library(${PROJECT_NAME}
   # Reach Study
   src/core/reach_study.cpp
 )
-target_link_libraries(${PROJECT_NAME}
-)
+# target_link_libraries(${PROJECT_NAME}
+# )
+ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Plugins Library
 add_library(${PROJECT_NAME}_plugins
   src/plugins/impl/multiplicative_factory.cpp
 )
-target_link_libraries(${PROJECT_NAME}_plugins
-)
+# target_link_libraries(${PROJECT_NAME}_plugins
+# )
+ament_target_dependencies(${PROJECT_NAME}_plugins ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Reach Study Node
 add_executable(robot_reach_study_node

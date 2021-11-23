@@ -26,32 +26,32 @@
 
 namespace reach
 {
-namespace core
-{
+  namespace core
+  {
 
-struct NeighborReachResult
-{
-  std::vector<std::string> reached_pts;
-  double joint_distance = 0;
-};
+    struct NeighborReachResult
+    {
+      std::vector<std::string> reached_pts;
+      double joint_distance = 0;
+    };
 
-typedef flann::KDTreeSingleIndex<flann::L2_3D<double>> SearchTree;
-typedef std::shared_ptr<SearchTree> SearchTreePtr;
+    typedef flann::KDTreeSingleIndex<flann::L2_3D<double>> SearchTree;
+    typedef std::shared_ptr<SearchTree> SearchTreePtr;
 
-NeighborReachResult reachNeighborsDirect(std::shared_ptr<ReachDatabase> db,
-                                         const reach_msgs::ReachRecord& rec,
-                                         reach::plugins::IKSolverBasePtr solver,
-                                         const double radius,
-                                         SearchTreePtr search_tree = nullptr);
+    NeighborReachResult reachNeighborsDirect(std::shared_ptr<ReachDatabase> db,
+                                             const reach_msgs::msg::ReachRecord &rec,
+                                             reach::plugins::IKSolverBasePtr solver,
+                                             const double radius,
+                                             SearchTreePtr search_tree = nullptr);
 
-void reachNeighborsRecursive(std::shared_ptr<ReachDatabase> db,
-                             const reach_msgs::ReachRecord& msg,
-                             reach::plugins::IKSolverBasePtr solver,
-                             const double radius,
-                             NeighborReachResult result,
-                             SearchTreePtr search_tree = nullptr);
+    void reachNeighborsRecursive(std::shared_ptr<ReachDatabase> db,
+                                 const reach_msgs::msg::ReachRecord &msg,
+                                 reach::plugins::IKSolverBasePtr solver,
+                                 const double radius,
+                                 NeighborReachResult result,
+                                 SearchTreePtr search_tree = nullptr);
 
-} // namespace core
+  } // namespace core
 } // namespace reach
 
 #endif // REACH_CORE_IK_HELPER_H
