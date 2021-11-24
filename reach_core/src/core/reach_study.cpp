@@ -36,7 +36,10 @@ namespace reach
 {
   namespace core
   {
-
+    namespace
+    {
+      const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_visualizer");
+    }
     static const std::string PACKAGE = "reach_core";
     static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
     static const std::string DISPLAY_BASE_CLASS = "reach::plugins::DisplayBase";
@@ -106,14 +109,14 @@ namespace reach
       // Initialize the study
       if (!initializeStudy())
       {
-        ROS_ERROR("Failed to initialize the reach study");
+        RCLCPP_ERROR(LOGGER, "Failed to initialize the reach study");
         return false;
       }
 
       // Get the reach object point cloud
       if (!getReachObjectPointCloud())
       {
-        ROS_ERROR("Unable to obtain reach object point cloud");
+        RCLCPP_ERROR(LOGGER, "Unable to obtain reach object point cloud");
         return false;
       }
 
@@ -133,9 +136,9 @@ namespace reach
         // Attempt to load previously saved initial reach study database
         if (!db_->load(results_dir_ + SAVED_DB_NAME))
         {
-          ROS_INFO("------------------------------");
-          ROS_INFO("No reach study database loaded");
-          ROS_INFO("------------------------------");
+          RCLCPP_INFO(LOGGER, "------------------------------");
+          RCLCPP_INFO(LOGGER, "No reach study database loaded");
+          RCLCPP_INFO(LOGGER, "------------------------------");
 
           // Run the first pass of the reach study
           runInitialReachStudy();
@@ -144,9 +147,9 @@ namespace reach
         }
         else
         {
-          ROS_INFO("----------------------------------------------------");
-          ROS_INFO("Unoptimized reach study database successfully loaded");
-          ROS_INFO("----------------------------------------------------");
+          RCLCPP_INFO(LOGGER, "----------------------------------------------------");
+          RCLCPP_INFO(LOGGER, "Unoptimized reach study database successfully loaded");
+          RCLCPP_INFO(LOGGER, "----------------------------------------------------");
 
           db_->printResults();
           visualizer_->update();
@@ -174,9 +177,9 @@ namespace reach
       }
       else
       {
-        ROS_INFO("--------------------------------------------------");
-        ROS_INFO("Optimized reach study database successfully loaded");
-        ROS_INFO("--------------------------------------------------");
+        RCLCPP_INFO(LOGGER, "--------------------------------------------------");
+        RCLCPP_INFO(LOGGER, "Optimized reach study database successfully loaded");
+        RCLCPP_INFO(LOGGER, "--------------------------------------------------");
 
         db_->printResults();
         visualizer_->update();
@@ -208,12 +211,12 @@ namespace reach
       return true;
     }
 
-    bool ReachStudy::getReachObjectPointCloud()
+    bool ReachStudy::getReachObjectPointCloud(const rclcpp::Node::SharedPtr &node)
     {
       // Call the sample mesh service to create a point cloud of the reach object mesh
-      ros::ServiceClient client = nh_.serviceClient<reach_msgs::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC);
+      auto client = node->create_client(SAMPLE_MESH_SRV_TOPIC);
 
-      reach_msgs::LoadPointCloud srv;
+      reach_msgs::srv::LoadPointCloud srv;
       srv.request.cloud_filename = sp_.pcd_filename;
       srv.request.fixed_frame = sp_.fixed_frame;
       srv.request.object_frame = sp_.object_frame;
@@ -221,12 +224,12 @@ namespace reach
       client.waitForExistence(ros::Duration(SRV_TIMEOUT));
       if (!client.call(srv))
       {
-        ROS_ERROR_STREAM("Failed to call point cloud loading service '" << client.getService() << "'");
+        RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client.getService() << "'");
         return false;
       }
       else if (!srv.response.success)
       {
-        ROS_ERROR_STREAM(srv.response.message);
+        RCLCPP_ERROR_STREAM(LOGGER, srv.response.message);
         return false;
       }
 
@@ -234,7 +237,7 @@ namespace reach
       pcl::fromROSMsg(cloud_msg_, *cloud_);
 
       cloud_msg_.header.frame_id = sp_.fixed_frame;
-      cloud_msg_.header.stamp = ros::Time::now();
+      cloud_msg_.header.stamp = node->now();
 
       return true;
     }
@@ -268,8 +271,8 @@ namespace reach
         boost::optional<double> score = ik_solver_->solveIKFromSeed(tgt_frame, jointStateMsgToMap(seed_state), solution);
 
         // Create objects to save in the reach record
-        geometry_msgs::Pose tgt_pose;
-        tf::poseEigenToMsg(tgt_frame, tgt_pose);
+        geometry_msgs::msg::Pose tgt_pose;
+        tgt_pose = tf2::toMsg(tgt_frame);
 
         sensor_msgs::msg::JointState goal_state(seed_state);
 
@@ -297,8 +300,8 @@ namespace reach
 
     void ReachStudy::optimizeReachStudyResults()
     {
-      ROS_INFO("----------------------");
-      ROS_INFO("Beginning optimization");
+      RCLCPP_INFO(LOGGER, "----------------------");
+      RCLCPP_INFO(LOGGER, "Beginning optimization");
 
       // Create sequential vector to be randomized
       std::vector<std::size_t> rand_vec(db_->size());
@@ -313,7 +316,7 @@ namespace reach
 
       while (pct_improve > sp_.optimization.step_improvement_threshold && n_opt < sp_.optimization.max_steps)
       {
-        ROS_INFO("Entering optimization loop %d", n_opt);
+        RCLCPP_INFO(LOGGER, "Entering optimization loop %d", n_opt);
         previous_score = db_->getStudyResults().norm_total_pose_score;
         current_counter = 0;
         previous_pct = 0;
@@ -348,14 +351,14 @@ namespace reach
       db_->calculateResults();
       db_->save(results_dir_ + OPT_SAVED_DB_NAME);
 
-      ROS_INFO("----------------------");
-      ROS_INFO("Optimization concluded");
+      RCLCPP_INFO(LOGGER, "----------------------");
+      RCLCPP_INFO(LOGGER, "Optimization concluded");
     }
 
     void ReachStudy::getAverageNeighborsCount()
     {
-      ROS_INFO("--------------------------------------------");
-      ROS_INFO("Beginning average neighbor count calculation");
+      RCLCPP_INFO(LOGGER, "--------------------------------------------");
+      RCLCPP_INFO(LOGGER, "Beginning average neighbor count calculation");
 
       std::atomic<int> current_counter, previous_pct, neighbor_count;
       current_counter = previous_pct = neighbor_count = 0;
@@ -384,9 +387,9 @@ namespace reach
       float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->size());
       float avg_joint_distance = static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
 
-      ROS_INFO_STREAM("Average number of neighbors reached: " << avg_neighbor_count);
-      ROS_INFO_STREAM("Average joint distance: " << avg_joint_distance);
-      ROS_INFO("------------------------------------------------");
+      RCLCPP_INFO_STREAM(LOGGER, "Average number of neighbors reached: " << avg_neighbor_count);
+      RCLCPP_INFO_STREAM(LOGGER, "Average joint distance: " << avg_joint_distance);
+      RCLCPP_INFO(LOGGER, "------------------------------------------------");
 
       db_->setAverageNeighborsCount(avg_neighbor_count);
       db_->setAverageJointDistance(avg_joint_distance);
@@ -415,7 +418,7 @@ namespace reach
         ReachDatabase db;
         if (!db.load(db_filenames[i]))
         {
-          ROS_ERROR("Cannot load database at:\n %s", db_filenames[i].c_str());
+          RCLCPP_ERROR(LOGGER, "Cannot load database at:\n %s", db_filenames[i].c_str());
           continue;
         }
         data.emplace(sp_.compare_dbs[i], db.toReachDatabaseMsg());
@@ -423,7 +426,7 @@ namespace reach
 
       if (data.size() < 2)
       {
-        ROS_ERROR("Only %lu database(s) loaded; cannot compare fewer than 2 databases", data.size());
+        RCLCPP_ERROR(LOGGER, "Only %lu database(s) loaded; cannot compare fewer than 2 databases", data.size());
         return false;
       }
 

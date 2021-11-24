@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include "reach_core/utils/visualization_utils.h"
-// #include <eigen_conversions/msg/eigen_msg.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <pcl/features/moment_of_inertia_estimation.h>
 
 const static double ARROW_SCALE_RATIO = 6.0;
@@ -25,7 +25,7 @@ namespace reach
   namespace utils
   {
 
-    visualization_msgs::msg::Marker makeVisual(const reach_msgs::msg::ReachRecord &r,
+    visualization_msgs::msg::Marker makeVisual(const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
                                                const std::string &frame,
                                                const double scale,
                                                const std::string &ns,
@@ -35,7 +35,7 @@ namespace reach
 
       visualization_msgs::msg::Marker marker;
       marker.header.frame_id = frame;
-      marker.header.stamp = ros::Time::now();
+      marker.header.stamp = node->now();
       marker.ns = ns;
       marker.id = idx++;
       marker.type = visualization_msgs::msg::Marker::ARROW;
@@ -54,7 +54,7 @@ namespace reach
 
       // Convert back to geometry_msgs pose
       geometry_msgs::msg::Pose msg;
-      tf2::toMsg(goal_eigen, msg);
+      msg = tf2::toMsg(goal_eigen);
       marker.pose = msg;
 
       marker.scale.x = scale;
@@ -111,14 +111,14 @@ namespace reach
       return m;
     }
 
-    visualization_msgs::msg::Marker makeMarker(const std::vector<geometry_msgs::msg::Point> &pts,
+    visualization_msgs::msg::Marker makeMarker(const rclcpp::Node::SharedPtr &node, const std::vector<geometry_msgs::msg::Point> &pts,
                                                const std::string &frame,
                                                const double scale,
                                                const std::string &ns)
     {
       visualization_msgs::msg::Marker marker;
       marker.header.frame_id = frame;
-      marker.header.stamp = ros::Time::now();
+      marker.header.stamp = node->now();
       marker.ns = ns;
       marker.type = visualization_msgs::msg::Marker::POINTS;
       marker.action = visualization_msgs::msg::Marker::ADD;

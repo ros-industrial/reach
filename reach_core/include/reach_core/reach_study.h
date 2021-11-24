@@ -40,7 +40,7 @@ namespace reach
    * @brief ReachStudy
    * @param nh
    */
-      ReachStudy(const ros::NodeHandle &nh);
+      ReachStudy(const rclcpp::Node::SharedPtr &node);
 
       /**
    * @brief run
@@ -52,7 +52,7 @@ namespace reach
     private:
       bool initializeStudy();
 
-      bool getReachObjectPointCloud();
+      bool getReachObjectPointCloud(const rclcpp::Node::SharedPtr &node);
 
       void runInitialReachStudy();
 
@@ -84,7 +84,7 @@ namespace reach
 
       std::string results_dir_;
 
-      sensor_msgs::PointCloud2 cloud_msg_;
+      sensor_msgs::msg::PointCloud2 cloud_msg_;
     };
 
   } // namespace core

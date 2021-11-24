@@ -74,7 +74,7 @@ namespace reach
         }
 
         Eigen::Isometry3d target;
-        tf::poseMsgToEigen(lookup->goal, target);
+        tf2::fromMsg(lookup->goal, target);
 
         // Re-solve IK at the selected marker
         std::vector<double> goal_pose;
