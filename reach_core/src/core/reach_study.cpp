@@ -23,8 +23,9 @@
 #include <numeric>
 #include <tf2_eigen/tf2_eigen.h>
 #include <pluginlib/class_loader.h>
-// #include <ros/package.h>
 #include <xmlrpcpp/XmlRpcException.h>
+
+#include <rclcpp/rclcpp.hpp>
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
 const static double SRV_TIMEOUT = 5.0;
@@ -44,8 +45,12 @@ namespace reach
     static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
     static const std::string DISPLAY_BASE_CLASS = "reach::plugins::DisplayBase";
 
-    ReachStudy::ReachStudy(const ros::NodeHandle &nh)
-        : nh_(nh), cloud_(new pcl::PointCloud<pcl::PointNormal>()), db_(new ReachDatabase()), solver_loader_(PACKAGE, IK_BASE_CLASS), display_loader_(PACKAGE, DISPLAY_BASE_CLASS)
+    ReachStudy::ReachStudy(const std::string & node_name, const rclcpp::NodeOptions & options)
+        : Node(node_name, options),
+        cloud_(new pcl::PointCloud<pcl::PointNormal>()),
+        db_(new ReachDatabase()),
+        solver_loader_(PACKAGE, IK_BASE_CLASS),
+        display_loader_(PACKAGE, DISPLAY_BASE_CLASS)
     {
     }
 
@@ -56,8 +61,8 @@ namespace reach
 
       try
       {
-        ik_solver_ = solver_loader_.createInstance(sp_.ik_solver_config["name"]);
-        display_ = display_loader_.createInstance(sp_.display_config["name"]);
+        ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config["name"]);
+        display_ = display_loader_.createSharedInstance(sp_.display_config["name"]);
       }
       catch (const XmlRpc::XmlRpcException &ex)
       {

@@ -13,71 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <rclcpp/rclcpp.hpp>
 #include "reach_core/reach_study.h"
 #include "reach_core/study_parameters.h"
 
-template<typename T>
-bool get(const ros::NodeHandle& nh,
-         const std::string& key,
-         T& val)
-{
-  if(!nh.getParam(key, val))
-  {
-    ROS_ERROR_STREAM("Failed to get '" << key << "' parameter");
-    return false;
-  }
-  return true;
-}
 
-bool getStudyParameters(ros::NodeHandle& nh,
-                        reach::core::StudyParameters& sp)
+class RobotReachStudyNode : public reach::core::ReachStudy
 {
-  if(!get(nh, "config_name", sp.config_name) ||
-     !get(nh, "fixed_frame", sp.fixed_frame) ||
-     !get(nh, "results_directory", sp.results_directory) ||
-     !get(nh, "object_frame", sp.object_frame) ||
-     !get(nh, "pcd_filename", sp.pcd_filename) ||
-     !get(nh, "optimization/radius", sp.optimization.radius) ||
-     !get(nh, "optimization/max_steps", sp.optimization.max_steps) ||
-     !get(nh, "optimization/step_improvement_threshold", sp.optimization.step_improvement_threshold) ||
-     !get(nh, "get_avg_neighbor_count", sp.get_neighbors) ||
-     !get(nh, "compare_dbs", sp.compare_dbs) ||
-     !get(nh, "visualize_results", sp.visualize_results) ||
-     !get(nh, "ik_solver_config", sp.ik_solver_config) ||
-     !get(nh, "display_config", sp.display_config))
-  {
-     return false;
-  }
+   explicit RobotReachStudyNode(std::string& node_name) :
+    reach::core::ReachStudy(node_name,
+        rclcpp::NodeOptions().allow_undeclared_parameters(true).automatically_declare_parameters_from_overrides(true))
+    {
 
-  return true;
-}
+        getStudyParameters();
+    }
+    ~RobotReachStudyNode()=default;
+
+public:
+    bool getStudyParameters(){
+
+        // fetch parameteres
+        if (!this->get_parameter("config_name", sp_.config_name) ||
+        !this->get_parameter("fixed_frame", sp_.fixed_frame) ||
+        !this->get_parameter("results_directory", sp_.results_directory) ||
+        !this->get_parameter("object_frame", sp_.object_frame) ||
+        !this->get_parameter("pcd_filename", sp_.pcd_filename) ||
+        !this->get_parameter("optimization/radius", sp_.optimization.radius) ||
+        !this->get_parameter("optimization/max_steps", sp_.optimization.max_steps) ||
+        !this->get_parameter("optimization/step_improvement_threshold", sp_.optimization.step_improvement_threshold) ||
+        !this->get_parameter("get_avg_neighbor_count", sp_.get_neighbors) ||
+        !this->get_parameter("compare_dbs", sp_.compare_dbs) ||
+        !this->get_parameter("visualize_results", sp_.visualize_results) ||
+        !this->get_parameter("ik_solver_config", sp_.ik_solver_config) ||
+        !this->get_parameter("display_config", sp_.display_config) ) {
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    bool run(){
+
+        return this->run(sp_);
+    }
+
+private:
+
+    reach::core::StudyParameters sp_;
+
+
+
+
+};
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "robot_reach_study_node");
-  ros::NodeHandle pnh("~"), nh;
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
+    // Initialize ROS
+    rclcpp::init(argc, argv);
+    // create node
+    auto node = std::make_shared<RobotReachStudyNode>("robot_reach_study_node");
 
   // Get the study parameters
-  reach::core::StudyParameters sp;
-  if(!getStudyParameters(pnh, sp))
+  if(!node->getStudyParameters())
   {
     return -1;
   }
-
-  // Initialize the reach study
-  reach::core::ReachStudy rs (nh);
 
   // Run the reach study
-  if(!rs.run(sp))
+  if(!node->run())
   {
-    ROS_ERROR("Unable to perform the reach study");
+    RCLCPP_ERROR(rclcpp::get_logger("robot_reach_study_node"), "Unable to perform the reach study");
     return -1;
   }
 
-  ros::waitForShutdown();
+
+    // spin
+    rclcpp::spin(node);
+
 
   return 0;
 }

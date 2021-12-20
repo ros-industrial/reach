@@ -24,6 +24,7 @@
 // #include <pcl_ros/point_cloud.hpp>
 #include <pluginlib/class_loader.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 namespace reach
 {
@@ -33,14 +34,14 @@ namespace reach
     /**
  * @brief The ReachStudy class
  */
-    class ReachStudy
+  class ReachStudy : public rclcpp::Node
     {
     public:
       /**
    * @brief ReachStudy
    * @param nh
    */
-      ReachStudy(const rclcpp::Node::SharedPtr &node);
+      ReachStudy(const std::string & node_name, const rclcpp::NodeOptions & options);
 
       /**
    * @brief run
@@ -61,8 +62,6 @@ namespace reach
       void getAverageNeighborsCount();
 
       bool compareDatabases();
-
-      ros::NodeHandle nh_;
 
       StudyParameters sp_;
 

@@ -208,7 +208,7 @@ namespace reach
 
       std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::Marker>> marker_pub_;
     };
-    typedef boost::shared_ptr<DisplayBase> DisplayBasePtr;
+    typedef std::shared_ptr<DisplayBase> DisplayBasePtr;
 
   } // namespace plugins
 } // namespace reach

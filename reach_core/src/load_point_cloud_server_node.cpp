@@ -13,111 +13,122 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <filesystem>
+
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/PCLPointField.h>
-#include <pcl_ros/point_cloud.h>
-#include <reach_msgs/LoadPointCloud.h>
-#include <ros/ros.h>
+#include <pcl_ros/point_cloud.hpp>
+#include <reach_msgs/srv/load_point_cloud.hpp>
+#include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_eigen/tf2_eigen.h>
 
-const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
+constexpr char SAMPLE_MESH_SRV_TOPIC[] = "sample_mesg";
 
-bool hasNormals(pcl::PCLPointCloud2 &cloud)
-{
-  auto nx = std::find_if(cloud.fields.begin(), cloud.fields.end(), [](pcl::PCLPointField &field)
-                         { return field.name == "normal_x"; });
-  auto ny = std::find_if(cloud.fields.begin(), cloud.fields.end(), [](pcl::PCLPointField &field)
-                         { return field.name == "normal_y"; });
-  auto nz = std::find_if(cloud.fields.begin(), cloud.fields.end(), [](pcl::PCLPointField &field)
-                         { return field.name == "normal_z"; });
+using LoadPCLSrv = reach_msgs::srv::LoadPointCloud;
+using LoadPCLReq  = reach_msgs::srv::LoadPointCloud_Request;
+using LoadPCLReqSharedPtr = LoadPCLReq::SharedPtr;
+using LoadPCLRes  = reach_msgs::srv::LoadPointCloud_Response;
+using LoadPCLResSharedPtr = LoadPCLRes::SharedPtr;
 
-  if (nx == cloud.fields.end() || ny == cloud.fields.end() || nz == cloud.fields.end())
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
-}
 
-bool getSampledMesh(reach_msgs::LoadPointCloudRequest &req,
-                    reach_msgs::LoadPointCloudResponse &res)
-{
-  // Check if file exists
-  if (!boost::filesystem::exists(req.cloud_filename))
-  {
-    res.message = "File '" + req.cloud_filename + "' does not exist";
-    res.success = false;
+    class PointCloudServerNode : public rclcpp::Node {
+    public:
+        explicit PointCloudServerNode(std::string &node_name) : Node(node_name) {
 
-    return true;
-  }
+            server_ = this->create_service<LoadPCLSrv>(SAMPLE_MESH_SRV_TOPIC, [this](const LoadPCLReqSharedPtr req,
+                                                                                     LoadPCLResSharedPtr res){
 
-  pcl::PCLPointCloud2 cloud_msg;
-  if (pcl::io::loadPCDFile(req.cloud_filename, cloud_msg) == -1)
-  {
-    res.message = "Unable to load point cloud from '" + req.cloud_filename + "'";
-    res.success = false;
-    return true;
-  }
+                // getSampledMesh callback
+                // Check if file exists
+                if (!std::filesystem::exists(req->cloud_filename)) {
+                    res->message = "File '" + req->cloud_filename + "' does not exist";
+                    res->success = false;
 
-  if (!hasNormals(cloud_msg))
-  {
-    res.message = "Point cloud file does not contain normals. Please regenerate the cloud with "
-                  "normal vectors";
-    res.success = false;
-    return true;
-  }
+                    return true;
+                }
 
-  pcl::PointCloud<pcl::PointNormal> cloud;
-  pcl::fromPCLPointCloud2(cloud_msg, cloud);
+                pcl::PCLPointCloud2 cloud_msg;
+                if (pcl::io::loadPCDFile(req->cloud_filename, cloud_msg) == -1) {
+                    res->message = "Unable to load point cloud from '" + req->cloud_filename + "'";
+                    res->success = false;
+                    return true;
+                }
 
-  // Transform point cloud to correct frame
-  tf2_ros::Buffer buffer;
-  tf2_ros::TransformListener listener(buffer);
-  Eigen::Isometry3d transform;
-  try
-  {
-    geometry_msgs::TransformStamped tf = buffer.lookupTransform(req.fixed_frame,
-                                                                req.object_frame,
-                                                                ros::Time(0),
-                                                                ros::Duration(5.0));
-    transform = tf2::transformToEigen(tf.transform);
-  }
-  catch (const tf2::TransformException &ex)
-  {
-    res.message = ex.what();
-    res.success = false;
-    return true;
-  }
+                if (!hasNormals(cloud_msg)) {
+                    res->message = "Point cloud file does not contain normals. Please regenerate the cloud with "
+                                   "normal vectors";
+                    res->success = false;
+                    return true;
+                }
 
-  pcl::PointCloud<pcl::PointNormal> transformed_cloud;
-  pcl::transformPointCloudWithNormals(cloud, transformed_cloud, transform.matrix());
+                pcl::PointCloud<pcl::PointNormal> cloud;
+                pcl::fromPCLPointCloud2(cloud_msg, cloud);
 
-  // Convert point cloud to message for output
-  sensor_msgs::PointCloud2 msg;
-  pcl::toROSMsg(transformed_cloud, res.cloud);
+                // Transform point cloud to correct frame
+                tf2_ros::Buffer buffer(this->get_clock());
+                tf2_ros::TransformListener listener(buffer);
+                Eigen::Isometry3d transform;
+                try {
+                    geometry_msgs::msg::TransformStamped tf = buffer.lookupTransform(req->fixed_frame,
+                                                                                     req->object_frame,
+                                                                                     rclcpp::Time(0),
+                                                                                     rclcpp::Duration::from_seconds(5.0));
+                    transform = tf2::transformToEigen(tf.transform);
+                }
+                catch (const tf2::TransformException &ex) {
+                    res->message = ex.what();
+                    res->success = false;
+                    return true;
+                }
 
-  res.success = true;
-  res.message = "Successfully loaded point cloud from '" + req.cloud_filename + "'";
+                pcl::PointCloud<pcl::PointNormal> transformed_cloud;
+                pcl::transformPointCloudWithNormals(cloud, transformed_cloud, transform.matrix());
 
-  return true;
-}
+                // Convert point cloud to message for output
+                sensor_msgs::msg::PointCloud2 msg;
+                pcl::toROSMsg(transformed_cloud, res->cloud);
+
+                res->success = true;
+                res->message = "Successfully loaded point cloud from '" + req->cloud_filename + "'";
+
+                    return true;
+            });
+
+        }
+
+    private:
+
+        rclcpp::Service<LoadPCLSrv>::SharedPtr server_;
+
+        bool hasNormals(pcl::PCLPointCloud2 &cloud) {
+            auto nx = std::find_if(cloud.fields.begin(), cloud.fields.end(),
+                                   [](pcl::PCLPointField &field) { return field.name == "normal_x"; });
+            auto ny = std::find_if(cloud.fields.begin(), cloud.fields.end(),
+                                   [](pcl::PCLPointField &field) { return field.name == "normal_y"; });
+            auto nz = std::find_if(cloud.fields.begin(), cloud.fields.end(),
+                                   [](pcl::PCLPointField &field) { return field.name == "normal_z"; });
+
+            if (nx == cloud.fields.end() || ny == cloud.fields.end() || nz == cloud.fields.end()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+
+    };
 
 int main(int argc, char **argv)
 {
   // Initialize ROS
-  ros::init(argc, argv, "sample_mesh_server");
-
-  // Create a ROS node handle
-  ros::NodeHandle nh;
-
-  // Create a server
-  ros::ServiceServer service = nh.advertiseService(SAMPLE_MESH_SRV_TOPIC, getSampledMesh);
-
-  ros::spin();
+  rclcpp::init(argc, argv);
+  // create node
+  auto node = std::make_shared<PointCloudServerNode>("sample_mesh_server");
+  // spin
+  rclcpp::spin(node);
 
   return 0;
 }

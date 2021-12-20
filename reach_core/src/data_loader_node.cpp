@@ -14,31 +14,33 @@
  * limitations under the License.
  */
 #include "reach_core/reach_database.h"
-#include <ros/ros.h>
-#include <ros/package.h>
-#include <boost/filesystem.hpp>
+#include "rclcpp/rclcpp.hpp"
+#include <ament_index_cpp/get_package_share_directory.hpp>
+
+
+#include <filesystem>
 #include <boost/format.hpp>
 
 const static std::string RESULTS_FOLDER_NAME = "results";
 const static std::string OPT_DB_NAME = "optimized_reach.db";
 
-bool get_all(const boost::filesystem::path& root,
+bool get_all(const std::filesystem::path& root,
              const std::string& ext,
-             std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>>& ret)
+             std::vector<std::pair<std::filesystem::path, std::filesystem::path>>& ret)
 {
-  if(!boost::filesystem::exists(root) || !boost::filesystem::is_directory(root)) return false;
+  if(!std::filesystem::exists(root) || !std::filesystem::is_directory(root)) return false;
 
-  boost::filesystem::recursive_directory_iterator it(root);
-  boost::filesystem::recursive_directory_iterator endit;
+  std::filesystem::recursive_directory_iterator it(root);
+  std::filesystem::recursive_directory_iterator endit;
 
   while(it != endit)
   {
-    if(boost::filesystem::is_regular_file(*it) && it->path().extension() == ext)
+    if(std::filesystem::is_regular_file(*it) && it->path().extension() == ext)
     {
       // Capture only the optimized reach databases
       if(it->path().filename() == OPT_DB_NAME)
       {
-        std::pair<boost::filesystem::path, boost::filesystem::path> tmp;
+        std::pair<std::filesystem::path, std::filesystem::path> tmp;
         tmp.first = it->path().parent_path().filename();
         tmp.second = it->path();
         ret.push_back(tmp);
@@ -59,7 +61,13 @@ int main(int argc, char **argv)
     return -1;
   }
 
-  std::string root_path = ros::package::getPath("reach_core") + "/" + RESULTS_FOLDER_NAME;
+    // Initialize ROS
+    rclcpp::init(argc, argv);
+    // create node
+    auto node = std::make_shared<rclcpp::Node>("data_loader_node");
+
+
+  std::string root_path = std::string(ament_index_cpp::get_package_share_directory(("reach_core")) + "/" + RESULTS_FOLDER_NAME;
 
   if(argv[1])
   {
@@ -67,8 +75,8 @@ int main(int argc, char **argv)
     root_path += "/" + folder_name;
   }
 
-  boost::filesystem::path root (root_path);
-  std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>> files;
+  std::filesystem::path root (root_path);
+  std::vector<std::pair<std::filesystem::path, std::filesystem::path>> files;
   if(!get_all(root, ".db", files))
   {
     std::cout << "Specified directory does not exist";
@@ -99,6 +107,8 @@ int main(int argc, char **argv)
                    % res.avg_joint_distance;
     }
   }
+    // shutdown
+    rclcpp::shutdown();
 
   return 0;
 }
