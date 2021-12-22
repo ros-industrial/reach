@@ -46,7 +46,7 @@ public:
 
   DistancePenaltyMoveIt();
 
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
 
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 

@@ -18,9 +18,9 @@
 
 #include "reach_core/study_parameters.h"
 #include <reach_msgs/msg/reach_database.hpp>
-#include <boost/optional.hpp>
 #include <mutex>
 #include <unordered_map>
+#include <optional>
 
 namespace reach
 {
@@ -90,7 +90,7 @@ namespace reach
    * @param id
    * @return
    */
-         boost::optional<reach_msgs::msg::ReachRecord> get(const std::string &id) const;
+         std::optional<reach_msgs::msg::ReachRecord> get(const std::string &id) const;
 
          /**
    * @brief put adds a ReachRecord message to the database

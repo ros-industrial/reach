@@ -30,7 +30,7 @@ JointPenaltyMoveIt::JointPenaltyMoveIt()
 
 }
 
-bool JointPenaltyMoveIt::initialize(XmlRpc::XmlRpcValue& config)
+bool JointPenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
 {
   if(!config.hasMember("planning_group"))
   {

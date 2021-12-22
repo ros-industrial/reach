@@ -23,15 +23,15 @@
 #include <numeric>
 #include <tf2_eigen/tf2_eigen.h>
 #include <pluginlib/class_loader.h>
-#include <xmlrpcpp/XmlRpcException.h>
+#include <exception>
 
 #include <rclcpp/rclcpp.hpp>
 
-const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
+constexpr char SAMPLE_MESH_SRV_TOPIC[] = "sample_mesh";
 const static double SRV_TIMEOUT = 5.0;
-const static std::string INPUT_CLOUD_TOPIC = "input_cloud";
-const static std::string SAVED_DB_NAME = "reach.db";
-const static std::string OPT_SAVED_DB_NAME = "optimized_reach.db";
+constexpr char INPUT_CLOUD_TOPIC[] = "input_cloud";
+constexpr char SAVED_DB_NAME[] = "reach.db";
+constexpr char OPT_SAVED_DB_NAME[] = "optimized_reach.db";
 
 namespace reach
 {
@@ -41,9 +41,9 @@ namespace reach
     {
       const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_visualizer");
     }
-    static const std::string PACKAGE = "reach_core";
-    static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
-    static const std::string DISPLAY_BASE_CLASS = "reach::plugins::DisplayBase";
+      constexpr char PACKAGE[] = "reach_core";
+      constexpr char IK_BASE_CLASS[] = "reach::plugins::IKSolverBase";
+      constexpr char DISPLAY_BASE_CLASS[] = "reach::plugins::DisplayBase";
 
     ReachStudy::ReachStudy(const std::string & node_name, const rclcpp::NodeOptions & options)
         : Node(node_name, options),
@@ -61,23 +61,23 @@ namespace reach
 
       try
       {
-        ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config["name"]);
-        display_ = display_loader_.createSharedInstance(sp_.display_config["name"]);
+        ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
+        display_ = display_loader_.createSharedInstance(sp_.display_config_name);
       }
-      catch (const XmlRpc::XmlRpcException &ex)
+      catch (const std::exception &ex)
       {
-        ROS_ERROR_STREAM(ex.getMessage());
+        RCLCPP_ERROR(LOGGER, "Error while creating shared instances of ik solver and/or display: '%s'", ex.what());
         return false;
       }
       catch (const pluginlib::PluginlibException &ex)
       {
-        ROS_ERROR_STREAM(ex.what());
+        RCLCPP_ERROR(LOGGER, "Pluginlib exception thrown while creating shared instances of ik solver and/or display: '%s'", ex.what());
         return false;
       }
 
       // Initialize the IK solver plugin and display plugin
-      if (!ik_solver_->initialize(sp_.ik_solver_config) ||
-          !display_->initialize(sp_.display_config))
+      if (!ik_solver_->initialize(sp_.ik_solver_config_name, this) ||
+          !display_->initialize(sp_.display_config_name, this))
       {
         return false;
       }
@@ -85,7 +85,7 @@ namespace reach
       display_->showEnvironment();
 
       // Create a directory to store results of study
-      if (!sp_.results_directory.empty() && boost::filesystem::exists(sp_.results_directory.c_str()))
+      if (!sp_.results_directory.empty() && std::filesystem::exists(sp_.results_directory.c_str()))
       {
         dir_ = sp_.results_directory + "/";
       }
@@ -97,10 +97,10 @@ namespace reach
       results_dir_ = dir_ + sp_.config_name + "/";
       const char *char_dir = results_dir_.c_str();
 
-      if (!boost::filesystem::exists(char_dir))
+      if (!std::filesystem::exists(char_dir))
       {
-        boost::filesystem::path path(char_dir);
-        boost::filesystem::create_directory(path);
+          std::filesystem::path path(char_dir);
+          std::filesystem::create_directory(path);
       }
 
       return true;

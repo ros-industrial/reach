@@ -30,7 +30,7 @@ ManipulabilityMoveIt::ManipulabilityMoveIt()
 
 }
 
-bool ManipulabilityMoveIt::initialize(XmlRpc::XmlRpcValue& config)
+bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
 {
   if(!config.hasMember("planning_group"))
   {

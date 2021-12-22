@@ -48,9 +48,9 @@ public:
 
   MoveItIKSolver();
 
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
 
-  virtual boost::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
+  virtual std::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
                                                   const std::map<std::string, double> &seed,
                                                   std::vector<double> &solution) override;
 

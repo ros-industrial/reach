@@ -45,7 +45,7 @@ public:
 
   MoveItReachDisplay();
 
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
 
   virtual void showEnvironment() override;
 

@@ -43,9 +43,9 @@ DiscretizedMoveItIKSolver::DiscretizedMoveItIKSolver()
 
 }
 
-bool DiscretizedMoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
+bool DiscretizedMoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
 {
-  if(!MoveItIKSolver::initialize(config))
+  if(!MoveItIKSolver::initialize(name, node))
   {
     ROS_ERROR("Failed to initialize MoveItIKSolver plugin");
     return false;
@@ -87,7 +87,7 @@ boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::
     Eigen::Isometry3d discretized_target (target * Eigen::AngleAxisd (double(i)*dt_, Eigen::Vector3d::UnitZ()));
     std::vector<double> tmp_solution;
 
-    boost::optional<double> score = MoveItIKSolver::solveIKFromSeed(discretized_target, seed, tmp_solution);
+    std::optional<double> score = MoveItIKSolver::solveIKFromSeed(discretized_target, seed, tmp_solution);
     if(score && (score.get() > best_score))
     {
       best_score = *score;

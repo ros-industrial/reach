@@ -36,7 +36,7 @@ MoveItIKSolver::MoveItIKSolver()
 
 }
 
-bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
+bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
 {
   if(!config.hasMember("planning_group") ||
      !config.hasMember("distance_threshold") ||
@@ -123,7 +123,7 @@ bool MoveItIKSolver::initialize(XmlRpc::XmlRpcValue& config)
   return true;
 }
 
-boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& target,
+std::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& target,
                                                         const std::map<std::string, double>& seed,
                                                         std::vector<double>& solution)
 {
@@ -144,7 +144,11 @@ boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d&
   const static int SOLUTION_ATTEMPTS = 3;
   const static double SOLUTION_TIMEOUT = 0.2;
 
-  if(state.setFromIK(jmg_, target, SOLUTION_ATTEMPTS, SOLUTION_TIMEOUT, boost::bind(&MoveItIKSolver::isIKSolutionValid, this, _1, _2, _3)))
+  if(state.setFromIK(jmg_, target, SOLUTION_ATTEMPTS, SOLUTION_TIMEOUT, std::bind(&MoveItIKSolver::isIKSolutionValid,
+                                                                                  this,
+                                                                                  std::placeholders::_1,
+                                                                                  std::placeholders::_2,
+                                                                                  std::placeholders::_3)))
   {
     solution.clear();
     state.copyJointGroupPositions(jmg_, solution);

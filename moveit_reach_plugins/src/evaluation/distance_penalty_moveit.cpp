@@ -30,7 +30,7 @@ DistancePenaltyMoveIt::DistancePenaltyMoveIt()
 
 }
 
-bool DistancePenaltyMoveIt::initialize(XmlRpc::XmlRpcValue& config)
+bool DistancePenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
 {
   if(!config.hasMember("planning_group") ||
      !config.hasMember("distance_threshold") ||

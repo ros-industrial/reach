@@ -16,10 +16,9 @@
 #ifndef REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 #define REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 
-#include <boost/optional.hpp>
+#include <optional>
 #include <memory>
 #include <vector>
-//#include <xmlrpcpp/XmlRpcValue.h>
 #include <Eigen/Dense>
 
 namespace reach
@@ -46,7 +45,7 @@ namespace reach
    * @param config
    * @return
    */
-      virtual bool initialize(XmlRpc::XmlRpcValue &config) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) = 0;
 
       /**
    * @brief solveIKFromSeed attempts to find a valid IK solution for the given target pose starting from the input seed state.
@@ -55,7 +54,7 @@ namespace reach
    * @param solution
    * @return a boost optional type indicating the success of the IK solution and containing the score of the solution
    */
-      virtual boost::optional<double> solveIKFromSeed(const Eigen::Isometry3d &target,
+      virtual std::optional<double> solveIKFromSeed(const Eigen::Isometry3d &target,
                                                       const std::map<std::string, double> &seed,
                                                       std::vector<double> &solution) = 0;
 

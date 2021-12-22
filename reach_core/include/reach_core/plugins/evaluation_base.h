@@ -18,7 +18,8 @@
 
 #include <memory>
 #include <vector>
-//#include <xmlrpcpp/XmlRpcValue.h>
+
+#include <rclcpp/rclcpp.hpp>
 
 namespace reach
 {
@@ -43,7 +44,7 @@ namespace reach
    * @brief initialize
    * @param config
    */
-      virtual bool initialize(XmlRpc::XmlRpcValue &config) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) = 0;
 
       /**
    * @brief calculateScore

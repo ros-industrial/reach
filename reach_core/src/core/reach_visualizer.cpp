@@ -39,11 +39,11 @@ namespace reach
       using CBType = interactive_markers::MenuHandler::FeedbackCallback;
       using FBType = visualization_msgs::msg::InteractiveMarkerFeedback;
 
-      CBType show_result_cb = boost::bind(&ReachVisualizer::showResultCB, this, _1);
-      CBType show_seed_cb = boost::bind(&ReachVisualizer::showSeedCB, this, _1);
-      CBType re_solve_ik_cb = boost::bind(&ReachVisualizer::reSolveIKCB, this, _1);
-      CBType neighbors_direct_cb = boost::bind(&ReachVisualizer::reachNeighborsDirectCB, this, _1);
-      CBType neighbors_recursive_cb = boost::bind(&ReachVisualizer::reachNeighborsRecursiveCB, this, _1);
+      CBType show_result_cb = std::bind(&ReachVisualizer::showResultCB, this, std::placeholders::_1);
+      CBType show_seed_cb = std::bind(&ReachVisualizer::showSeedCB, this, std::placeholders::_1);
+      CBType re_solve_ik_cb = std::bind(&ReachVisualizer::reSolveIKCB, this, std::placeholders::_1);
+      CBType neighbors_direct_cb = std::bind(&ReachVisualizer::reachNeighborsDirectCB, this, std::placeholders::_1);
+      CBType neighbors_recursive_cb = std::bind(&ReachVisualizer::reachNeighborsRecursiveCB, this, std::placeholders::_1);
 
       display_->createMenuFunction("Show Result", show_result_cb);
       display_->createMenuFunction("Show Seed Position", show_seed_cb);
@@ -62,7 +62,7 @@ namespace reach
 
     void ReachVisualizer::reSolveIKCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
     {
-      boost::optional<reach_msgs::msg::ReachRecord> lookup = db_->get(fb->marker_name);
+      std::optional<reach_msgs::msg::ReachRecord> lookup = db_->get(fb->marker_name);
       if (lookup)
       {
         const std::vector<double> &seed_pose = lookup->seed_state.position;
@@ -78,7 +78,7 @@ namespace reach
 
         // Re-solve IK at the selected marker
         std::vector<double> goal_pose;
-        boost::optional<double> score = solver_->solveIKFromSeed(target, seed_map, goal_pose);
+        std::optional<double> score = solver_->solveIKFromSeed(target, seed_map, goal_pose);
 
         // Update the database if the IK solution was valid
         if (score)

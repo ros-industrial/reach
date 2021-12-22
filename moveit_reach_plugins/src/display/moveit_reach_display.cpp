@@ -33,7 +33,7 @@ MoveItReachDisplay::MoveItReachDisplay()
 
 }
 
-bool MoveItReachDisplay::initialize(XmlRpc::XmlRpcValue& config)
+bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
 {
   if(!config.hasMember("planning_group") ||
      !config.hasMember("collision_mesh_filename") ||

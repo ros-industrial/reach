@@ -184,7 +184,7 @@ namespace reach
             tf2::fromMsg(neighbors[i].goal, target);
 
             // Use current point's IK solution as seed
-            boost::optional<double> score = solver->solveIKFromSeed(target, current_pose_map, new_pose);
+            std::optional<double> score = solver->solveIKFromSeed(target, current_pose_map, new_pose);
             if (score)
             {
               // Calculate the joint distance between the seed and new goal states

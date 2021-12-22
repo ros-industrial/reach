@@ -16,7 +16,6 @@
 #include "reach_core/plugins/impl/multiplicative_factory.h"
 // #include <ros/console.h>
 #include <rclcpp/rclcpp.hpp>
-//#include <xmlrpcpp/XmlRpcException.h>
 
 namespace reach
 {
@@ -36,7 +35,7 @@ namespace reach
     {
     }
 
-    bool MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue &config)
+    bool MultiplicativeFactory::initialize(std::string& name, rclcpp::Node::SharedPtr& node)
     {
       try
       {

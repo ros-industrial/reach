@@ -22,11 +22,10 @@
 #include <reach_msgs/msg/reach_database.h>
 #include "reach_core/utils/visualization_utils.h"
 #include <visualization_msgs/msg/marker_array.hpp>
-#include <xmlrpcpp/XmlRpcValue.h>
 
-const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
-const static std::string REACH_DIFF_TOPIC = "reach_comparison";
-const static std::string MARKER_TOPIC = "reach_neighbors";
+constexpr char INTERACTIVE_MARKER_TOPIC[] = "reach_int_markers";
+constexpr char REACH_DIFF_TOPIC[] = "reach_comparison";
+constexpr char MARKER_TOPIC[] = "reach_neighbors";
 
 namespace reach
 {
@@ -42,18 +41,21 @@ namespace reach
     {
 
     public:
-      DisplayBase()
-          : server_(INTERACTIVE_MARKER_TOPIC, node_)
-      {
-        diff_pub_ = node_.create_publisher<visualization_msgs::msg::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
-        marker_pub_ = node_.create_publisher<visualization_msgs::msg::Marker>(MARKER_TOPIC, 1, true);
-      }
+      DisplayBase() = default;
 
       virtual ~DisplayBase()
       {
+          server_.reset();
+          diff_pub_.reset();
+          marker_pub_.reset();
       }
 
-      virtual bool initialize(XmlRpc::XmlRpcValue &config) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node){
+
+          server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, node);
+          diff_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>(REACH_DIFF_TOPIC, 1);
+          marker_pub_ = node->create_publisher<visualization_msgs::msg::Marker>(MARKER_TOPIC, 1);
+      };
 
       virtual void showEnvironment() = 0;
 
@@ -61,14 +63,14 @@ namespace reach
 
       void addInteractiveMarkerData(const reach_msgs::msg::ReachDatabase &database)
       {
-        server_.clear();
+        server_->clear();
         for (const reach_msgs::msg::ReachRecord &rec : database.records)
         {
           auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
-          server_.insert(std::move(marker));
+          server_->insert(std::move(marker));
           menu_handler_.apply(server_, rec.id);
         }
-        server_.applyChanges();
+        server_->applyChanges();
       }
 
       void createMenuFunction(const std::string &menu_entry,
@@ -79,12 +81,12 @@ namespace reach
 
       void updateInteractiveMarker(const reach_msgs::msg::ReachRecord &rec)
       {
-        if (server_.erase(rec.id))
+        if (server_->erase(rec.id))
         {
           auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
-          server_.insert(marker);
+          server_->insert(marker);
           menu_handler_.apply(server_, rec.id);
-          server_.applyChanges();
+          server_->applyChanges();
         }
         else
         {
@@ -101,7 +103,7 @@ namespace reach
           for (const std::string &id : ids)
           {
             visualization_msgs::msg::InteractiveMarker marker;
-            if (!server_.get(id, marker))
+            if (!server_->get(id, marker))
             {
               RCLCPP_ERROR_STREAM(LOGGER, "Failed to get interactive marker '" << id << "' from server");
               return;
@@ -113,7 +115,7 @@ namespace reach
 
           // Create points marker, publish it, and move robot to result state for  given point
           visualization_msgs::msg::Marker pt_marker = utils::makeMarker(pt_array, fixed_frame_, marker_scale_);
-          marker_pub_.publish(pt_marker);
+          marker_pub_->publish(pt_marker);
         }
       }
 
@@ -138,7 +140,7 @@ namespace reach
 
         for (char perm_ind = 1; perm_ind < static_cast<char>(n_perm - 1); ++perm_ind)
         {
-          std::string ns_name = "";
+          std::string ns_name("");
           for (auto it = data.begin(); it != data.end(); ++it)
           {
             if (((perm_ind >> std::distance(data.begin(), it)) & 1) == 1)
@@ -189,7 +191,7 @@ namespace reach
           }
         }
 
-        diff_pub_.publish(marker_array);
+        diff_pub_->publish(marker_array);
       }
 
     protected:
@@ -198,11 +200,9 @@ namespace reach
       double marker_scale_ = 1.0;
 
     private:
-      interactive_markers::InteractiveMarkerServer server_;
+      std::shared_ptr<interactive_markers::InteractiveMarkerServer> server_;
 
       interactive_markers::MenuHandler menu_handler_;
-
-      std::shared_ptr<rclcpp::Node> node_;
 
       std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::MarkerArray>> diff_pub_;
 

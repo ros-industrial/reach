@@ -18,18 +18,18 @@ find_package(tf2_eigen REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(fmt REQUIRED)
 
-find_package(OpenMP)
-if(OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif()
+#find_package(OpenMP)
+#if(OPENMP_FOUND)
+#    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+#    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+#endif()
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   geometry_msgs
   interactive_markers
   moveit_core
-  # pcl_ros
+  pcl_ros
   pcl_conversions
   pluginlib
   rclcpp
@@ -39,33 +39,10 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   visualization_msgs
 )
 
-ament_export_include_directories(include)
-
-ament_export_libraries(
-  src/${PROJECT_NAME}
-  src/${PROJECT_NAME}_plugins
-)
-
-ament_export_dependencies(
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-)
-# catkin_package(
-#   INCLUDE_DIRS
-#     include
-#   LIBRARIES
-#     ${PROJECT_NAME}
-#     ${PROJECT_NAME}_plugins
-#   CATKIN_DEPENDS
-#     eigen_conversions
-#     geometry_msgs
-#     interactive_markers
-#     pcl_ros
-#     pluginlib
-#     reach_msgs
-#     tf2_ros
-#     tf2_eigen
-#     visualization_msgs
-# )
+#ament_export_libraries(
+#  src/${PROJECT_NAME}
+#  src/${PROJECT_NAME}_plugins
+#)
 
 ###########
 ## BUILD ##
@@ -73,8 +50,8 @@ ament_export_dependencies(
 
 include_directories(
   include
+  ${PCL_INCLUDE_DIRS}
 )
-include_directories(${PCL_INCLUDE_DIRS})
 
 # Reach Study Library
 add_library(${PROJECT_NAME}
@@ -88,22 +65,39 @@ add_library(${PROJECT_NAME}
   # Reach Study
   src/core/reach_study.cpp
 )
-# target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins
-# )
-ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins)
+ament_target_dependencies(${PROJECT_NAME}
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
 
-# Plugins Library
+## Plugins Library
 add_library(${PROJECT_NAME}_plugins
   src/plugins/impl/multiplicative_factory.cpp
 )
-# target_link_libraries(${PROJECT_NAME}_plugins
-# )
-ament_target_dependencies(${PROJECT_NAME}_plugins ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_include_directories(${PROJECT_NAME}_plugins
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+ament_target_dependencies(${PROJECT_NAME}_plugins
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
 
 # Reach Study Node
 add_executable(robot_reach_study_node
   src/robot_reach_study_node.cpp
 )
+target_include_directories(robot_reach_study_node
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+#ament_target_dependencies(robot_reach_study_node ${PROJECT_NAME})
 target_link_libraries(robot_reach_study_node
   ${PROJECT_NAME}
 )
@@ -115,7 +109,8 @@ ament_target_dependencies(robot_reach_study_node
 add_executable(load_point_cloud_server_node
   src/load_point_cloud_server_node.cpp
 )
-target_link_libraries(load_point_cloud_server_node ${PROJECT_NAME}
+target_link_libraries(load_point_cloud_server_node
+  ${PROJECT_NAME}
 )
 ament_target_dependencies(load_point_cloud_server_node
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
@@ -138,11 +133,11 @@ ament_target_dependencies(data_loader
 ## TEST ##
 ##########
 
-if(CATKIN_ENABLE_TESTING)
-  find_package(rostest REQUIRED)
-  add_rostest_gtest(${PROJECT_NAME}_plugin_utest test/plugin.test test/plugin_utest.cpp)
-  target_link_libraries(${PROJECT_NAME}_plugin_utest ${PROJECT_NAME})
-endif()
+#if(CATKIN_ENABLE_TESTING)
+#  find_package(rostest REQUIRED)
+#  add_rostest_gtest(${PROJECT_NAME}_plugin_utest test/plugin.test test/plugin_utest.cpp)
+#  target_link_libraries(${PROJECT_NAME}_plugin_utest ${PROJECT_NAME})
+#endif()
 
 #############
 ## INSTALL ##
@@ -160,14 +155,34 @@ install(
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}
-  DESTINATION include/${PROJECT_NAME}
+install(
+  TARGETS
+    robot_reach_study_node
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY launch config
+install(
+  DIRECTORY launch config
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(FILES plugin_description.xml
   DESTINATION share/${PROJECT_NAME}
 )
+
+## EXPORTS
+ament_export_include_directories(include)
+ament_export_libraries(
+  ${PROJECT_NAME}
+  ${PROJECT_NAME}_plugins
+)
+ament_export_dependencies(
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+
+
+ament_package()

@@ -21,7 +21,7 @@
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/plugins/ik_solver_base.h>
 #include <pcl_conversions/pcl_conversions.h>
-// #include <pcl_ros/point_cloud.hpp>
+ #include <pcl_ros/point_cloud.hpp>
 #include <pluginlib/class_loader.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -34,8 +34,8 @@ namespace reach
     /**
  * @brief The ReachStudy class
  */
-  class ReachStudy : public rclcpp::Node
-    {
+  class ReachStudy : public rclcpp::Node {
+
     public:
       /**
    * @brief ReachStudy
