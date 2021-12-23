@@ -1,5 +1,6 @@
 robot_reach_study_node:
   ros__parameters:
+    config_name: "demo_config"
     fixed_frame: "base_link"
     object_frame: "reach_object"
     results_package: "reach_demo"
