@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     auto node = std::make_shared<rclcpp::Node>("data_loader_node");
 
 
-  std::string root_path = std::string(ament_index_cpp::get_package_share_directory(("reach_core")) + "/" + RESULTS_FOLDER_NAME;
+  std::string root_path = std::string(ament_index_cpp::get_package_share_directory(("reach_core"))) + "/" + RESULTS_FOLDER_NAME;
 
   if(argv[1])
   {

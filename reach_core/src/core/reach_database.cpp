@@ -109,7 +109,7 @@ namespace reach
       return true;
     }
 
-    boost::optional<reach_msgs::msg::ReachRecord> ReachDatabase::get(const std::string &id) const
+    std::optional<reach_msgs::msg::ReachRecord> ReachDatabase::get(const std::string &id) const
     {
       std::lock_guard<std::mutex> lock{mutex_};
       auto it = map_.find(id);

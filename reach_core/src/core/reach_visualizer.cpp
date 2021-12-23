@@ -17,7 +17,9 @@
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/utils/visualization_utils.h>
 #include <reach_msgs/msg/reach_record.hpp>
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
+
+#include <boost/bind.hpp>
 
 namespace reach
 {
@@ -27,6 +29,8 @@ namespace reach
     {
       const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_visualizer");
     }
+
+    using std::placeholders::_1;
 
     ReachVisualizer::ReachVisualizer(ReachDatabasePtr db,
                                      reach::plugins::IKSolverBasePtr solver,
@@ -39,11 +43,11 @@ namespace reach
       using CBType = interactive_markers::MenuHandler::FeedbackCallback;
       using FBType = visualization_msgs::msg::InteractiveMarkerFeedback;
 
-      CBType show_result_cb = std::bind(&ReachVisualizer::showResultCB, this, std::placeholders::_1);
-      CBType show_seed_cb = std::bind(&ReachVisualizer::showSeedCB, this, std::placeholders::_1);
-      CBType re_solve_ik_cb = std::bind(&ReachVisualizer::reSolveIKCB, this, std::placeholders::_1);
-      CBType neighbors_direct_cb = std::bind(&ReachVisualizer::reachNeighborsDirectCB, this, std::placeholders::_1);
-      CBType neighbors_recursive_cb = std::bind(&ReachVisualizer::reachNeighborsRecursiveCB, this, std::placeholders::_1);
+      CBType show_result_cb = std::bind(&ReachVisualizer::showResultCB, this, _1);
+      CBType show_seed_cb = std::bind(&ReachVisualizer::showSeedCB, this, _1);
+      CBType re_solve_ik_cb = std::bind(&ReachVisualizer::reSolveIKCB, this, _1);
+      CBType neighbors_direct_cb = std::bind(&ReachVisualizer::reachNeighborsDirectCB, this, _1);
+      CBType neighbors_recursive_cb = std::bind(&ReachVisualizer::reachNeighborsRecursiveCB, this, _1);
 
       display_->createMenuFunction("Show Result", show_result_cb);
       display_->createMenuFunction("Show Seed Position", show_seed_cb);
@@ -60,7 +64,7 @@ namespace reach
       display_->addInteractiveMarkerData(db_->toReachDatabaseMsg());
     }
 
-    void ReachVisualizer::reSolveIKCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
+    void ReachVisualizer::reSolveIKCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb)
     {
       std::optional<reach_msgs::msg::ReachRecord> lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -107,7 +111,7 @@ namespace reach
       }
     }
 
-    void ReachVisualizer::showResultCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
+    void ReachVisualizer::showResultCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -120,7 +124,7 @@ namespace reach
       }
     }
 
-    void ReachVisualizer::showSeedCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
+    void ReachVisualizer::showSeedCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -133,7 +137,7 @@ namespace reach
       }
     }
 
-    void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
+    void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)
@@ -152,7 +156,7 @@ namespace reach
       }
     }
 
-    void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb)
+    void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb)
     {
       auto lookup = db_->get(fb->marker_name);
       if (lookup)

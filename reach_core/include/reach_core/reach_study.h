@@ -21,7 +21,7 @@
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/plugins/ik_solver_base.h>
 #include <pcl_conversions/pcl_conversions.h>
- #include <pcl_ros/point_cloud.hpp>
+// #include <pcl_ros/point_cloud.hpp>
 #include <pluginlib/class_loader.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -34,14 +34,14 @@ namespace reach
     /**
  * @brief The ReachStudy class
  */
-  class ReachStudy : public rclcpp::Node {
+  class ReachStudy  {
 
     public:
       /**
    * @brief ReachStudy
    * @param nh
    */
-      ReachStudy(const std::string & node_name, const rclcpp::NodeOptions & options);
+      ReachStudy(const rclcpp::Node::SharedPtr node);
 
       /**
    * @brief run
@@ -50,10 +50,19 @@ namespace reach
    */
       bool run(const StudyParameters &sp);
 
+      std::shared_ptr<rclcpp::Node> get_node(){
+
+          if (!node_.get())
+          {
+              throw std::runtime_error("Node hasn't been initialized yet!");
+          }
+          return node_;
+      }
+
     private:
       bool initializeStudy();
 
-      bool getReachObjectPointCloud(const rclcpp::Node::SharedPtr &node);
+      bool getReachObjectPointCloud();
 
       void runInitialReachStudy();
 
@@ -84,6 +93,8 @@ namespace reach
       std::string results_dir_;
 
       sensor_msgs::msg::PointCloud2 cloud_msg_;
+
+      std::shared_ptr<rclcpp::Node> node_;
     };
 
   } // namespace core

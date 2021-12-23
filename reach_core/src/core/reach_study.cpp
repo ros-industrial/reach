@@ -21,11 +21,16 @@
 #include <reach_msgs/msg/reach_record.hpp>
 
 #include <numeric>
-#include <tf2_eigen/tf2_eigen.h>
-#include <pluginlib/class_loader.h>
+#include <tf2_eigen/tf2_eigen.hpp>
+#include <pluginlib/class_loader.hpp>
 #include <exception>
 
+#include <filesystem>
+
 #include <rclcpp/rclcpp.hpp>
+
+#include <ament_index_cpp/get_package_share_directory.hpp>
+
 
 constexpr char SAMPLE_MESH_SRV_TOPIC[] = "sample_mesh";
 const static double SRV_TIMEOUT = 5.0;
@@ -45,13 +50,14 @@ namespace reach
       constexpr char IK_BASE_CLASS[] = "reach::plugins::IKSolverBase";
       constexpr char DISPLAY_BASE_CLASS[] = "reach::plugins::DisplayBase";
 
-    ReachStudy::ReachStudy(const std::string & node_name, const rclcpp::NodeOptions & options)
-        : Node(node_name, options),
+    ReachStudy::ReachStudy(const rclcpp::Node::SharedPtr node)
+        : node_(node),
         cloud_(new pcl::PointCloud<pcl::PointNormal>()),
         db_(new ReachDatabase()),
         solver_loader_(PACKAGE, IK_BASE_CLASS),
         display_loader_(PACKAGE, DISPLAY_BASE_CLASS)
     {
+
     }
 
     bool ReachStudy::initializeStudy()
@@ -64,20 +70,20 @@ namespace reach
         ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
         display_ = display_loader_.createSharedInstance(sp_.display_config_name);
       }
-      catch (const std::exception &ex)
-      {
-        RCLCPP_ERROR(LOGGER, "Error while creating shared instances of ik solver and/or display: '%s'", ex.what());
-        return false;
-      }
       catch (const pluginlib::PluginlibException &ex)
       {
         RCLCPP_ERROR(LOGGER, "Pluginlib exception thrown while creating shared instances of ik solver and/or display: '%s'", ex.what());
         return false;
       }
+      catch (const std::exception &ex)
+      {
+          RCLCPP_ERROR(LOGGER, "Error while creating shared instances of ik solver and/or display: '%s'", ex.what());
+          return false;
+      }
 
       // Initialize the IK solver plugin and display plugin
-      if (!ik_solver_->initialize(sp_.ik_solver_config_name, this) ||
-          !display_->initialize(sp_.display_config_name, this))
+      if (!ik_solver_->initialize(sp_.ik_solver_config_name, node_) ||
+          !display_->initialize(sp_.display_config_name, node_))
       {
         return false;
       }
@@ -85,14 +91,15 @@ namespace reach
       display_->showEnvironment();
 
       // Create a directory to store results of study
-      if (!sp_.results_directory.empty() && std::filesystem::exists(sp_.results_directory.c_str()))
+      std::string tmp_dir = ament_index_cpp::get_package_share_directory(sp_.results_package) + "/" + sp_.results_directory;
+      if (!tmp_dir.empty() && std::filesystem::exists(tmp_dir.c_str()))
       {
-        dir_ = sp_.results_directory + "/";
+        dir_ = tmp_dir + "/";
       }
       else
       {
-        dir_ = ros::package::getPath("reach_core") + "/results/";
-        ROS_WARN("Using default results file directory: %s", dir_.c_str());
+        dir_ = ament_index_cpp::get_package_share_directory("reach_core") + "/results/";
+        RCLCPP_WARN(LOGGER, "Using default results file directory: '%s'", dir_.c_str());
       }
       results_dir_ = dir_ + sp_.config_name + "/";
       const char *char_dir = results_dir_.c_str();
@@ -128,8 +135,8 @@ namespace reach
       // Show the reach object collision object and reach object point cloud
       if (sp_.visualize_results)
       {
-        ros::Publisher pub = nh_.advertise<sensor_msgs::msg::PointCloud2>(INPUT_CLOUD_TOPIC, 1, true);
-        pub.publish(cloud_msg_);
+        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub = node_->create_publisher<sensor_msgs::msg::PointCloud2>(INPUT_CLOUD_TOPIC, 1);
+        pub->publish(cloud_msg_);
       }
 
       // Create markers
@@ -208,7 +215,7 @@ namespace reach
         {
           if (!compareDatabases())
           {
-            ROS_ERROR("Unable to compare the current reach study database with the other specified databases");
+            RCLCPP_ERROR(LOGGER, "Unable to compare the current reach study database with the other specified databases");
           }
         }
       }
@@ -216,35 +223,38 @@ namespace reach
       return true;
     }
 
-    bool ReachStudy::getReachObjectPointCloud(const rclcpp::Node::SharedPtr &node)
+    bool ReachStudy::getReachObjectPointCloud()
     {
       // Call the sample mesh service to create a point cloud of the reach object mesh
-      auto client = node->create_client(SAMPLE_MESH_SRV_TOPIC);
+      auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC);
+      auto req = std::make_shared<reach_msgs::srv::LoadPointCloud::Request>();
+      req->cloud_filename = ament_index_cpp::get_package_share_directory(sp_.pcd_package) + "/" + sp_.pcd_filename_path;
+      req->fixed_frame = sp_.fixed_frame;
+      req->object_frame = sp_.object_frame;
 
-      reach_msgs::srv::LoadPointCloud srv;
-      srv.request.cloud_filename = sp_.pcd_filename;
-      srv.request.fixed_frame = sp_.fixed_frame;
-      srv.request.object_frame = sp_.object_frame;
-
-      client.waitForExistence(ros::Duration(SRV_TIMEOUT));
-      if (!client.call(srv))
+      client->wait_for_service();
+      auto result = client->async_send_request(req);
+      // Wait for the result.
+      if (rclcpp::spin_until_future_complete(node_->get_node_base_interface(), result) == rclcpp::FutureReturnCode::SUCCESS)
       {
-        RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client.getService() << "'");
-        return false;
+          if (!result.get()->success)
+          {
+              RCLCPP_ERROR_STREAM(LOGGER, result.get()->message);
+              return false;
+          }
+
+          cloud_msg_ = result.get()->cloud;
+          pcl::fromROSMsg(cloud_msg_, *cloud_);
+
+          cloud_msg_.header.frame_id = sp_.fixed_frame;
+          cloud_msg_.header.stamp = node_->now();
+
+          return true;
+      } else {
+          RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client->get_service_name() << "'");
+          return false;
       }
-      else if (!srv.response.success)
-      {
-        RCLCPP_ERROR_STREAM(LOGGER, srv.response.message);
-        return false;
-      }
 
-      cloud_msg_ = srv.response.cloud;
-      pcl::fromROSMsg(cloud_msg_, *cloud_);
-
-      cloud_msg_.header.frame_id = sp_.fixed_frame;
-      cloud_msg_.header.stamp = node->now();
-
-      return true;
     }
 
     void ReachStudy::runInitialReachStudy()
@@ -273,7 +283,7 @@ namespace reach
 
         // Solve IK
         std::vector<double> solution;
-        boost::optional<double> score = ik_solver_->solveIKFromSeed(tgt_frame, jointStateMsgToMap(seed_state), solution);
+        std::optional<double> score = ik_solver_->solveIKFromSeed(tgt_frame, jointStateMsgToMap(seed_state), solution);
 
         // Create objects to save in the reach record
         geometry_msgs::msg::Pose tgt_pose;

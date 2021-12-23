@@ -21,6 +21,8 @@
 #include <vector>
 #include <Eigen/Dense>
 
+#include <rclcpp/rclcpp.hpp>
+
 namespace reach
 {
   namespace plugins
@@ -45,7 +47,7 @@ namespace reach
    * @param config
    * @return
    */
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) = 0;
 
       /**
    * @brief solveIKFromSeed attempts to find a valid IK solution for the given target pose starting from the input seed state.

@@ -21,22 +21,21 @@
 #include <memory>
 
 
-class RobotReachStudyNode : public reach::core::ReachStudy
+class RobotReachStudyNode : public rclcpp::Node
 {
 public:
-   explicit RobotReachStudyNode(std::string& node_name) :
-    reach::core::ReachStudy(node_name,
-        rclcpp::NodeOptions().allow_undeclared_parameters(true).automatically_declare_parameters_from_overrides(true))
+   explicit RobotReachStudyNode(const std::string& node_name)
+   : Node(node_name, rclcpp::NodeOptions().allow_undeclared_parameters(true).automatically_declare_parameters_from_overrides(true))
     {
-        // get the study parameters
-        getStudyParameters();
+
     }
 
 public:
-    bool getStudyParameters(){
+    bool getStudyParameters(reach::core::StudyParameters& sp){
 
-        // fetch parameteres !this->get_parameter("config_name", sp_.config_name)  ||
-        if (!this->get_parameter("fixed_frame", sp_.fixed_frame) ||
+        // fetch parameteres
+        if (!this->get_parameter("config_name", sp_.config_name)  ||
+            !this->get_parameter("fixed_frame", sp_.fixed_frame) ||
             !this->get_parameter("results_package", sp_.results_package) ||
             !this->get_parameter("results_directory", sp_.results_directory) ||
             !this->get_parameter("object_frame", sp_.object_frame) ||
@@ -53,6 +52,7 @@ public:
             RCLCPP_ERROR(rclcpp::get_logger("robot_reach_study_node"), "One of the main parameters do not exist..." );
             return false;
         }else{
+            RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "config_name: '%s'", sp_.config_name.c_str() );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "fixed_frame: '%s'", sp_.fixed_frame.c_str() );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "results_package: '%s'", sp_.results_package.c_str() );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "results_directory: '%s'", sp_.results_directory.c_str() );
@@ -63,17 +63,18 @@ public:
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "optimization.max_steps: '%d'", sp_.optimization.max_steps );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "optimization.step_improvement_threshold: '%f'", sp_.optimization.step_improvement_threshold );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "get_avg_neighbor_count: '%d'", sp_.get_neighbors );
-            RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "compare_dbs: '%s'", sp_.compare_dbs[0].c_str() );
+            for (auto const& compare_db: sp_.compare_dbs){
+                RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "compare_dbs: '%s'", compare_db.c_str() );
+            }
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "visualize_results: '%c'", sp_.visualize_results );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "ik_solver_config.name: '%s'", sp_.ik_solver_config_name.c_str() );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "display_config.name: '%s'", sp_.display_config_name.c_str() );
+
+            // set params
+            sp = sp_;
+
             return true;
         }
-    }
-
-    bool run(){
-
-        return this->run(sp_);
     }
 
 private:
@@ -91,17 +92,30 @@ int main(int argc, char **argv)
     // create node
     auto node = std::make_shared<RobotReachStudyNode>("robot_reach_study_node");
 
+    // get the study parameters
+    reach::core::StudyParameters sp;
+    if (!node->getStudyParameters(sp)){
+
+        return -1;
+    }
+
+    std::thread t1( [node]{
+        // spin
+        rclcpp::spin(node);
+    });
+
+    // Initialize the reach study
+    reach::core::ReachStudy rs (node);
 
   // Run the reach study
-//  if(!node->run())
-//  {
-//    RCLCPP_ERROR(rclcpp::get_logger("robot_reach_study_node"), "Unable to perform the reach study");
-//    return -1;
-//  }
+  if(!rs.run(sp) || !rclcpp::ok())
+  {
+    RCLCPP_ERROR(rclcpp::get_logger("robot_reach_study_node"), "Unable to perform the reach study");
+    return -1;
+  }
 
-    // spin
-    rclcpp::spin(node);
-
+  rclcpp::shutdown();
+  t1.join();
 
   return 0;
 }

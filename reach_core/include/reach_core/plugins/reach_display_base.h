@@ -50,11 +50,14 @@ namespace reach
           marker_pub_.reset();
       }
 
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node){
+      bool initialize(std::string& name, rclcpp::Node::SharedPtr node){
 
+          node_ = node;
           server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, node);
           diff_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>(REACH_DIFF_TOPIC, 1);
           marker_pub_ = node->create_publisher<visualization_msgs::msg::Marker>(MARKER_TOPIC, 1);
+
+          return true;
       };
 
       virtual void showEnvironment() = 0;
@@ -66,9 +69,9 @@ namespace reach
         server_->clear();
         for (const reach_msgs::msg::ReachRecord &rec : database.records)
         {
-          auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
+          auto marker = utils::makeInteractiveMarker(node_, rec, fixed_frame_, marker_scale_);
           server_->insert(std::move(marker));
-          menu_handler_.apply(server_, rec.id);
+          menu_handler_.apply(*server_, rec.id);
         }
         server_->applyChanges();
       }
@@ -83,9 +86,9 @@ namespace reach
       {
         if (server_->erase(rec.id))
         {
-          auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
+          auto marker = utils::makeInteractiveMarker(node_, rec, fixed_frame_, marker_scale_);
           server_->insert(marker);
-          menu_handler_.apply(server_, rec.id);
+          menu_handler_.apply(*server_, rec.id);
           server_->applyChanges();
         }
         else
@@ -114,7 +117,7 @@ namespace reach
           }
 
           // Create points marker, publish it, and move robot to result state for  given point
-          visualization_msgs::msg::Marker pt_marker = utils::makeMarker(pt_array, fixed_frame_, marker_scale_);
+          visualization_msgs::msg::Marker pt_marker = reach::utils::makeMarker(node_, pt_array, fixed_frame_, marker_scale_);
           marker_pub_->publish(pt_marker);
         }
       }
@@ -186,7 +189,7 @@ namespace reach
           if (code != 0 && code != n_perm - 1)
           {
             std::string ns = {ns_vec[static_cast<std::size_t>(code)]};
-            visualization_msgs::msg::Marker arrow_marker = utils::makeVisual(data.begin()->second.records[i], fixed_frame_, marker_scale_, ns, {arrow_color});
+            visualization_msgs::msg::Marker arrow_marker = utils::makeVisual(node_, data.begin()->second.records[i], fixed_frame_, marker_scale_, ns, {arrow_color});
             marker_array.markers.push_back(arrow_marker);
           }
         }
@@ -207,6 +210,8 @@ namespace reach
       std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::MarkerArray>> diff_pub_;
 
       std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::Marker>> marker_pub_;
+
+      std::shared_ptr<rclcpp::Node> node_;
     };
     typedef std::shared_ptr<DisplayBase> DisplayBasePtr;
 

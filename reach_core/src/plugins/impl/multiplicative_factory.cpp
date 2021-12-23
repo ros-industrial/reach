@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 #include "reach_core/plugins/impl/multiplicative_factory.h"
-// #include <ros/console.h>
 #include <rclcpp/rclcpp.hpp>
 
 namespace reach
@@ -27,8 +26,8 @@ namespace reach
   namespace plugins
   {
 
-    const static std::string PACKAGE = "reach_core";
-    const static std::string PLUGIN_BASE_NAME = "reach::plugins::EvaluationBase";
+    constexpr char PACKAGE[] = "reach_core";
+    constexpr char PLUGIN_BASE_NAME[] = "reach::plugins::EvaluationBase";
 
     MultiplicativeFactory::MultiplicativeFactory()
         : EvaluationBase(), class_loader_(PACKAGE, PLUGIN_BASE_NAME)
@@ -39,19 +38,20 @@ namespace reach
     {
       try
       {
-        XmlRpc::XmlRpcValue &plugin_configs = config["plugins"];
+          std::vector<std::string> plugin_configs;
+          node->get_parameter("ik_solver_config.evaluation_plugin.plugins", plugin_configs);
 
         eval_plugins_.reserve(plugin_configs.size());
 
         for (int i = 0; i < plugin_configs.size(); ++i)
         {
-          XmlRpc::XmlRpcValue &plugin_config = plugin_configs[i];
-          const std::string name = std::string(plugin_config["name"]);
+          std::string &plugin_config = plugin_configs[i];
+          const std::string plugin_name = std::string(plugin_config);
 
           EvaluationBasePtr plugin;
           try
           {
-            plugin = class_loader_.createSharedInstance(name);
+            plugin = class_loader_.createSharedInstance(plugin_name);
           }
           catch (const pluginlib::ClassLoaderException &ex)
           {
@@ -59,7 +59,7 @@ namespace reach
             continue;
           }
 
-          if (!plugin->initialize(plugin_config))
+          if (!plugin->initialize(name, node))
           {
             RCLCPP_WARN_STREAM(LOGGER, "Plugin '" << name << "' failed to be initialized; excluding it from the list");
             continue;
@@ -68,9 +68,9 @@ namespace reach
           eval_plugins_.push_back(std::move(plugin));
         }
       }
-      catch (const XmlRpc::XmlRpcException &ex)
+      catch (const std::exception &ex)
       {
-        RCLCPP_ERROR_STREAM(LOGGER, ex.getMessage());
+        RCLCPP_ERROR_STREAM(LOGGER, ex.what());
       }
 
       if (eval_plugins_.empty())

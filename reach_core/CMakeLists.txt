@@ -8,7 +8,8 @@ find_package(geometry_msgs REQUIRED)
 find_package(interactive_markers REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(PCL REQUIRED)
-find_package(pcl_ros REQUIRED)
+find_package(Eigen3 REQUIRED)
+#find_package(pcl_ros REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -29,7 +30,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   geometry_msgs
   interactive_markers
   moveit_core
-  pcl_ros
+#  pcl_ros
   pcl_conversions
   pluginlib
   rclcpp
@@ -38,11 +39,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_ros
   visualization_msgs
 )
-
-#ament_export_libraries(
-#  src/${PROJECT_NAME}
-#  src/${PROJECT_NAME}_plugins
-#)
 
 ###########
 ## BUILD ##
@@ -53,11 +49,52 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
-# Reach Study Library
-add_library(${PROJECT_NAME}
+# Plugins Library
+add_library(${PROJECT_NAME}_plugins
+  src/plugins/impl/multiplicative_factory.cpp
+)
+target_link_libraries(${PROJECT_NAME}_plugins
+  ${PCL_LIBRARIES}
+  ${rclcpp_LIBRARIES}
+  Eigen3::Eigen
+  ${PROJECT_NAME}_utils
+)
+target_include_directories(${PROJECT_NAME}_plugins
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+ament_target_dependencies(${PROJECT_NAME}_plugins
+  pluginlib
+  rclcpp
+  interactive_markers
+  visualization_msgs
+  reach_msgs
+)
+
+add_library(${PROJECT_NAME}_utils
   # Utilities
   src/utils/general_utils.cpp
   src/utils/visualization_utils.cpp
+)
+target_include_directories(${PROJECT_NAME}_utils
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(${PROJECT_NAME}_utils
+  ${PCL_LIBRARIES}
+  ${rclcpp_LIBRARIES}
+)
+ament_target_dependencies(${PROJECT_NAME}_utils
+  reach_msgs
+  rclcpp
+  visualization_msgs
+)
+
+
+# Reach Study Library
+add_library(${PROJECT_NAME}
   # Tools
   src/core/reach_database.cpp
   src/core/ik_helper.cpp
@@ -70,21 +107,8 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins ${PROJECT_NAME}_utils)
 ament_target_dependencies(${PROJECT_NAME}
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-)
-
-## Plugins Library
-add_library(${PROJECT_NAME}_plugins
-  src/plugins/impl/multiplicative_factory.cpp
-)
-target_include_directories(${PROJECT_NAME}_plugins
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-ament_target_dependencies(${PROJECT_NAME}_plugins
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
@@ -97,15 +121,16 @@ target_include_directories(robot_reach_study_node
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-#ament_target_dependencies(robot_reach_study_node ${PROJECT_NAME})
 target_link_libraries(robot_reach_study_node
   ${PROJECT_NAME}
+  ${PROJECT_NAME}_utils
+  ${PROJECT_NAME}_plugins
 )
 ament_target_dependencies(robot_reach_study_node
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
-# Load Point Cloud Server Node
+## Load Point Cloud Server Node
 add_executable(load_point_cloud_server_node
   src/load_point_cloud_server_node.cpp
 )
@@ -117,7 +142,7 @@ ament_target_dependencies(load_point_cloud_server_node
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
-# Data Loader Node
+## Data Loader Node
 add_executable(data_loader
   src/data_loader_node.cpp
 )
@@ -147,6 +172,7 @@ install(
   TARGETS
     ${PROJECT_NAME}
     ${PROJECT_NAME}_plugins
+    ${PROJECT_NAME}_utils
     robot_reach_study_node
     load_point_cloud_server_node
     data_loader
@@ -155,11 +181,11 @@ install(
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(
-  TARGETS
-    robot_reach_study_node
-  DESTINATION lib/${PROJECT_NAME}
-)
+#install(
+#  TARGETS
+#    robot_reach_study_node
+#  DESTINATION lib/${PROJECT_NAME}
+#)
 
 install(
   DIRECTORY launch config
@@ -179,10 +205,10 @@ ament_export_include_directories(include)
 ament_export_libraries(
   ${PROJECT_NAME}
   ${PROJECT_NAME}_plugins
+  ${PROJECT_NAME}_utils
 )
 ament_export_dependencies(
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
-
 
 ament_package()

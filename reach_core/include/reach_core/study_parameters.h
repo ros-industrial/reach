@@ -56,9 +56,9 @@ struct StudyParameters
   StudyOptimization optimization;
   std::string config_name;
   std::string results_package;
-    std::string results_directory;
-    std::string pcd_package;
-    std::string pcd_filename_path;
+  std::string results_directory;
+  std::string pcd_package;
+  std::string pcd_filename_path;
   bool visualize_results;
   bool get_neighbors;
   std::vector<std::string> compare_dbs;

@@ -19,13 +19,14 @@
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/PCLPointField.h>
-#include <pcl_ros/point_cloud.hpp>
+//#include <pcl_ros/point_cloud.hpp>
+#include <pcl_conversions/pcl_conversions.h>
 #include <reach_msgs/srv/load_point_cloud.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_listener.h>
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 
-constexpr char SAMPLE_MESH_SRV_TOPIC[] = "sample_mesg";
+constexpr char SAMPLE_MESH_SRV_TOPIC[] = "sample_mesh";
 
 using LoadPCLSrv = reach_msgs::srv::LoadPointCloud;
 using LoadPCLReq  = reach_msgs::srv::LoadPointCloud_Request;
@@ -36,7 +37,7 @@ using LoadPCLResSharedPtr = LoadPCLRes::SharedPtr;
 
     class PointCloudServerNode : public rclcpp::Node {
     public:
-        explicit PointCloudServerNode(std::string &node_name) : Node(node_name) {
+        explicit PointCloudServerNode(const std::string &node_name) : Node(node_name) {
 
             server_ = this->create_service<LoadPCLSrv>(SAMPLE_MESH_SRV_TOPIC, [this](const LoadPCLReqSharedPtr req,
                                                                                      LoadPCLResSharedPtr res){

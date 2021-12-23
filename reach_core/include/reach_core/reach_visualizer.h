@@ -50,15 +50,15 @@ namespace reach
       void update();
 
     private:
-      void reSolveIKCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb);
+      void reSolveIKCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb);
 
-      void showResultCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb);
+      void showResultCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb);
 
-      void showSeedCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb);
+      void showSeedCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb);
 
-      void reachNeighborsDirectCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb);
+      void reachNeighborsDirectCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb);
 
-      void reachNeighborsRecursiveCB(const visualization_msgs::msg::InteractiveMarkerFeedback *&fb);
+      void reachNeighborsRecursiveCB(const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr &fb);
 
       ReachDatabasePtr db_;
 

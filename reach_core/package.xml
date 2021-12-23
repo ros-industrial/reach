@@ -19,15 +19,13 @@
   <depend>interactive_markers</depend>
   <depend>moveit_core</depend>
   <depend>pcl_conversions</depend>
-  <!-- <depend>pcl_ros</depend> -->
+<!--   <depend>pcl_ros</depend>-->
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>reach_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_eigen</depend>
-  <depend>visualization_msgs</depend> 
-  <!-- Got some errors, had to install libxmlrpcpp-dev ?-->
-  <!-- <test_depend>rosunit</test_depend> -->
+  <depend>visualization_msgs</depend>
 
   <export>
     <reach_core plugin="${prefix}/plugin_description.xml"/>

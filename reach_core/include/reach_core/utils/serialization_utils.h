@@ -31,12 +31,9 @@ namespace reach
     bool toFile(const std::string &path,
                 const T &msg)
     {
-      namespace ser = ros::serialization;
-      uint32_t serialize_size = ser::serializationLength(msg);
-      boost::shared_array<uint8_t> buffer(new uint8_t[serialize_size]);
-
-      ser::OStream stream(buffer.get(), serialize_size);
-      ser::serialize(stream, msg);
+      auto serializer = rclcpp::Serialization<T>();
+      auto ser_msg = new rclcpp::SerializedMessage();
+      serializer.serialize_message(&msg, ser_msg);
 
       std::ofstream file(path.c_str(), std::ios::out | std::ios::binary);
       if (!file)
@@ -45,7 +42,7 @@ namespace reach
       }
       else
       {
-        file.write((char *)buffer.get(), serialize_size);
+        file.write((char *)ser_msg->get_rcl_serialized_message().buffer, ser_msg->capacity());
         return file.good();
       }
     }
@@ -54,8 +51,6 @@ namespace reach
     bool fromFile(const std::string &path,
                   T &msg)
     {
-      namespace ser = ros::serialization;
-
       std::ifstream ifs(path.c_str(), std::ios::in | std::ios::binary);
       if (!ifs)
       {
@@ -69,10 +64,14 @@ namespace reach
 
       uint32_t file_size = end - begin;
 
-      boost::shared_array<uint8_t> ibuffer(new uint8_t[file_size]);
+      std::shared_ptr<uint8_t[]> ibuffer(new uint8_t[file_size]);
       ifs.read((char *)ibuffer.get(), file_size);
-      ser::IStream istream(ibuffer.get(), file_size);
-      ser::deserialize(istream, msg);
+
+      auto ser_msg = new rclcpp::SerializedMessage();
+      ser_msg->get_rcl_serialized_message().buffer = ibuffer.get();
+      auto serializer = rclcpp::Serialization<T>();
+      serializer.deserialize_message(ser_msg, &msg);
+
       return true;
     }
 

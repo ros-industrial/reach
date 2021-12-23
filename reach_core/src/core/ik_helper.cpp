@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <reach_core/ik_helper.h>
 
 namespace reach
@@ -116,7 +116,7 @@ namespace reach
 
           // Use current point's IK solution as seed
           std::vector<double> new_solution;
-          boost::optional<double> score = solver->solveIKFromSeed(target, previous_solution, new_solution);
+          std::optional<double> score = solver->solveIKFromSeed(target, previous_solution, new_solution);
 
           if (score)
           {

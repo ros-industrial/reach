@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include "reach_core/utils/visualization_utils.h"
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <pcl/features/moment_of_inertia_estimation.h>
 
 const static double ARROW_SCALE_RATIO = 6.0;
@@ -90,7 +90,8 @@ namespace reach
       return marker;
     }
 
-    visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(const reach_msgs::msg::ReachRecord &r,
+    visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(const rclcpp::Node::SharedPtr &node,
+                                                                     const reach_msgs::msg::ReachRecord &r,
                                                                      const std::string &frame,
                                                                      const double scale)
     {
@@ -104,7 +105,7 @@ namespace reach
       control.always_visible = true;
 
       // Visuals
-      auto visual = makeVisual(r, frame, scale);
+      auto visual = utils::makeVisual(node, r, frame, scale);
       control.markers.push_back(visual);
       m.controls.push_back(control);
 
