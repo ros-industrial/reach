@@ -30,6 +30,10 @@ class JointModelGroup;
 
 namespace moveit_reach_plugins
 {
+    namespace
+    {
+        const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_reach_plugins.JointPenaltyMoveIt");
+    }
 namespace evaluation
 {
 
@@ -39,7 +43,7 @@ public:
 
   JointPenaltyMoveIt();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
 
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 

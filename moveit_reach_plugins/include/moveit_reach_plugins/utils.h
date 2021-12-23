@@ -17,11 +17,14 @@
 #define MOVEIT_REACH_PLUGINS_KINEMATICS_UTILS_H
 
 #include <string>
-#include <moveit_msgs/CollisionObject.h>
-#include <reach_msgs/ReachRecord.h>
-#include <visualization_msgs/Marker.h>
-#include <visualization_msgs/InteractiveMarker.h>
-#include <boost/optional.hpp>
+#include <moveit_msgs/msg/collision_object.hpp>
+#include <reach_msgs/msg/reach_record.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+#include <visualization_msgs/msg/interactive_marker.hpp>
+#include <optional>
+#include <map>
+
+#include<rclcpp/rclcpp.hpp>
 
 namespace moveit_reach_plugins
 {
@@ -35,7 +38,7 @@ namespace moveit_reach_plugins
  * @param object_name
  * @return
  */
-              moveit_msgs::CollisionObject createCollisionObject(const std::string &mesh_filename,
+              moveit_msgs::msg::CollisionObject createCollisionObject(const std::string &mesh_filename,
                                                                  const std::string &parent_link,
                                                                  const std::string &object_name);
 
@@ -46,11 +49,12 @@ namespace moveit_reach_plugins
  * @param scale
  * @return
  */
-              visualization_msgs::Marker makeVisual(const reach_msgs::msg::ReachRecord &r,
+              visualization_msgs::msg::Marker makeVisual(const rclcpp::Node::SharedPtr node,
+                                                         const reach_msgs::msg::ReachRecord &r,
                                                     const std::string &frame,
                                                     const double scale,
                                                     const std::string &ns = "reach",
-                                                    const boost::optional<std::vector<float>> &color = {});
+                                                    const std::optional<std::vector<float>> &color = {});
 
               /**
  * @brief makeInteractiveMarker
@@ -59,7 +63,8 @@ namespace moveit_reach_plugins
  * @param scale
  * @return
  */
-              visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::msg::ReachRecord &r,
+              visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(const rclcpp::Node::SharedPtr node,
+                                                                               const reach_msgs::msg::ReachRecord &r,
                                                                           const std::string &frame,
                                                                           const double scale);
 
@@ -71,7 +76,8 @@ namespace moveit_reach_plugins
  * @param ns
  * @return
  */
-              visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point> &pts,
+              visualization_msgs::msg::Marker makeMarker(const rclcpp::Node::SharedPtr node,
+                                                         const std::vector<geometry_msgs::msg::Point> &pts,
                                                     const std::string &frame,
                                                     const double scale,
                                                     const std::string &ns = "");

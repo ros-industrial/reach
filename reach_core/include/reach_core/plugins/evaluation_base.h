@@ -44,7 +44,7 @@ namespace reach
    * @brief initialize
    * @param config
    */
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) = 0;
 
       /**
    * @brief calculateScore

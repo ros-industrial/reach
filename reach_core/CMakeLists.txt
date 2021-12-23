@@ -17,7 +17,7 @@ find_package(reach_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(fmt REQUIRED)
+#find_package(fmt REQUIRED)
 
 #find_package(OpenMP)
 #if(OPENMP_FOUND)
@@ -138,7 +138,7 @@ target_link_libraries(load_point_cloud_server_node
   ${PROJECT_NAME}
 )
 ament_target_dependencies(load_point_cloud_server_node
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#  ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
@@ -192,9 +192,9 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-#install(DIRECTORY include/${PROJECT_NAME}
-#  DESTINATION include/${PROJECT_NAME}
-#)
+install(DIRECTORY include/${PROJECT_NAME}
+  DESTINATION include/${PROJECT_NAME}
+)
 
 install(DIRECTORY include/
   DESTINATION include

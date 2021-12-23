@@ -20,6 +20,7 @@
 
 namespace moveit_reach_plugins
 {
+
 namespace ik
 {
 
@@ -29,7 +30,7 @@ public:
 
   DiscretizedMoveItIKSolver();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
 
   virtual std::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
                                                   const std::map<std::string, double>& seed,

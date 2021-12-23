@@ -17,7 +17,7 @@
 #define MOVEIT_REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
 
 #include <reach_core/plugins/evaluation_base.h>
-#include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/msg/planning_scene.hpp>
 
 namespace moveit
 {
@@ -37,6 +37,10 @@ typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 
 namespace moveit_reach_plugins
 {
+    namespace
+    {
+        const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_reach_plugins.DistancePenaltyMoveIt");
+    }
 namespace evaluation
 {
 
@@ -46,7 +50,7 @@ public:
 
   DistancePenaltyMoveIt();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
 
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 
@@ -62,7 +66,8 @@ private:
 
   int exponent_;
 
-  std::string collision_mesh_filename_;
+    std::string collision_mesh_package_;
+    std::string collision_mesh_filename_path_;
 
   std::string collision_mesh_frame_;
 

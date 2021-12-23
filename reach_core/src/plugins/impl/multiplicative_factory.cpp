@@ -34,7 +34,7 @@ namespace reach
     {
     }
 
-    bool MultiplicativeFactory::initialize(std::string& name, rclcpp::Node::SharedPtr& node)
+    bool MultiplicativeFactory::initialize(std::string& name, rclcpp::Node::SharedPtr node)
     {
       try
       {

@@ -19,7 +19,7 @@
 #include <interactive_markers/interactive_marker_server.hpp>
 #include <interactive_markers/menu_handler.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <reach_msgs/msg/reach_database.h>
+#include <reach_msgs/msg/reach_database.hpp>
 #include "reach_core/utils/visualization_utils.h"
 #include <visualization_msgs/msg/marker_array.hpp>
 
@@ -50,7 +50,7 @@ namespace reach
           marker_pub_.reset();
       }
 
-      bool initialize(std::string& name, rclcpp::Node::SharedPtr node){
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node){
 
           node_ = node;
           server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, node);
@@ -196,6 +196,8 @@ namespace reach
 
         diff_pub_->publish(marker_array);
       }
+    public:
+        std::shared_ptr<rclcpp::Node> node_;
 
     protected:
       std::string fixed_frame_ = "base_frame";
@@ -211,7 +213,6 @@ namespace reach
 
       std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::Marker>> marker_pub_;
 
-      std::shared_ptr<rclcpp::Node> node_;
     };
     typedef std::shared_ptr<DisplayBase> DisplayBasePtr;
 

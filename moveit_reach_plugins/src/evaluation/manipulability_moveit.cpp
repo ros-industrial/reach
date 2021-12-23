@@ -17,7 +17,6 @@
 #include "moveit_reach_plugins/utils.h"
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_model/joint_model_group.h>
-#include <xmlrpcpp/XmlRpcException.h>
 
 namespace moveit_reach_plugins
 {
@@ -30,36 +29,28 @@ ManipulabilityMoveIt::ManipulabilityMoveIt()
 
 }
 
-bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
+bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr node)
 {
-  if(!config.hasMember("planning_group"))
+    std::string planning_group;
+
+    std::string param_prefix ("ik_solver_config.evaluation_plugin.moveit_reach_plugins/evaluation/ManipulabilityMoveIt.");
+    if(!node->get_parameter(param_prefix+ "planning_group", planning_group))
   {
-    ROS_ERROR("MoveIt Manipulability Evaluation Plugin is missing 'planning_group' parameter");
+    RCLCPP_ERROR(LOGGER, "MoveIt Manipulability Evaluation Plugin is missing 'planning_group' parameter");
     return false;
   }
 
-  std::string planning_group;
-  try
-  {
-    planning_group = std::string(config["planning_group"]);
-  }
-  catch(const XmlRpc::XmlRpcException& ex)
-  {
-    ROS_ERROR_STREAM(ex.getMessage());
-    return false;
-  }
-
-  model_ = moveit::planning_interface::getSharedRobotModel("robot_description");
+  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
   if(!model_)
   {
-    ROS_ERROR("Failed to initialize robot model pointer");
+    RCLCPP_ERROR(LOGGER, "Failed to initialize robot model pointer");
     return false;
   }
 
   jmg_ = model_->getJointModelGroup(planning_group);
   if(!jmg_)
   {
-    ROS_ERROR("Failed to initialize joint model group pointer");
+    RCLCPP_ERROR(LOGGER, "Failed to initialize joint model group pointer");
     return false;
   }
 
@@ -75,7 +66,7 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
   std::vector<double> pose_subset;
   if(!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
   {
-    ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
+    RCLCPP_ERROR_STREAM(LOGGER, __FUNCTION__ << ": failed to transcribe input pose map");
     return 0.0f;
   }
 
@@ -99,5 +90,5 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
 } // namespace evaluation
 } // namespace moveit_reach_plugins
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveIt, reach::plugins::EvaluationBase)

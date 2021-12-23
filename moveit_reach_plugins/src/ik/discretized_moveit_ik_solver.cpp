@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 #include "moveit_reach_plugins/ik/discretized_moveit_ik_solver.h"
-#include <eigen_conversions/eigen_msg.h>
-#include <ros/console.h>
-#include <xmlrpcpp/XmlRpcException.h>
 #include <algorithm>
 
 namespace
@@ -43,35 +40,38 @@ DiscretizedMoveItIKSolver::DiscretizedMoveItIKSolver()
 
 }
 
-bool DiscretizedMoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr &node)
+bool DiscretizedMoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
 {
   if(!MoveItIKSolver::initialize(name, node))
   {
-    ROS_ERROR("Failed to initialize MoveItIKSolver plugin");
+    RCLCPP_ERROR(LOGGER, "Failed to initialize MoveItIKSolver plugin");
     return false;
   }
 
   try
   {
-    dt_ = std::abs(double(config["discretization_angle"]));
+      if(!node->get_parameter("ik_solver_config.discretization_angle", dt_)){
+          return false;
+       }
+    dt_ = std::abs(double(dt_));
     double clamped_dt = clamp<double>(dt_, 0.0, M_PI);
     if(std::abs(dt_ - clamped_dt) > 1.0e-6)
     {
-      ROS_WARN_STREAM("Clamping discretization angle between 0 and pi; new value is " << clamped_dt);
+      RCLCPP_WARN_STREAM(LOGGER, "Clamping discretization angle between 0 and pi; new value is " << clamped_dt);
     }
     dt_ = clamped_dt;
   }
-  catch(const XmlRpc::XmlRpcException& ex)
+  catch(const std::exception& ex)
   {
-    ROS_ERROR_STREAM(ex.getMessage());
+    RCLCPP_ERROR_STREAM(LOGGER, ex.what());
     return false;
   }
 
-  ROS_INFO_STREAM("Successfully initialized DiscretizedMoveItIKSolver plugin");
+  RCLCPP_INFO_STREAM(LOGGER, "Successfully initialized DiscretizedMoveItIKSolver plugin");
   return true;
 }
 
-boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& target,
+std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& target,
                                                                    const std::map<std::string, double>& seed,
                                                                    std::vector<double>& solution)
 {
@@ -88,9 +88,9 @@ boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::
     std::vector<double> tmp_solution;
 
     std::optional<double> score = MoveItIKSolver::solveIKFromSeed(discretized_target, seed, tmp_solution);
-    if(score && (score.get() > best_score))
+    if(score.has_value() && (score.value() > best_score))
     {
-      best_score = *score;
+      best_score = score.value();
       best_solution = std::move(tmp_solution);
     }
     else
@@ -102,7 +102,7 @@ boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::
   if(best_score > 0)
   {
     solution = std::move(best_solution);
-    return boost::optional<double>(best_score);
+    return std::optional<double>(best_score);
   }
   else
   {
@@ -113,5 +113,5 @@ boost::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::
 } // namespace ik
 } // namespace moveit_reach_plugins
 
-#include <pluginlib/class_list_macros.h>
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::ik::DiscretizedMoveItIKSolver, reach::plugins::IKSolverBase)

@@ -1,41 +1,21 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(moveit_reach_plugins)
 
 add_compile_options(-std=c++11)
 
-find_package(catkin REQUIRED COMPONENTS
-  eigen_conversions
-  interactive_markers
-  moveit_core
-  moveit_msgs
-  moveit_ros_planning_interface
-  pluginlib
-  reach_core
-  reach_msgs
-  visualization_msgs
-  xmlrpcpp
-)
+find_package(tf2_eigen REQUIRED)
+find_package(interactive_markers REQUIRED)
+find_package(moveit_core REQUIRED)
+find_package(moveit_msgs REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+find_package(pluginlib REQUIRED)
+find_package(reach_core REQUIRED)
+find_package(reach_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(geometric_shapes REQUIRED)
+#find_package(pcl_conversions REQUIRED)
+find_package(PCL REQUIRED)
 
-catkin_package(
-  INCLUDE_DIRS
-    include
-  LIBRARIES
-    ${PROJECT_NAME}_utils
-    evaluation_plugins
-    ik_solver_plugins
-    reach_display_plugins
-  CATKIN_DEPENDS
-    eigen_conversions
-    interactive_markers
-    moveit_core
-    moveit_msgs
-    moveit_ros_planning_interface
-    reach_core
-    reach_msgs
-    pluginlib
-    visualization_msgs
-    xmlrpcpp
-)
 
 ###########
 ## BUILD ##
@@ -43,19 +23,24 @@ catkin_package(
 
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  ${reach_core_INCLUDE_DIRS}
 )
 
 # Utils Library
 add_library(${PROJECT_NAME}_utils
   src/utils.cpp
 )
-add_dependencies(${PROJECT_NAME}_utils
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+target_include_directories(${PROJECT_NAME}_utils
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${PROJECT_NAME}_utils
-  ${catkin_LIBRARIES}
+ament_target_dependencies(${PROJECT_NAME}_utils
+  geometric_shapes
+  moveit_msgs
+  reach_msgs
+  tf2_eigen
 )
 
 # Evaluation Plugins
@@ -64,13 +49,14 @@ add_library(evaluation_plugins
   src/evaluation/joint_penalty_moveit.cpp
   src/evaluation/distance_penalty_moveit.cpp
 )
-add_dependencies(evaluation_plugins
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+target_include_directories(evaluation_plugins
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(evaluation_plugins
-  ${catkin_LIBRARIES}
   ${PROJECT_NAME}_utils
+  ${PCL_LIBRARIES}
 )
 
 # MoveIt IK Solver Plugin
@@ -78,39 +64,47 @@ add_library(ik_solver_plugins
   src/ik/moveit_ik_solver.cpp
   src/ik/discretized_moveit_ik_solver.cpp
 )
-add_dependencies(ik_solver_plugins
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+target_include_directories(ik_solver_plugins
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(ik_solver_plugins
-  ${catkin_LIBRARIES}
   ${PROJECT_NAME}_utils
+)
+ament_target_dependencies(ik_solver_plugins
+  reach_core
+  pluginlib
+  rclcpp
+  tf2_eigen
 )
 
 # MoveIt Reach Display Plugin
 add_library(reach_display_plugins
   src/display/moveit_reach_display.cpp
 )
-add_dependencies(reach_display_plugins
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+target_include_directories(reach_display_plugins
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(reach_display_plugins
-  ${catkin_LIBRARIES}
   ${PROJECT_NAME}_utils
+  ${PCL_LIBRARIES}
+  ik_solver_plugins
 )
 
 # IK Plugin Test
-add_executable(ik_plugin_test
-  test/plugin_test_node.cpp
-)
-add_dependencies(ik_plugin_test
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-target_link_libraries(ik_plugin_test
-  ${catkin_LIBRARIES}
-)
+#add_executable(ik_plugin_test
+#  test/plugin_test_node.cpp
+#)
+#add_dependencies(ik_plugin_test
+#  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#  ${catkin_EXPORTED_TARGETS}
+#)
+#target_link_libraries(ik_plugin_test
+#  ${catkin_LIBRARIES}
+#)
 
 #############
 ## INSTALL ##
@@ -122,15 +116,17 @@ install(
     evaluation_plugins
     ik_solver_plugins
     reach_display_plugins
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+install(DIRECTORY include/${PROJECT_NAME}
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(FILES plugin_description.xml
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  DESTINATION share/${PROJECT_NAME}
 )
+
+ament_package()

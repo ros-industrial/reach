@@ -17,6 +17,9 @@
 #define MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 
 #include <reach_core/plugins/reach_display_base.h>
+#include <moveit_msgs/msg/planning_scene.hpp>
+
+#include <rclcpp/rclcpp.hpp>
 
 namespace moveit
 {
@@ -36,6 +39,10 @@ typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 
 namespace moveit_reach_plugins
 {
+    namespace
+    {
+        const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_reach_plugins.MoveItReachDisplay");
+    }
 namespace display
 {
 
@@ -45,7 +52,7 @@ public:
 
   MoveItReachDisplay();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
+  bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
 
   virtual void showEnvironment() override;
 
@@ -59,13 +66,14 @@ private:
 
   const moveit::core::JointModelGroup* jmg_;
 
-  std::string collision_mesh_filename_;
+  std::string collision_mesh_package_;
+  std::string collision_mesh_filename_path_;
 
   std::string collision_mesh_frame_;
 
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr n_;
 
-  ros::Publisher scene_pub_;
+  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr scene_pub_;
 };
 
 } // namespace display

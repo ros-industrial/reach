@@ -18,7 +18,7 @@
 
 #include <reach_core/plugins/ik_solver_base.h>
 #include <reach_core/plugins/evaluation_base.h>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 
 namespace moveit
 {
@@ -39,6 +39,10 @@ typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 
 namespace moveit_reach_plugins
 {
+    namespace
+    {
+        const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_reach_plugins.MoveItIKSolver");
+    }
 namespace ik
 {
 
@@ -48,7 +52,7 @@ public:
 
   MoveItIKSolver();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr &node) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
 
   virtual std::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
                                                   const std::map<std::string, double> &seed,
@@ -74,9 +78,12 @@ protected:
 
   double distance_threshold_;
 
-  std::string collision_mesh_filename_;
+  std::string collision_mesh_package_;
+  std::string collision_mesh_filename_path_;
+  std::string evaluation_plugin_name_;
 
-  std::string collision_mesh_frame_;
+
+    std::string collision_mesh_frame_;
 
   std::vector<std::string> touch_links_;
 };
