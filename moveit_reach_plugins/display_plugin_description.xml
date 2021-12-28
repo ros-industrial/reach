@@ -1,0 +1,9 @@
+<!-- Display Plugins -->
+<library path="reach_display_plugins">
+  <!-- MoveIt Reach Display -->
+  <class name="moveit_reach_plugins/display/MoveItReachDisplay" type="moveit_reach_plugins::display::MoveItReachDisplay" base_class_type="reach::plugins::DisplayBase">
+    <description>
+      A reach study display plugin using the MoveIt framework
+    </description>
+  </class>
+</library>

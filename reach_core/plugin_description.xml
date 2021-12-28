@@ -1,4 +1,4 @@
-<library path="lib/libreach_core_plugins">
+<library path="reach_core_plugins">
   <!-- Multiplicative Factory -->
   <class name="reach_core/plugins/MultiplicativeFactory" type="reach::plugins::MultiplicativeFactory" base_class_type="reach::plugins::EvaluationBase">
     <description>

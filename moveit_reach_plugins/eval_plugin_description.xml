@@ -1,0 +1,31 @@
+<!-- Evalution Plugins -->
+<library path="evaluation_plugins">
+  <!-- Manipulability MoveIt -->
+  <class name="moveit_reach_plugins/evaluation/ManipulabilityMoveIt" type="moveit_reach_plugins::evaluation::ManipulabilityMoveIt" base_class_type="reach::plugins::EvaluationBase">
+    <description>
+      A pose evalution plugin which returns a score (range [0, inf)) that is the manipulability of robot at the input pose calculated from the robot's Jacobian.
+      Higher scores indicate higher robot dexterity at a given pose.
+    </description>
+  </class>
+
+  <!-- Joint Penalty MoveIt -->
+  <class name="moveit_reach_plugins/evaluation/JointPenaltyMoveIt" type="moveit_reach_plugins::evaluation::JointPenaltyMoveIt" base_class_type="reach::plugins::EvaluationBase">
+    <description>
+      A pose evaluation plugin which returns a score that is the product of each joint's distance from the middle of its joint range, according to the following equation:
+      score[i] = ((joint[i] - joint_min[i])*(joint_max[i] - joint[i])) / (joint_max[i] - joint_min[i])^2
+      The score for each joint will lie in the range [0, 0.25]; therefore, the score for an entire robot will lie in the range n*[0, 0.25], where n is the number of joints
+      in the robot. Higher scores indicate poses which are closer to the nominal middle of travel of each joint. This plugin should be used if it is desirable for kinematic
+      solutions to be near the middle of all joint ranges.
+    </description>
+  </class>
+
+  <!-- Distance Penalty MoveIt -->
+  <class name="moveit_reach_plugins/evaluation/DistancePenaltyMoveIt" type="moveit_reach_plugins::evaluation::DistancePenaltyMoveIt" base_class_type="reach::plugins::EvaluationBase">
+    <description>
+      A pose evaluation plugin which returns a score (range [0, inf]) based on the robot's distance to the nearest collision, with respect to an input threshold and according
+      to the following equation: score = (closest_distance_to_collision - input_threshold)^input_exponent.
+      If the nearest distance to collision is less than the threshold, the score will exponentially approach zero; if the nearest distance collision is greater than the threshold,
+      the score will exponentially approach infinity. This plugin should be used if it is desirable to prefer solutions that are at least the threshold distance away from collision.
+    </description>
+  </class>
+</library>

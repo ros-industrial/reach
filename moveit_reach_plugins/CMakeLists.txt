@@ -116,17 +116,34 @@ install(
     evaluation_plugins
     ik_solver_plugins
     reach_display_plugins
+  EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}
-  DESTINATION include/${PROJECT_NAME}
+install(DIRECTORY include/
+  DESTINATION include/
 )
 
-install(FILES plugin_description.xml
-  DESTINATION share/${PROJECT_NAME}
-)
+#install(FILES display_plugin_description.xml eval_plugin_description.xml ik_plugin_description.xml
+#  DESTINATION share/${PROJECT_NAME}
+#)
 
+#pluginlib_export_plugin_description_file(moveit_reach_plugins display_plugin_description.xml)
+#pluginlib_export_plugin_description_file(moveit_reach_plugins eval_plugin_description.xml)
+pluginlib_export_plugin_description_file(reach_core ik_plugin_description.xml)
+
+ament_export_libraries(
+  ${PROJECT_NAME}_utils
+  evaluation_plugins
+  ik_solver_plugins
+  reach_display_plugins
+)
+ament_export_targets(
+        export_${PROJECT_NAME}
+)
+ament_export_include_directories(
+        include
+)
 ament_package()
