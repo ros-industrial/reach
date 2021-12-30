@@ -3,6 +3,9 @@ project(moveit_reach_plugins)
 
 add_compile_options(-std=c++11)
 
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(interactive_markers REQUIRED)
 find_package(moveit_core REQUIRED)
@@ -58,6 +61,7 @@ target_link_libraries(evaluation_plugins
   ${PROJECT_NAME}_utils
   ${PCL_LIBRARIES}
 )
+pluginlib_export_plugin_description_file(reach_core eval_plugin_description.xml)
 
 # MoveIt IK Solver Plugin
 add_library(ik_solver_plugins
@@ -78,6 +82,8 @@ ament_target_dependencies(ik_solver_plugins
   rclcpp
   tf2_eigen
 )
+pluginlib_export_plugin_description_file(reach_core ik_plugin_description.xml)
+target_compile_definitions(ik_solver_plugins PRIVATE "MOVEIT_REACH_PLUGINS_BUILDING_LIBRARY")
 
 # MoveIt Reach Display Plugin
 add_library(reach_display_plugins
@@ -93,6 +99,7 @@ target_link_libraries(reach_display_plugins
   ${PCL_LIBRARIES}
   ik_solver_plugins
 )
+pluginlib_export_plugin_description_file(reach_core display_plugin_description.xml)
 
 # IK Plugin Test
 #add_executable(ik_plugin_test
@@ -119,20 +126,12 @@ install(
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
+  RUNTIME DESTINATION bin
 )
 
 install(DIRECTORY include/
   DESTINATION include/
 )
-
-#install(FILES display_plugin_description.xml eval_plugin_description.xml ik_plugin_description.xml
-#  DESTINATION share/${PROJECT_NAME}
-#)
-
-#pluginlib_export_plugin_description_file(moveit_reach_plugins display_plugin_description.xml)
-#pluginlib_export_plugin_description_file(moveit_reach_plugins eval_plugin_description.xml)
-pluginlib_export_plugin_description_file(reach_core ik_plugin_description.xml)
 
 ament_export_libraries(
   ${PROJECT_NAME}_utils
@@ -140,10 +139,8 @@ ament_export_libraries(
   ik_solver_plugins
   reach_display_plugins
 )
-ament_export_targets(
-        export_${PROJECT_NAME}
-)
+
 ament_export_include_directories(
-        include
+  include
 )
 ament_package()

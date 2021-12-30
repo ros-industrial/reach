@@ -13,7 +13,7 @@
   <url type="bugtracker">https://github.com/ros-industrial/reach/issues</url>
   <url type="repository">https://github.com/ros-industrial/reach/</url>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_ros</buildtool_depend>
   <depend>tf2_eigen</depend>
   <depend>interactive_markers</depend>
   <depend>moveit_core</depend>
