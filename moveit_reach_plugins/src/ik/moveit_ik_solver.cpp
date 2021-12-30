@@ -42,13 +42,13 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
      !node->get_parameter("ik_solver_config.distance_threshold", distance_threshold_) ||
      !node->get_parameter("ik_solver_config.collision_mesh_package", collision_mesh_package_) ||
      !node->get_parameter("ik_solver_config.collision_mesh_filename_path", collision_mesh_filename_path_) ||
-     !node->get_parameter("ik_solver_config.touch_links", touch_links_) ||
-     !node->get_parameter("evaluation_plugin.name", evaluation_plugin_name_))
+    !node->get_parameter("ik_solver_config.collision_mesh_frame", collision_mesh_frame_) ||
+    !node->get_parameter("ik_solver_config.touch_links", touch_links_) ||
+     !node->get_parameter("ik_solver_config.evaluation_plugin.name", evaluation_plugin_name_))
   {
     RCLCPP_ERROR(LOGGER, "MoveIt IK Solver Plugin is missing one or more configuration parameters");
     return false;
   }
-
 
     try
     {
@@ -72,7 +72,10 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
         return false;
       }
 
-  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
+    RCLCPP_INFO(LOGGER, "Initializing robot shared model");
+//    model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
+    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+
   if(!model_)
   {
     RCLCPP_ERROR(LOGGER, "Failed to initialize robot model pointer");
@@ -97,7 +100,9 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
 
   // Add the collision object to the planning scene
   const std::string object_name = "reach_object";
-  std::string mesh_path_tmp = ament_index_cpp::get_package_share_directory(collision_mesh_package_) + collision_mesh_filename_path_;
+//  std::string mesh_path_tmp = ament_index_cpp::get_package_share_directory(collision_mesh_package_) + "/" + collision_mesh_filename_path_;
+//  const std::string mesh_path_tmp = "/home/lovro/workspace/ros2_kortex_ws/src/reach/reach_demo/config/part.ply";
+    const std::string mesh_path_tmp = "package://reach_demo/config/part.ply";
   moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(mesh_path_tmp, collision_mesh_frame_, object_name);
   if(!scene_->processCollisionObjectMsg(obj))
   {

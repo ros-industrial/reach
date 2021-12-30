@@ -39,11 +39,17 @@ namespace moveit_reach_plugins
                                                        const std::string &object_name)
     {
       // Create a CollisionObject message for the reach object
+        RCLCPP_INFO(LOGGER, "Creating collision object with mesh_filename: '%s', parent_link: '%s', object_name: '%s'",
+                    mesh_filename.c_str(), parent_link.c_str(), object_name.c_str());
+
       moveit_msgs::msg::CollisionObject obj;
       obj.header.frame_id = parent_link;
       obj.id = object_name;
       shapes::ShapeMsg shape_msg;
       shapes::Mesh *mesh = shapes::createMeshFromResource(mesh_filename);
+      if (!mesh){
+          RCLCPP_ERROR(LOGGER, "Creating Mesh From Resource failed...");
+      }
       shapes::constructMsgFromShape(mesh, shape_msg);
       obj.meshes.push_back(boost::get<shape_msgs::msg::Mesh>(shape_msg));
       obj.operation = obj.ADD;
@@ -54,6 +60,7 @@ namespace moveit_reach_plugins
       pose.orientation.x = pose.orientation.y = pose.orientation.z = 0.0;
       pose.orientation.w = 1.0;
       obj.mesh_poses.push_back(pose);
+
 
       return obj;
     }

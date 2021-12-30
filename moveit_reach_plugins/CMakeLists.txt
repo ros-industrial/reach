@@ -61,6 +61,15 @@ target_link_libraries(evaluation_plugins
   ${PROJECT_NAME}_utils
   ${PCL_LIBRARIES}
 )
+ament_target_dependencies(evaluation_plugins
+  geometric_shapes
+  moveit_msgs
+  reach_msgs
+  tf2_eigen
+  moveit_ros_planning_interface
+  moveit_core
+  pluginlib
+)
 pluginlib_export_plugin_description_file(reach_core eval_plugin_description.xml)
 
 # MoveIt IK Solver Plugin
@@ -77,6 +86,8 @@ target_link_libraries(ik_solver_plugins
   ${PROJECT_NAME}_utils
 )
 ament_target_dependencies(ik_solver_plugins
+  moveit_ros_planning_interface
+  geometric_shapes
   reach_core
   pluginlib
   rclcpp

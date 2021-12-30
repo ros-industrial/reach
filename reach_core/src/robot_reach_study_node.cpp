@@ -89,8 +89,14 @@ int main(int argc, char **argv)
 {
     // Initialize ROS
     rclcpp::init(argc, argv);
+
+    rclcpp::executors::MultiThreadedExecutor executor;
+
+
     // create node
     auto node = std::make_shared<RobotReachStudyNode>("robot_reach_study_node");
+
+    executor.add_node(node);
 
     // get the study parameters
     reach::core::StudyParameters sp;
@@ -99,9 +105,10 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    std::thread t1( [node]{
+    std::thread t1( [&executor]{
         // spin
-        rclcpp::spin(node);
+//        rclcpp::spin(node);
+        executor.spin();
     });
 
     // Initialize the reach study

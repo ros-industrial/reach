@@ -47,6 +47,7 @@ namespace reach
         {
           std::string &plugin_config = plugin_configs[i];
           const std::string plugin_name = std::string(plugin_config);
+          RCLCPP_INFO(LOGGER, "Creating shared instance of plugin '%s'", plugin_name.c_str());
 
           EvaluationBasePtr plugin;
           try

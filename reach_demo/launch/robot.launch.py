@@ -17,6 +17,7 @@
 
 import os
 
+import launch_ros.actions
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -65,7 +66,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare(LaunchConfiguration("reach_demo")), "model", LaunchConfiguration("xacro_file")]
+                [FindPackageShare("reach_demo"), "model", LaunchConfiguration("xacro_file")]
             ),
         ]
     )
@@ -166,4 +167,11 @@ def generate_launch_description():
         # static_tf,
     ]
 
-    return LaunchDescription(declared_arguments + nodes_to_start)
+    # robot_description = {"robot_description": robot_description_content}
+    # robot_description_semantic = {"robot_description_semantic": robot_description_semantic_content}
+    # robot_description_kinematics = {"robot_description_kinematics": kinematics_yaml}
+
+    return LaunchDescription(declared_arguments +
+                             [launch_ros.actions.SetParameter(name="robot_description", value=robot_description)])
+
+    # return LaunchDescription(declared_arguments + nodes_to_start)

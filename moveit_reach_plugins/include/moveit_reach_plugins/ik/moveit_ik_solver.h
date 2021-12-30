@@ -67,24 +67,18 @@ protected:
                          const double* ik_solution) const;
 
   moveit::core::RobotModelConstPtr model_;
-
   planning_scene::PlanningScenePtr scene_;
-
   const moveit::core::JointModelGroup* jmg_;
 
   pluginlib::ClassLoader<reach::plugins::EvaluationBase> class_loader_;
-
   reach::plugins::EvaluationBasePtr eval_;
 
+  // parameters
   double distance_threshold_;
-
   std::string collision_mesh_package_;
   std::string collision_mesh_filename_path_;
   std::string evaluation_plugin_name_;
-
-
-    std::string collision_mesh_frame_;
-
+  std::string collision_mesh_frame_;
   std::vector<std::string> touch_links_;
 };
 

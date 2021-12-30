@@ -40,8 +40,10 @@ bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr
     return false;
   }
 
-  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
-  if(!model_)
+  RCLCPP_INFO(LOGGER, "Creating shared robot model in the node '%s' using parameter robot_description", node->get_name());
+//  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
+  model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+    if(!model_)
   {
     RCLCPP_ERROR(LOGGER, "Failed to initialize robot model pointer");
     return false;
@@ -54,6 +56,7 @@ bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr
     return false;
   }
 
+  RCLCPP_INFO(LOGGER, "moveit_reach_plugins/evaluation/ManipulabilityMoveIt initialized successfully.");
   return true;
 }
 

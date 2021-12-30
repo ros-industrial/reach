@@ -77,8 +77,12 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
 
   // Add the collision object to the planning scene
   const std::string object_name = "reach_object";
-  std::string tmp_mesh_filename = ament_index_cpp::get_package_share_directory(collision_mesh_package_) + "/" + collision_mesh_filename_path_;
-  moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(tmp_mesh_filename, collision_mesh_frame_, object_name);
+//  std::string tmp_mesh_filename = ament_index_cpp::get_package_share_directory(collision_mesh_package_) + "/" + collision_mesh_filename_path_;
+//    const std::string tmp_mesh_filename = "/home/lovro/workspace/ros2_kortex_ws/src/reach/reach_demo/config/part.ply";
+    const std::string tmp_mesh_filename = "package://reach_demo/config/part.ply";
+
+
+    moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(tmp_mesh_filename, collision_mesh_frame_, object_name);
   if(!scene_->processCollisionObjectMsg(obj))
   {
     RCLCPP_ERROR(LOGGER, "Failed to add collision mesh to planning scene");

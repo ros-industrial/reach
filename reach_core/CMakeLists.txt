@@ -4,6 +4,7 @@ project(reach_core)
 add_compile_options(-std=c++14)
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(interactive_markers REQUIRED)
 find_package(moveit_core REQUIRED)
@@ -71,6 +72,7 @@ ament_target_dependencies(${PROJECT_NAME}_plugins
   visualization_msgs
   reach_msgs
 )
+pluginlib_export_plugin_description_file(reach_core plugin_description.xml)
 
 add_library(${PROJECT_NAME}_utils
   # Utilities
@@ -192,16 +194,12 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}
-  DESTINATION include/${PROJECT_NAME}
-)
+#install(DIRECTORY include/${PROJECT_NAME}
+#  DESTINATION include/${PROJECT_NAME}
+#)
 
 install(DIRECTORY include/
   DESTINATION include
-)
-
-install(FILES plugin_description.xml
-  DESTINATION share/${PROJECT_NAME}
 )
 
 ## EXPORTS
