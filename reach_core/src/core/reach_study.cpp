@@ -28,7 +28,7 @@
 #include <filesystem>
 
 #include <rclcpp/rclcpp.hpp>
-
+#include <rclcpp/callback_group.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
 
@@ -85,7 +85,10 @@ namespace reach
       if (!ik_solver_->initialize(sp_.ik_solver_config_name, node_) ||
           !display_->initialize(sp_.display_config_name, node_))
       {
+          RCLCPP_ERROR(LOGGER, "Could not initialized both display and ik solver plugins!");
         return false;
+      }else {
+          RCLCPP_INFO(LOGGER, "IK and display solver successfully initialized!");
       }
 
       display_->showEnvironment();
@@ -123,6 +126,8 @@ namespace reach
       {
         RCLCPP_ERROR(LOGGER, "Failed to initialize the reach study");
         return false;
+      }else {
+          RCLCPP_INFO(LOGGER, "Reach study initialized!");
       }
 
       // Get the reach object point cloud
@@ -130,6 +135,8 @@ namespace reach
       {
         RCLCPP_ERROR(LOGGER, "Unable to obtain reach object point cloud");
         return false;
+      }else {
+          RCLCPP_INFO(LOGGER, "Reach object point cloud obtained successfully!");
       }
 
       // Show the reach object collision object and reach object point cloud
@@ -137,6 +144,8 @@ namespace reach
       {
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub = node_->create_publisher<sensor_msgs::msg::PointCloud2>(INPUT_CLOUD_TOPIC, 1);
         pub->publish(cloud_msg_);
+      }else {
+          RCLCPP_INFO(LOGGER, "Not visualizing results!");
       }
 
       // Create markers
@@ -226,34 +235,72 @@ namespace reach
     bool ReachStudy::getReachObjectPointCloud()
     {
       // Call the sample mesh service to create a point cloud of the reach object mesh
-      auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC);
-      auto req = std::make_shared<reach_msgs::srv::LoadPointCloud::Request>();
+        auto callback_group_input_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+//      auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC);
+      auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC, rmw_qos_profile_services_default, callback_group_input_);
+//        get_input_client_ = node_->create_client<petra_core::srv::GetInput>("GetInput", rmw_qos_profile_services_default, callback_group_input_);
+
+        auto req = std::make_shared<reach_msgs::srv::LoadPointCloud::Request>();
       req->cloud_filename = ament_index_cpp::get_package_share_directory(sp_.pcd_package) + "/" + sp_.pcd_filename_path;
       req->fixed_frame = sp_.fixed_frame;
       req->object_frame = sp_.object_frame;
 
+      RCLCPP_INFO(LOGGER, "Waiting for service '%s'.", SAMPLE_MESH_SRV_TOPIC);
       client->wait_for_service();
-      auto result = client->async_send_request(req);
+//      auto result = client->async_send_request(req);
+       bool success_tmp = false;
+
+
+        auto inner_client_callback = [&,this](rclcpp::Client<reach_msgs::srv::LoadPointCloud>::SharedFuture inner_future)
+        {
+            RCLCPP_INFO(LOGGER, "Inner service callback started");
+            success_tmp = inner_future.get()->success;
+            cloud_msg_ = inner_future.get()->cloud;
+            RCLCPP_INFO(LOGGER, "Inner service callback message: '%s'", inner_future.get()->message.c_str());
+            RCLCPP_INFO(LOGGER, "Inner service callback finished");
+        };
+        auto inner_future_result = client->async_send_request(req, inner_client_callback);
+
+        // quick fix to wait for inner callback to finish
+        //TODO(livanov93) Add visible flag within the inner callback
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+        if (success_tmp){
+            pcl::fromROSMsg(cloud_msg_, *cloud_);
+
+                cloud_msg_.header.frame_id = sp_.fixed_frame;
+                cloud_msg_.header.stamp = node_->now();
+
+                return true;
+
+        } else {
+                RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client->get_service_name()
+                                                                                           << "'");
+                return false;
+            }
+
       // Wait for the result.
-      if (rclcpp::spin_until_future_complete(node_->get_node_base_interface(), result) == rclcpp::FutureReturnCode::SUCCESS)
-      {
-          if (!result.get()->success)
-          {
-              RCLCPP_ERROR_STREAM(LOGGER, result.get()->message);
-              return false;
-          }
-
-          cloud_msg_ = result.get()->cloud;
-          pcl::fromROSMsg(cloud_msg_, *cloud_);
-
-          cloud_msg_.header.frame_id = sp_.fixed_frame;
-          cloud_msg_.header.stamp = node_->now();
-
-          return true;
-      } else {
-          RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client->get_service_name() << "'");
-          return false;
-      }
+        {
+//            if (rclcpp::spin_until_future_complete(node_->get_node_base_interface(), result) ==
+//                rclcpp::FutureReturnCode::SUCCESS) {
+//                if (!result.get()->success) {
+//                    RCLCPP_ERROR_STREAM(LOGGER, result.get()->message);
+//                    return false;
+//                }
+//
+//                cloud_msg_ = result.get()->cloud;
+//                pcl::fromROSMsg(cloud_msg_, *cloud_);
+//
+//                cloud_msg_.header.frame_id = sp_.fixed_frame;
+//                cloud_msg_.header.stamp = node_->now();
+//
+//                return true;
+//            } else {
+//                RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client->get_service_name()
+//                                                                                           << "'");
+//                return false;
+//            }
+        }
 
     }
 

@@ -34,6 +34,7 @@ MoveItReachDisplay::MoveItReachDisplay()
 
 bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr node)
 {
+    RCLCPP_INFO(LOGGER, "Initializing MoveItReachDisplay!");
     reach::plugins::DisplayBase::initialize(name, node);
 
     n_ = node;
@@ -45,6 +46,7 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
      !node_->get_parameter(param_prefix + "collision_mesh_package", collision_mesh_package_) ||
      !node_->get_parameter(param_prefix + "collision_mesh_filename_path", collision_mesh_filename_path_) ||
      !node_->get_parameter(param_prefix + "fixed_frame", fixed_frame_) ||
+     !node_->get_parameter(param_prefix + "collision_mesh_frame", collision_mesh_frame_) ||
      !node_->get_parameter(param_prefix + "marker_scale", marker_scale_))
   {
     RCLCPP_ERROR(LOGGER, "MoveIt IK Solver Plugin is missing one or more configuration parameters");
@@ -52,8 +54,10 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
   }
 
 
-  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
-  if(!model_)
+//  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
+  model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+
+    if(!model_)
   {
     RCLCPP_ERROR(LOGGER, "Failed to initialize robot model pointer");
     return false;

@@ -56,7 +56,7 @@ namespace reach
           server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, node);
           diff_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>(REACH_DIFF_TOPIC, 1);
           marker_pub_ = node->create_publisher<visualization_msgs::msg::Marker>(MARKER_TOPIC, 1);
-
+          RCLCPP_INFO(LOGGER, "Initialized DisplayBase plugin!");
           return true;
       };
 

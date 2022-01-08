@@ -42,20 +42,22 @@ using LoadPCLResSharedPtr = LoadPCLRes::SharedPtr;
             server_ = this->create_service<LoadPCLSrv>(SAMPLE_MESH_SRV_TOPIC, [this](const LoadPCLReqSharedPtr req,
                                                                                      LoadPCLResSharedPtr res){
 
+                RCLCPP_INFO(this->get_logger(), "Service callback started!");
+
+
                 // getSampledMesh callback
                 // Check if file exists
                 if (!std::filesystem::exists(req->cloud_filename)) {
                     res->message = "File '" + req->cloud_filename + "' does not exist";
                     res->success = false;
-
-                    return true;
+                    return false;
                 }
 
                 pcl::PCLPointCloud2 cloud_msg;
                 if (pcl::io::loadPCDFile(req->cloud_filename, cloud_msg) == -1) {
                     res->message = "Unable to load point cloud from '" + req->cloud_filename + "'";
                     res->success = false;
-                    return true;
+                    return false;
                 }
 
                 if (!hasNormals(cloud_msg)) {
@@ -73,16 +75,32 @@ using LoadPCLResSharedPtr = LoadPCLRes::SharedPtr;
                 tf2_ros::TransformListener listener(buffer);
                 Eigen::Isometry3d transform;
                 try {
+                    RCLCPP_INFO(this->get_logger(), "Try to look for transform!");
                     geometry_msgs::msg::TransformStamped tf = buffer.lookupTransform(req->fixed_frame,
                                                                                      req->object_frame,
                                                                                      rclcpp::Time(0),
                                                                                      rclcpp::Duration::from_seconds(5.0));
                     transform = tf2::transformToEigen(tf.transform);
+                    RCLCPP_INFO(this->get_logger(), "x = %f  y = %f  z = %f ", tf.transform.translation.x, tf.transform.translation.y, tf.transform.translation.z);
+                    RCLCPP_INFO(this->get_logger(), "qx = %f  qy = %f  qz = %f  qw = %f ", tf.transform.rotation.x, tf.transform.rotation.y, tf.transform.rotation.z,
+                                tf.transform.rotation.w);
+
                 }
                 catch (const tf2::TransformException &ex) {
+                    RCLCPP_ERROR(this->get_logger(), "Catch tf exception!");
+
                     res->message = ex.what();
                     res->success = false;
-                    return true;
+                    RCLCPP_ERROR(this->get_logger(), "'%s'", ex.what());
+                    return false;
+                }
+                catch(const rclcpp::exceptions::RCLError &exerr){
+                    RCLCPP_ERROR(this->get_logger(), "Catch RCLError exception!");
+
+                    RCLCPP_ERROR(this->get_logger(), "'%s'", exerr.what());
+                    res->success = false;
+                    res->message = exerr.what();
+                    return false;
                 }
 
                 pcl::PointCloud<pcl::PointNormal> transformed_cloud;
@@ -91,13 +109,20 @@ using LoadPCLResSharedPtr = LoadPCLRes::SharedPtr;
                 // Convert point cloud to message for output
                 sensor_msgs::msg::PointCloud2 msg;
                 pcl::toROSMsg(transformed_cloud, res->cloud);
+                for(size_t i = 0; i < res->cloud.data.size(); ++i){
+                    if (res->cloud.data[i]!= 0.0) {
+                        RCLCPP_INFO(this->get_logger(), "%d-th data = %f ", i, res->cloud.data[i]);
+                    }
+                }
 
                 res->success = true;
                 res->message = "Successfully loaded point cloud from '" + req->cloud_filename + "'";
 
-                    return true;
-            });
+                RCLCPP_INFO(this->get_logger(), "Service callback finished!");
 
+                return true;
+            });
+            server_->get_service_name();
         }
 
     private:

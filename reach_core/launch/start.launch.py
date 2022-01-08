@@ -107,6 +107,14 @@ def generate_launch_description():
         ],
     )
 
-    nodes_to_run = [robot_reach_study_node]
+    robot_state_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        output="both",
+        parameters=[robot_description],
+    )
+
+    nodes_to_run = [robot_reach_study_node,
+                    robot_state_publisher_node]
 
     return LaunchDescription(declared_arguments + nodes_to_run)

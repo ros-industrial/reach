@@ -109,6 +109,16 @@ int main(int argc, char **argv)
         // spin
 //        rclcpp::spin(node);
         executor.spin();
+
+//        rclcpp::WallRate loop_rate(100);
+//        while (rclcpp::ok()) {
+//
+////            executor.spin_once();
+//            rclcpp::spin_some(node);
+//            loop_rate.sleep();
+//        }
+
+
     });
 
     // Initialize the reach study
