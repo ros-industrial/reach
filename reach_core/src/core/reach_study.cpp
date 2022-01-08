@@ -150,10 +150,12 @@ namespace reach
 
       // Create markers
       visualizer_.reset(new ReachVisualizer(db_, ik_solver_, display_, sp_.optimization.radius));
+//      RCLCPP_INFO(LOGGER, "Visualizer created!");
 
       // Attempt to load previously saved optimized reach_study database
       if (!db_->load(results_dir_ + OPT_SAVED_DB_NAME))
       {
+          RCLCPP_INFO(LOGGER, "Unable to load optimized database at '%s'!",(results_dir_ + OPT_SAVED_DB_NAME).c_str());
         // Attempt to load previously saved initial reach study database
         if (!db_->load(results_dir_ + SAVED_DB_NAME))
         {
@@ -176,6 +178,7 @@ namespace reach
           visualizer_->update();
         }
 
+        RCLCPP_INFO(LOGGER, "Creating search tree!");
         // Create an efficient search tree for doing nearest neighbors search
         search_tree_.reset(new SearchTree(flann::KDTreeSingleIndexParams(1, true)));
 
@@ -212,6 +215,7 @@ namespace reach
         // Perform the calculation if it hasn't already been done
         if (db_->getStudyResults().avg_num_neighbors == 0.0f)
         {
+          RCLCPP_INFO(LOGGER, "Performing average neighbour calculation.") ;
           getAverageNeighborsCount();
         }
       }
@@ -426,17 +430,19 @@ namespace reach
       current_counter = previous_pct = neighbor_count = 0;
       std::atomic<double> total_joint_distance;
       const int total = db_->size();
-
-// Iterate
+      int calc = 0;
+      // Iterate
 #pragma parallel for
       for (auto it = db_->begin(); it != db_->end(); ++it)
       {
+//        RCLCPP_INFO(LOGGER, "Calculation no %d", calc++);
         reach_msgs::msg::ReachRecord msg = it->second;
         if (msg.reached)
         {
           NeighborReachResult result;
-          reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result); //, search_tree_);
-
+//          RCLCPP_INFO(LOGGER, "Before recursion...");
+          reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result, search_tree_);
+//          RCLCPP_INFO(LOGGER, "After recursion...");
           neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
           total_joint_distance = total_joint_distance + result.joint_distance;
         }

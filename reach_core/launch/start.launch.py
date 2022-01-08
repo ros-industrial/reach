@@ -62,10 +62,18 @@ def generate_launch_description():
                               default_value="reach_study.srdf.xacro",
                               description="Moveit config xacro file to parse.")
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "controllers_file",
+            default_value="controllers.yaml",
+            description="YAML file with the controllers configuration.",
+        )
+    )
 
     parameters_package = LaunchConfiguration("parameters_package")
     parameters_filename = LaunchConfiguration("parameters_filename")
     moveit_config_file = LaunchConfiguration("moveit_config_file")
+    controllers_file = LaunchConfiguration("controllers_file")
 
     study_parameters = PathJoinSubstitution(
         [FindPackageShare(parameters_package), "config", parameters_filename]
@@ -89,6 +97,11 @@ def generate_launch_description():
             ),
         ]
     )
+
+    controllers = PathJoinSubstitution(
+        [FindPackageShare(parameters_package), "model/motoman_sia20d/config", controllers_file]
+    )
+
     kinematics_yaml = load_yaml("reach_demo", "model/motoman_sia20d/config/kinematics.yaml")
     robot_description = {"robot_description": robot_description_content}
     robot_description_semantic = {"robot_description_semantic": robot_description_semantic_content}
@@ -107,6 +120,22 @@ def generate_launch_description():
         ],
     )
 
+    control_node = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[robot_description, controllers],
+        output={
+            "stdout": "screen",
+            "stderr": "screen",
+        },
+    )
+
+    joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
+    )
+
     robot_state_publisher_node = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
@@ -115,6 +144,8 @@ def generate_launch_description():
     )
 
     nodes_to_run = [robot_reach_study_node,
-                    robot_state_publisher_node]
+                    control_node,
+                    robot_state_publisher_node,
+                    joint_state_broadcaster_spawner]
 
     return LaunchDescription(declared_arguments + nodes_to_run)

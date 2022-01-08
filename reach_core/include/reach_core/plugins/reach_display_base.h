@@ -200,7 +200,7 @@ namespace reach
         std::shared_ptr<rclcpp::Node> node_;
 
     protected:
-      std::string fixed_frame_ = "base_frame";
+      std::string fixed_frame_ = "base";
 
       double marker_scale_ = 1.0;
 

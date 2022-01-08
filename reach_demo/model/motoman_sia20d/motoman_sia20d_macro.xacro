@@ -3,8 +3,12 @@
      Original: https://github.com/ros-industrial/motoman/blob/43be182c9cb4f62806e479b985965886c8603333/motoman_sia20d_support/urdf/sia20d_macro.xacro
 -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find reach_demo)/model/motoman_sia20d/motoman_sia20d.ros2_control.xacro" />
   <xacro:macro name="motoman_sia20d" params="prefix">
-    <!-- link list -->
+
+    <xacro:motoman_sia20d_ros2_control_fake_hardware prefix="" name="MotomanFakeHardware"/>
+
+      <!-- link list -->
     <link name="${prefix}base_link">
       <visual>
         <geometry>

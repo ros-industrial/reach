@@ -50,6 +50,10 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
     return false;
   }
 
+    if (std::find(touch_links_.begin(), touch_links_.end(), "") != touch_links_.end()){
+        touch_links_.clear();
+    }
+
     try
     {
       eval_ = class_loader_.createSharedInstance(evaluation_plugin_name_);

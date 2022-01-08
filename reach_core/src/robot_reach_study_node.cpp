@@ -31,7 +31,8 @@ public:
     }
 
 public:
-    bool getStudyParameters(reach::core::StudyParameters& sp){
+    bool
+    getStudyParameters(reach::core::StudyParameters& sp){
 
         // fetch parameteres
         if (!this->get_parameter("config_name", sp_.config_name)  ||
@@ -69,6 +70,10 @@ public:
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "visualize_results: '%c'", sp_.visualize_results );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "ik_solver_config.name: '%s'", sp_.ik_solver_config_name.c_str() );
             RCLCPP_INFO(rclcpp::get_logger("robot_reach_study_node"), "display_config.name: '%s'", sp_.display_config_name.c_str() );
+
+            if (std::find(sp_.compare_dbs.begin(), sp_.compare_dbs.end(), "") != sp_.compare_dbs.end()){
+                sp_.compare_dbs.clear();
+            }
 
             // set params
             sp = sp_;

@@ -46,6 +46,10 @@ bool DistancePenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPt
     return false;
   }
 
+    if (std::find(touch_links_.begin(), touch_links_.end(), "") != touch_links_.end()){
+        touch_links_.clear();
+    }
+
 //  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
     model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
 

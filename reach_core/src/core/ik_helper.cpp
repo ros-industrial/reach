@@ -184,9 +184,12 @@ namespace reach
             tf2::fromMsg(neighbors[i].goal, target);
 
             // Use current point's IK solution as seed
+//            RCLCPP_INFO(rclcpp::get_logger("ik_helper"), "Before solve...");
             std::optional<double> score = solver->solveIKFromSeed(target, current_pose_map, new_pose);
+//              RCLCPP_INFO(rclcpp::get_logger("ik_helper"), "After solve...");
             if (score)
             {
+//                RCLCPP_INFO(rclcpp::get_logger("ik_helper"), "Score exists...");
               // Calculate the joint distance between the seed and new goal states
               for (std::size_t j = 0; j < current_pose.size(); ++j)
               {
