@@ -42,8 +42,8 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
      !node->get_parameter("ik_solver_config.distance_threshold", distance_threshold_) ||
      !node->get_parameter("ik_solver_config.collision_mesh_package", collision_mesh_package_) ||
      !node->get_parameter("ik_solver_config.collision_mesh_filename_path", collision_mesh_filename_path_) ||
-    !node->get_parameter("ik_solver_config.collision_mesh_frame", collision_mesh_frame_) ||
-    !node->get_parameter("ik_solver_config.touch_links", touch_links_) ||
+     !node->get_parameter("ik_solver_config.collision_mesh_frame", collision_mesh_frame_) ||
+     !node->get_parameter("ik_solver_config.touch_links", touch_links_) ||
      !node->get_parameter("ik_solver_config.evaluation_plugin.name", evaluation_plugin_name_))
   {
     RCLCPP_ERROR(LOGGER, "MoveIt IK Solver Plugin is missing one or more configuration parameters");

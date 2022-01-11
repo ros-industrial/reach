@@ -143,9 +143,25 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2_moveit",
+        output="log",
+        # arguments=["-d", rviz_config_file],
+        parameters=[
+            robot_description,
+            robot_description_semantic,
+            # ompl_planning_pipeline_config,
+            robot_description_kinematics,
+            # robot_description_planning,
+        ],
+    )
+
     nodes_to_run = [robot_reach_study_node,
                     control_node,
                     robot_state_publisher_node,
-                    joint_state_broadcaster_spawner]
+                    joint_state_broadcaster_spawner,
+                    rviz_node]
 
     return LaunchDescription(declared_arguments + nodes_to_run)

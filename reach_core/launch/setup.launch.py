@@ -58,6 +58,7 @@ def generate_launch_description():
     )
 
     nodes_to_run = [load_point_cloud_server_node,
-                    rviz_node]
+                    # rviz_node,
+                    ]
 
     return LaunchDescription(declared_arguments + nodes_to_run)
