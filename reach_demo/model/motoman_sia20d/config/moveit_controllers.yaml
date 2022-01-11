@@ -1,0 +1,3 @@
+controller_names:
+  - joint_trajectory_controller
+

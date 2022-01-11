@@ -53,9 +53,7 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
     return false;
   }
 
-
-//  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
-  model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
 
     if(!model_)
   {
@@ -81,16 +79,14 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
 
   // Add the collision object to the planning scene
   const std::string object_name = "reach_object";
-//  std::string tmp_mesh_filename = ament_index_cpp::get_package_share_directory(collision_mesh_package_) + "/" + collision_mesh_filename_path_;
-//    const std::string tmp_mesh_filename = "/home/lovro/workspace/ros2_kortex_ws/src/reach/reach_demo/config/part.ply";
-    const std::string tmp_mesh_filename = "package://reach_demo/config/part.ply";
+  moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(collision_mesh_package_, collision_mesh_frame_, object_name);
 
-
-    moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(tmp_mesh_filename, collision_mesh_frame_, object_name);
   if(!scene_->processCollisionObjectMsg(obj))
   {
     RCLCPP_ERROR(LOGGER, "Failed to add collision mesh to planning scene");
     return false;
+  }else {
+      RCLCPP_INFO(LOGGER, "Successfully processed collision object '%s'", object_name.c_str());
   }
 
   scene_pub_ = node_->create_publisher<moveit_msgs::msg::PlanningScene>(PLANNING_SCENE_TOPIC, 1);
@@ -101,13 +97,19 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
 
 void MoveItReachDisplay::showEnvironment()
 {
-  moveit_msgs::msg::PlanningScene scene_msg;
+    while (scene_pub_->get_subscription_count() < 1)
+    {
+        RCLCPP_INFO(LOGGER, "No subscribers. Not showing environment...");
+        rclcpp::sleep_for(std::chrono::milliseconds(500));
+    }
+    moveit_msgs::msg::PlanningScene scene_msg;
   scene_->getPlanningSceneMsg(scene_msg);
   scene_pub_->publish(scene_msg);
 }
 
 void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& pose)
 {
+    RCLCPP_INFO(LOGGER, "updateRobotPose");
   std::vector<std::string> joint_names = jmg_->getActiveJointModelNames();
   std::vector<double> joints;
   if(utils::transcribeInputMap(pose, joint_names, joints))

@@ -143,6 +143,58 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
+    trajectory_execution = {
+        "moveit_manage_controllers": True,
+        "trajectory_execution.allowed_execution_duration_scaling": 1.2,
+        "trajectory_execution.allowed_goal_duration_margin": 0.5,
+        "trajectory_execution.allowed_start_tolerance": 0.01,
+    }
+
+    planning_scene_monitor_parameters = {
+        "publish_planning_scene": True,
+        "publish_geometry_updates": True,
+        "publish_state_updates": True,
+        "publish_transforms_updates": True,
+    }
+
+    # Trajectory Execution Functionality
+    moveit_simple_controllers_yaml = load_yaml(
+        "reach_demo", "model/motoman_sia20d/config/moveit_controllers.yaml"
+    )
+    moveit_controllers = {
+        "moveit_simple_controller_manager": moveit_simple_controllers_yaml,
+        "moveit_controller_manager": "moveit_simple_controller_manager/MoveItSimpleControllerManager",
+    }
+
+    # Planning Functionality
+    ompl_planning_pipeline_config = {
+        "move_group": {
+            "planning_plugin": "ompl_interface/OMPLPlanner",
+            "request_adapters": """default_planner_request_adapters/AddTimeOptimalParameterization default_planner_request_adapters/FixWorkspaceBounds default_planner_request_adapters/FixStartStateBounds default_planner_request_adapters/FixStartStateCollision default_planner_request_adapters/FixStartStatePathConstraints""",
+            "start_state_max_bounds_error": 0.1,
+        }
+    }
+    ompl_planning_yaml = load_yaml(
+        "reach_demo", "model/motoman_sia20d/config/ompl_planning.yaml"
+    )
+    ompl_planning_pipeline_config["move_group"].update(ompl_planning_yaml)
+
+    # Start the actual move_group node/action server
+    run_move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[
+            robot_description,
+            robot_description_semantic,
+            kinematics_yaml,
+            ompl_planning_pipeline_config,
+            trajectory_execution,
+            moveit_controllers,
+            planning_scene_monitor_parameters,
+        ],
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -152,7 +204,7 @@ def generate_launch_description():
         parameters=[
             robot_description,
             robot_description_semantic,
-            # ompl_planning_pipeline_config,
+            ompl_planning_pipeline_config,
             robot_description_kinematics,
             # robot_description_planning,
         ],
@@ -162,6 +214,7 @@ def generate_launch_description():
                     control_node,
                     robot_state_publisher_node,
                     joint_state_broadcaster_spawner,
+                    run_move_group_node,
                     rviz_node]
 
     return LaunchDescription(declared_arguments + nodes_to_run)

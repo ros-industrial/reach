@@ -39,9 +39,6 @@ bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr
     RCLCPP_ERROR(LOGGER, "MoveIt Manipulability Evaluation Plugin is missing 'planning_group' parameter");
     return false;
   }
-
-  RCLCPP_INFO(LOGGER, "Creating shared robot model in the node '%s' using parameter robot_description", node->get_name());
-//  model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
   model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
     if(!model_)
   {
