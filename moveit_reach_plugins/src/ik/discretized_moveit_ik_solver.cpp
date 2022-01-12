@@ -86,7 +86,6 @@ std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::Is
   {
     Eigen::Isometry3d discretized_target (target * Eigen::AngleAxisd (double(i)*dt_, Eigen::Vector3d::UnitZ()));
     std::vector<double> tmp_solution;
-
     std::optional<double> score = MoveItIKSolver::solveIKFromSeed(discretized_target, seed, tmp_solution);
     if(score.has_value() && (score.value() > best_score))
     {
