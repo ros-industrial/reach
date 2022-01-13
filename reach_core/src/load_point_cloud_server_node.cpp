@@ -109,11 +109,6 @@ using LoadPCLResSharedPtr = LoadPCLRes::SharedPtr;
                 // Convert point cloud to message for output
                 sensor_msgs::msg::PointCloud2 msg;
                 pcl::toROSMsg(transformed_cloud, res->cloud);
-//                for(size_t i = 0; i < res->cloud.data.size(); ++i){
-//                    if (res->cloud.data[i]!= 0.0) {
-//                        RCLCPP_INFO(this->get_logger(), "%d-th data = %f ", i, res->cloud.data[i]);
-//                    }
-//                }
 
                 res->success = true;
                 res->message = "Successfully loaded point cloud from '" + req->cloud_filename + "'";

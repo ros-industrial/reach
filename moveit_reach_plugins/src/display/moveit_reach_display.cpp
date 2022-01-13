@@ -97,19 +97,18 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
 
 void MoveItReachDisplay::showEnvironment()
 {
-    while (scene_pub_->get_subscription_count() < 1)
+  while (scene_pub_->get_subscription_count() < 1)
     {
         RCLCPP_INFO(LOGGER, "No subscribers. Not showing environment...");
-        rclcpp::sleep_for(std::chrono::milliseconds(500));
+        rclcpp::sleep_for(std::chrono::milliseconds(100));
     }
-    moveit_msgs::msg::PlanningScene scene_msg;
+  moveit_msgs::msg::PlanningScene scene_msg;
   scene_->getPlanningSceneMsg(scene_msg);
   scene_pub_->publish(scene_msg);
 }
 
 void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& pose)
 {
-    RCLCPP_INFO(LOGGER, "updateRobotPose");
   std::vector<std::string> joint_names = jmg_->getActiveJointModelNames();
   std::vector<double> joints;
   if(utils::transcribeInputMap(pose, joint_names, joints))
@@ -126,6 +125,11 @@ void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& po
     RCLCPP_ERROR(LOGGER, "Failed to transcribe input joints");
   }
 }
+
+    void
+    MoveItReachDisplay::showEnvironment(const std::vector<std::string> &names, const std::vector<double> &positions) {
+
+    }
 
 } // namespace display
 } // namespace moveit_reach_plugins

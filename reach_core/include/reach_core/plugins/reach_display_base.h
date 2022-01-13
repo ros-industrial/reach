@@ -62,6 +62,8 @@ namespace reach
 
       virtual void showEnvironment() = 0;
 
+      virtual void showEnvironment(const std::vector<std::string> & names, const std::vector<double>& positions) = 0;
+
       virtual void updateRobotPose(const std::map<std::string, double> &pose) = 0;
 
       void addInteractiveMarkerData(const reach_msgs::msg::ReachDatabase &database)

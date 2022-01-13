@@ -75,7 +75,9 @@ std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(const Eigen::Is
                                                                    const std::map<std::string, double>& seed,
                                                                    std::vector<double>& solution)
 {
-  // Calculate the number of discretizations necessary to achieve discretization angle
+    //RCLCPP_INFO(LOGGER, " TARGET: %f %f %f ", target.translation().x(), target.translation().y(),target.translation().z());
+
+    // Calculate the number of discretizations necessary to achieve discretization angle
   const static int n_discretizations = int((2.0*M_PI) / dt_);
 
   // Set up containers for the best solution to be saved into the database

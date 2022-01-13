@@ -65,7 +65,9 @@ namespace reach
       ik_solver_.reset();
       display_.reset();
 
-      try
+        ps_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("pose_stamped", 1);
+
+        try
       {
         ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
         display_ = display_loader_.createSharedInstance(sp_.display_config_name);
@@ -87,8 +89,6 @@ namespace reach
       {
           RCLCPP_ERROR(LOGGER, "Could not initialized both display and ik solver plugins!");
         return false;
-      }else {
-          RCLCPP_INFO(LOGGER, "IK and display solver successfully initialized!");
       }
 
       display_->showEnvironment();
@@ -118,7 +118,7 @@ namespace reach
 
     bool ReachStudy::run(const StudyParameters &sp)
     {
-      // Overrwrite the old study parameters
+      // Overwrite the old study parameters
       sp_ = sp;
 
       // Initialize the study
@@ -126,8 +126,6 @@ namespace reach
       {
         RCLCPP_ERROR(LOGGER, "Failed to initialize the reach study");
         return false;
-      }else {
-          RCLCPP_INFO(LOGGER, "Reach study initialized!");
       }
 
       // Get the reach object point cloud
@@ -135,8 +133,6 @@ namespace reach
       {
         RCLCPP_ERROR(LOGGER, "Unable to obtain reach object point cloud");
         return false;
-      }else {
-          RCLCPP_INFO(LOGGER, "Reach object point cloud obtained successfully!");
       }
 
       // Show the reach object collision object and reach object point cloud
@@ -144,13 +140,10 @@ namespace reach
       {
         rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub = node_->create_publisher<sensor_msgs::msg::PointCloud2>(INPUT_CLOUD_TOPIC, 1);
         pub->publish(cloud_msg_);
-      }else {
-          RCLCPP_INFO(LOGGER, "Not visualizing results!");
       }
 
       // Create markers
       visualizer_.reset(new ReachVisualizer(db_, ik_solver_, display_, sp_.optimization.radius));
-//      RCLCPP_INFO(LOGGER, "Visualizer created!");
 
       // Attempt to load previously saved optimized reach_study database
       if (!db_->load(results_dir_ + OPT_SAVED_DB_NAME))
@@ -178,7 +171,6 @@ namespace reach
           visualizer_->update();
         }
 
-        RCLCPP_INFO(LOGGER, "Creating search tree!");
         // Create an efficient search tree for doing nearest neighbors search
         search_tree_.reset(new SearchTree(flann::KDTreeSingleIndexParams(1, true)));
 
@@ -215,7 +207,6 @@ namespace reach
         // Perform the calculation if it hasn't already been done
         if (db_->getStudyResults().avg_num_neighbors == 0.0f)
         {
-          RCLCPP_INFO(LOGGER, "Performing average neighbour calculation.") ;
           getAverageNeighborsCount();
         }
       }
@@ -240,9 +231,9 @@ namespace reach
     {
       // Call the sample mesh service to create a point cloud of the reach object mesh
         auto callback_group_input_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC, rmw_qos_profile_services_default, callback_group_input_);
 //      auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC);
-      auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC, rmw_qos_profile_services_default, callback_group_input_);
-//        get_input_client_ = node_->create_client<petra_core::srv::GetInput>("GetInput", rmw_qos_profile_services_default, callback_group_input_);
+//      get_input_client_ = node_->create_client<petra_core::srv::GetInput>("GetInput", rmw_qos_profile_services_default, callback_group_input_);
 
         auto req = std::make_shared<reach_msgs::srv::LoadPointCloud::Request>();
       req->cloud_filename = ament_index_cpp::get_package_share_directory(sp_.pcd_package) + "/" + sp_.pcd_filename_path;
@@ -253,7 +244,6 @@ namespace reach
       client->wait_for_service();
 //      auto result = client->async_send_request(req);
        bool success_tmp = false;
-
 
         auto inner_client_callback = [&,this](rclcpp::Client<reach_msgs::srv::LoadPointCloud>::SharedFuture inner_future)
         {
@@ -282,31 +272,7 @@ namespace reach
                                                                                            << "'");
                 return false;
             }
-
-      // Wait for the result.
-        {
-//            if (rclcpp::spin_until_future_complete(node_->get_node_base_interface(), result) ==
-//                rclcpp::FutureReturnCode::SUCCESS) {
-//                if (!result.get()->success) {
-//                    RCLCPP_ERROR_STREAM(LOGGER, result.get()->message);
-//                    return false;
-//                }
-//
-//                cloud_msg_ = result.get()->cloud;
-//                pcl::fromROSMsg(cloud_msg_, *cloud_);
-//
-//                cloud_msg_.header.frame_id = sp_.fixed_frame;
-//                cloud_msg_.header.stamp = node_->now();
-//
-//                return true;
-//            } else {
-//                RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client->get_service_name()
-//                                                                                           << "'");
-//                return false;
-//            }
         }
-
-    }
 
     void ReachStudy::runInitialReachStudy()
     {
@@ -340,10 +306,20 @@ namespace reach
         geometry_msgs::msg::Pose tgt_pose;
         tgt_pose = tf2::toMsg(tgt_frame);
 
-        sensor_msgs::msg::JointState goal_state(seed_state);
+        geometry_msgs::msg::PoseStamped tgt_pose_stamped;
+        tgt_pose_stamped.pose = tgt_pose;
+        tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
+
+         ps_pub_->publish(tgt_pose_stamped);
+         sensor_msgs::msg::JointState goal_state(seed_state);
 
         if (score)
         {
+          std::map<std::string, double> robot_configuration;
+          for (size_t i = 0; i< seed_state.name.size(); ++i){
+              robot_configuration[seed_state.name[i]] = solution[i];
+          }
+          display_->updateRobotPose(robot_configuration);
           goal_state.position = solution;
           auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
           db_->put(msg);

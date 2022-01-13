@@ -56,6 +56,8 @@ public:
 
   virtual void showEnvironment() override;
 
+  virtual void showEnvironment(const std::vector<std::string> & names, const std::vector<double>& positions) override;
+
   virtual void updateRobotPose(const std::map<std::string, double>& pose) override;
 
 private:

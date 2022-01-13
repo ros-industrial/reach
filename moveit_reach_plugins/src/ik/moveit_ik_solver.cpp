@@ -140,6 +140,8 @@ std::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& t
 //  const static int SOLUTION_ATTEMPTS = 3;
   const static double SOLUTION_TIMEOUT = 0.2;
 
+//  RCLCPP_INFO(LOGGER, " TARGET: %f %f %f ", target.translation().x(), target.translation().y(),target.translation().z());
+
   if(state.setFromIK(jmg_, target, SOLUTION_TIMEOUT, std::bind(&MoveItIKSolver::isIKSolutionValid,
                                                                                   this,
                                                                                   std::placeholders::_1,

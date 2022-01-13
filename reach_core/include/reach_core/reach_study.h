@@ -26,6 +26,8 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <rclcpp/rclcpp.hpp>
 
+#include "geometry_msgs/msg/pose_stamped.hpp"
+
 namespace reach
 {
   namespace core
@@ -95,6 +97,8 @@ namespace reach
       sensor_msgs::msg::PointCloud2 cloud_msg_;
 
       std::shared_ptr<rclcpp::Node> node_;
+      rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr ps_pub_;
+
     };
 
   } // namespace core
