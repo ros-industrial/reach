@@ -22,10 +22,13 @@
 #include <reach_msgs/msg/reach_database.hpp>
 #include "reach_core/utils/visualization_utils.h"
 #include <visualization_msgs/msg/marker_array.hpp>
+// PoseStamped
+#include<geometry_msgs/msg/pose_stamped.hpp>
 
 constexpr char INTERACTIVE_MARKER_TOPIC[] = "reach_int_markers";
 constexpr char REACH_DIFF_TOPIC[] = "reach_comparison";
 constexpr char MARKER_TOPIC[] = "reach_neighbors";
+constexpr char POSE_TOPIC[] = "reach_pose";
 
 namespace reach
 {
@@ -214,7 +217,6 @@ namespace reach
       std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::MarkerArray>> diff_pub_;
 
       std::shared_ptr<rclcpp::Publisher<visualization_msgs::msg::Marker>> marker_pub_;
-
     };
     typedef std::shared_ptr<DisplayBase> DisplayBasePtr;
 

@@ -36,6 +36,8 @@ MoveItIKSolver::MoveItIKSolver()
 
 bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
 {
+    node_ = node;
+
     std::string planning_group;
 
     if(!node->get_parameter("ik_solver_config.planning_group", planning_group) ||
@@ -76,8 +78,6 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
         return false;
       }
 
-    RCLCPP_INFO(LOGGER, "Initializing robot shared model");
-//    model_ = moveit::planning_interface::getSharedRobotModel(node, "robot_description");
     model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
 
   if(!model_)
@@ -102,7 +102,10 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
     return false;
   }
 
-  // Add the collision object to the planning scene
+  scene_pub_ = node_->create_publisher<moveit_msgs::msg::PlanningScene>("ik_planning_scene", 1);
+
+
+    // Add the collision object to the planning scene
   const std::string object_name = "reach_object";
   moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(collision_mesh_package_, collision_mesh_frame_, object_name);
   if(!scene_->processCollisionObjectMsg(obj))
@@ -140,8 +143,6 @@ std::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d& t
 //  const static int SOLUTION_ATTEMPTS = 3;
   const static double SOLUTION_TIMEOUT = 0.2;
 
-//  RCLCPP_INFO(LOGGER, " TARGET: %f %f %f ", target.translation().x(), target.translation().y(),target.translation().z());
-
   if(state.setFromIK(jmg_, target, SOLUTION_TIMEOUT, std::bind(&MoveItIKSolver::isIKSolutionValid,
                                                                                   this,
                                                                                   std::placeholders::_1,
@@ -176,6 +177,12 @@ bool MoveItIKSolver::isIKSolutionValid(moveit::core::RobotState* state,
   const bool colliding = scene_->isStateColliding(*state, jmg->getName(), false);
   const bool too_close = (scene_->distanceToCollision(*state, scene_->getAllowedCollisionMatrix()) < distance_threshold_);
 
+  if (!colliding && !too_close){
+      scene_->setCurrentState(*state);
+      moveit_msgs::msg::PlanningScene scene_msg;
+      scene_->getPlanningSceneMsg(scene_msg);
+      scene_pub_->publish(scene_msg);
+  }
   return (!colliding && !too_close);
 }
 

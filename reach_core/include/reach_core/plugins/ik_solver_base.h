@@ -65,6 +65,10 @@ namespace reach
    * @return
    */
       virtual std::vector<std::string> getJointNames() const = 0;
+
+    public:
+        rclcpp::Node::SharedPtr node_;
+
     };
     typedef std::shared_ptr<IKSolverBase> IKSolverBasePtr;
 

@@ -19,6 +19,10 @@
 #include <moveit/planning_scene/planning_scene.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
+// conversions
+#include <moveit/robot_state/conversions.h>
+#include <tf2_eigen/tf2_eigen.hpp>
+
 const static std::string PLANNING_SCENE_TOPIC = "planning_scene_display";
 
 namespace moveit_reach_plugins
@@ -35,9 +39,10 @@ MoveItReachDisplay::MoveItReachDisplay()
 bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr node)
 {
     RCLCPP_INFO(LOGGER, "Initializing MoveItReachDisplay!");
-    reach::plugins::DisplayBase::initialize(name, node);
-
-    n_ = node;
+    if (!reach::plugins::DisplayBase::initialize(name, node))
+    {
+        return false;
+    }
 
     std::string param_prefix("display_config.");
     std::string planning_group;
@@ -97,11 +102,6 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
 
 void MoveItReachDisplay::showEnvironment()
 {
-  while (scene_pub_->get_subscription_count() < 1)
-    {
-        RCLCPP_INFO(LOGGER, "No subscribers. Not showing environment...");
-        rclcpp::sleep_for(std::chrono::milliseconds(100));
-    }
   moveit_msgs::msg::PlanningScene scene_msg;
   scene_->getPlanningSceneMsg(scene_msg);
   scene_pub_->publish(scene_msg);
@@ -110,6 +110,7 @@ void MoveItReachDisplay::showEnvironment()
 void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& pose)
 {
   std::vector<std::string> joint_names = jmg_->getActiveJointModelNames();
+
   std::vector<double> joints;
   if(utils::transcribeInputMap(pose, joint_names, joints))
   {

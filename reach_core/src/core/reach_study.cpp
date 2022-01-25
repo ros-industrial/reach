@@ -232,8 +232,6 @@ namespace reach
       // Call the sample mesh service to create a point cloud of the reach object mesh
         auto callback_group_input_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
         auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC, rmw_qos_profile_services_default, callback_group_input_);
-//      auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC);
-//      get_input_client_ = node_->create_client<petra_core::srv::GetInput>("GetInput", rmw_qos_profile_services_default, callback_group_input_);
 
         auto req = std::make_shared<reach_msgs::srv::LoadPointCloud::Request>();
       req->cloud_filename = ament_index_cpp::get_package_share_directory(sp_.pcd_package) + "/" + sp_.pcd_filename_path;
@@ -242,7 +240,6 @@ namespace reach
 
       RCLCPP_INFO(LOGGER, "Waiting for service '%s'.", SAMPLE_MESH_SRV_TOPIC);
       client->wait_for_service();
-//      auto result = client->async_send_request(req);
        bool success_tmp = false;
 
         auto inner_client_callback = [&,this](rclcpp::Client<reach_msgs::srv::LoadPointCloud>::SharedFuture inner_future)
@@ -306,19 +303,23 @@ namespace reach
         geometry_msgs::msg::Pose tgt_pose;
         tgt_pose = tf2::toMsg(tgt_frame);
 
-        geometry_msgs::msg::PoseStamped tgt_pose_stamped;
-        tgt_pose_stamped.pose = tgt_pose;
-        tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
-
-         ps_pub_->publish(tgt_pose_stamped);
-         sensor_msgs::msg::JointState goal_state(seed_state);
+        sensor_msgs::msg::JointState goal_state(seed_state);
 
         if (score)
         {
+            geometry_msgs::msg::PoseStamped tgt_pose_stamped;
+            tgt_pose_stamped.pose = tgt_pose;
+            tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
+            ps_pub_->publish(tgt_pose_stamped);
+
           std::map<std::string, double> robot_configuration;
-          for (size_t i = 0; i< seed_state.name.size(); ++i){
-              robot_configuration[seed_state.name[i]] = solution[i];
-          }
+            // create map
+            std::transform(goal_state.name.begin(), goal_state.name.end(), solution.begin(), std::inserter(robot_configuration, robot_configuration.end()),
+                           [](std::string &jname, double jvalue)
+            {
+                return std::make_pair(jname, jvalue);
+            });
+
           display_->updateRobotPose(robot_configuration);
           goal_state.position = solution;
           auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
@@ -406,19 +407,15 @@ namespace reach
       current_counter = previous_pct = neighbor_count = 0;
       std::atomic<double> total_joint_distance;
       const int total = db_->size();
-      int calc = 0;
       // Iterate
 #pragma parallel for
       for (auto it = db_->begin(); it != db_->end(); ++it)
       {
-//        RCLCPP_INFO(LOGGER, "Calculation no %d", calc++);
         reach_msgs::msg::ReachRecord msg = it->second;
         if (msg.reached)
         {
           NeighborReachResult result;
-//          RCLCPP_INFO(LOGGER, "Before recursion...");
           reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result, search_tree_);
-//          RCLCPP_INFO(LOGGER, "After recursion...");
           neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
           total_joint_distance = total_joint_distance + result.joint_distance;
         }

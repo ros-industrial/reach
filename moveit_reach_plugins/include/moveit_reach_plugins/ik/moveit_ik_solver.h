@@ -20,6 +20,9 @@
 #include <reach_core/plugins/evaluation_base.h>
 #include <pluginlib/class_loader.hpp>
 
+// PlanningScene
+#include <moveit_msgs/msg/planning_scene.hpp>
+
 namespace moveit
 {
 namespace core
@@ -80,6 +83,8 @@ protected:
   std::string evaluation_plugin_name_;
   std::string collision_mesh_frame_;
   std::vector<std::string> touch_links_;
+  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr scene_pub_;
+
 };
 
 } // namespace ik

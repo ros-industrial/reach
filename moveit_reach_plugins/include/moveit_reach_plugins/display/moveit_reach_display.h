@@ -70,10 +70,7 @@ private:
 
   std::string collision_mesh_package_;
   std::string collision_mesh_filename_path_;
-
   std::string collision_mesh_frame_;
-
-  rclcpp::Node::SharedPtr n_;
 
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr scene_pub_;
 };

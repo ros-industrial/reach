@@ -27,6 +27,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 
 namespace reach
 {
