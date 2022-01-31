@@ -240,21 +240,23 @@ namespace reach
 
       RCLCPP_INFO(LOGGER, "Waiting for service '%s'.", SAMPLE_MESH_SRV_TOPIC);
       client->wait_for_service();
-       bool success_tmp = false;
+      bool success_tmp = false;
+      bool inner_callback_finished = false;
 
         auto inner_client_callback = [&,this](rclcpp::Client<reach_msgs::srv::LoadPointCloud>::SharedFuture inner_future)
         {
-            RCLCPP_INFO(LOGGER, "Inner service callback started");
             success_tmp = inner_future.get()->success;
             cloud_msg_ = inner_future.get()->cloud;
             RCLCPP_INFO(LOGGER, "Inner service callback message: '%s'", inner_future.get()->message.c_str());
-            RCLCPP_INFO(LOGGER, "Inner service callback finished");
+            inner_callback_finished = true;
         };
         auto inner_future_result = client->async_send_request(req, inner_client_callback);
 
         // quick fix to wait for inner callback to finish
         //TODO(livanov93) Add visible flag within the inner callback
-        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        while(!inner_callback_finished) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
 
         if (success_tmp){
             pcl::fromROSMsg(cloud_msg_, *cloud_);
