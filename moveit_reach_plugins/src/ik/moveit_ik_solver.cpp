@@ -177,12 +177,12 @@ bool MoveItIKSolver::isIKSolutionValid(moveit::core::RobotState* state,
   const bool colliding = scene_->isStateColliding(*state, jmg->getName(), false);
   const bool too_close = (scene_->distanceToCollision(*state, scene_->getAllowedCollisionMatrix()) < distance_threshold_);
 
-  if (!colliding && !too_close){
-      scene_->setCurrentState(*state);
-      moveit_msgs::msg::PlanningScene scene_msg;
-      scene_->getPlanningSceneMsg(scene_msg);
-      scene_pub_->publish(scene_msg);
-  }
+//  if (!colliding && !too_close){
+//      scene_->setCurrentState(*state);
+//      moveit_msgs::msg::PlanningScene scene_msg;
+//      scene_->getPlanningSceneMsg(scene_msg);
+//      scene_pub_->publish(scene_msg);
+//  }
   return (!colliding && !too_close);
 }
 

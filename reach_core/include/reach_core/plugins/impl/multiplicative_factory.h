@@ -29,6 +29,12 @@ namespace reach
     public:
       MultiplicativeFactory();
 
+      ~MultiplicativeFactory(){
+          for(auto &ev_pl : eval_plugins_){
+              ev_pl.reset();
+          }
+      }
+
       virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
 
       virtual double calculateScore(const std::map<std::string, double> &pose) override;
