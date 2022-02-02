@@ -113,10 +113,12 @@ int main(int argc, char **argv)
     std::string pkg_name;
     std::string dir_name;
     bool chk_all_sub_dirs;
+    bool avg_neighbor_count;
 
     node->get_parameter_or<std::string>("package_name", pkg_name, "reach_core");
     node->get_parameter_or<std::string>("directory_name", dir_name, RESULTS_FOLDER_NAME);
     node->get_parameter_or<bool>("check_all_subdirectories", chk_all_sub_dirs, false);
+    node->get_parameter_or<bool>("avg_neighbor_count", avg_neighbor_count, false);
 
 
   std::string root_path = std::string(ament_index_cpp::get_package_share_directory(pkg_name)) + "/" + dir_name;
@@ -136,13 +138,19 @@ int main(int argc, char **argv)
     return 0;
   }
 
-
-  std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n")
-               % "Configuration Name"
-               % "Reach Percentage"
-               % "Normalized Total Pose Score"
-               % "Average Reachable Neighbors"
-               % "Average Joint Distance";
+    if (avg_neighbor_count) {
+        std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n")
+                     % "Configuration Name"
+                     % "Reach Percentage"
+                     % "Normalized Total Pose Score"
+                     % "Average Reachable Neighbors"
+                     % "Average Joint Distance";
+    }else {
+        std::cout << boost::format("%-30s %=25s %=25s\n")
+                     % "Configuration Name"
+                     % "Reach Percentage"
+                     % "Normalized Total Pose Score";
+    }
 
   for(size_t i = 0; i < files.size(); ++i)
   {
@@ -153,12 +161,19 @@ int main(int argc, char **argv)
     if(db.load(path))
     {
       reach::core::StudyResults res = db.getStudyResults();
-      std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n")
-                   % config.c_str()
-                   % res.reach_percentage
-                   % res.norm_total_pose_score
-                   % res.avg_num_neighbors
-                   % res.avg_joint_distance;
+      if(avg_neighbor_count) {
+          std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n")
+                       % config.c_str()
+                       % res.reach_percentage
+                       % res.norm_total_pose_score
+                       % res.avg_num_neighbors
+                       % res.avg_joint_distance;
+      }else {
+          std::cout << boost::format("%-30s %=25.3f %=25.6f\n")
+                       % config.c_str()
+                       % res.reach_percentage
+                       % res.norm_total_pose_score;
+      }
     }
   }
     // shutdown
