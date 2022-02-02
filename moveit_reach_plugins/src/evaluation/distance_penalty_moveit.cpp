@@ -65,7 +65,7 @@ bool DistancePenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPt
     return false;
   }
 
-  scene_.reset(new planning_scene::PlanningScene (model_));
+    scene_ = std::make_shared<planning_scene::PlanningScene>(model_);
 
   // Check that the collision mesh frame exists
   if(!scene_->knowsFrameTransform(collision_mesh_frame_))
