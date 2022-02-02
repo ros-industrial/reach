@@ -89,14 +89,12 @@ namespace reach
 
     bool ReachDatabase::load(const std::string &filename)
     {
-      RCLCPP_INFO(LOGGER, "ReachDatabase::load from '%s'", filename.c_str());
       reach_msgs::msg::ReachDatabase msg;
       if (!reach::utils::fromFile(filename, msg))
       {
         RCLCPP_ERROR(LOGGER, "Unable to serialize from file '%s'!", filename.c_str());
         return false;
       }
-      RCLCPP_INFO(LOGGER, "ReachDatabase::load ==> loaded from file successfully!");
       std::lock_guard<std::mutex> lock{mutex_};
 
       for (const auto &r : msg.records)

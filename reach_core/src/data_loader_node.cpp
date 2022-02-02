@@ -49,27 +49,79 @@ bool get_all(const std::filesystem::path& root,
     ++it;
   }
 
-  std::sort(ret.begin(), ret.end());
+  std::sort(ret.begin(), ret.end(),
+            [&](const std::pair<std::filesystem::path, std::filesystem::path> &first,
+                    std::pair<std::filesystem::path, std::filesystem::path> &second){
+
+                reach::core::ReachDatabase db;
+                // first
+                db.load(first.second);
+                reach::core::StudyResults res = db.getStudyResults();
+                float first_reach_percentage = res.reach_percentage;
+                // second
+                db.load(second.second);
+                res = db.getStudyResults();
+                float second_reach_percentage = res.reach_percentage;
+                return first_reach_percentage > second_reach_percentage;
+
+            });
 
   return true;
 }
 
+//bool get_all_subdirs(const std::filesystem::path& root,
+//             const std::string& ext,
+//             std::vector<std::pair<std::filesystem::path, std::filesystem::path>>& ret)
+//{
+//    if(!std::filesystem::exists(root)) return false;
+//
+//    if(!std::filesystem::is_directory(root)) return false;
+//
+//    std::filesystem::recursive_directory_iterator it(root);
+//    std::filesystem::recursive_directory_iterator endit;
+//
+//    while(it != endit)
+//    {
+//        printf("%s\n", it->path().filename().c_str());
+//        if(std::filesystem::is_regular_file(*it) && it->path().extension() == ext)
+//        {
+//            // Capture only the optimized reach databases
+//            if(it->path().filename() == OPT_DB_NAME)
+//            {
+//                std::pair<std::filesystem::path, std::filesystem::path> tmp;
+//                tmp.first = it->path().parent_path().filename();
+//                tmp.second = it->path();
+//                ret.push_back(tmp);
+//            }
+//        }
+//        ++it;
+//    }
+//
+//    std::sort(ret.begin(), ret.end());
+//
+//    return true;
+//}
+
 int main(int argc, char **argv)
 {
-  if(argc > 2)
-  {
-    return -1;
-  }
-
     // Initialize ROS
     rclcpp::init(argc, argv);
+    rclcpp::NodeOptions  options(rclcpp::NodeOptions().allow_undeclared_parameters(true).automatically_declare_parameters_from_overrides(true));
     // create node
-    auto node = std::make_shared<rclcpp::Node>("data_loader_node");
+    auto node = std::make_shared<rclcpp::Node>("data_loader_node", options);
+
+    std::string pkg_name;
+    std::string dir_name;
+    bool chk_all_sub_dirs;
+
+    node->get_parameter_or<std::string>("package_name", pkg_name, "reach_core");
+    node->get_parameter_or<std::string>("directory_name", dir_name, RESULTS_FOLDER_NAME);
+    node->get_parameter_or<bool>("check_all_subdirectories", chk_all_sub_dirs, false);
 
 
-  std::string root_path = std::string(ament_index_cpp::get_package_share_directory(("reach_core"))) + "/" + RESULTS_FOLDER_NAME;
+  std::string root_path = std::string(ament_index_cpp::get_package_share_directory(pkg_name)) + "/" + dir_name;
 
-  if(argv[1])
+  if(argv[1] && !chk_all_sub_dirs)
   {
     const std::string folder_name = argv[1];
     root_path += "/" + folder_name;
@@ -77,11 +129,13 @@ int main(int argc, char **argv)
 
   std::filesystem::path root (root_path);
   std::vector<std::pair<std::filesystem::path, std::filesystem::path>> files;
+
   if(!get_all(root, ".db", files))
   {
     std::cout << "Specified directory does not exist";
     return 0;
   }
+
 
   std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n")
                % "Configuration Name"
