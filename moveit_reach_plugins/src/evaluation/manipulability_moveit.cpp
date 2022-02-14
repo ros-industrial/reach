@@ -29,7 +29,7 @@ ManipulabilityMoveIt::ManipulabilityMoveIt()
 
 }
 
-bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr node)
+bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model)
 {
     std::string planning_group;
 
@@ -39,7 +39,8 @@ bool ManipulabilityMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr
     RCLCPP_ERROR(LOGGER, "MoveIt Manipulability Evaluation Plugin is missing 'planning_group' parameter");
     return false;
   }
-  model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+//  model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+    model_ = model;
     if(!model_)
   {
     RCLCPP_ERROR(LOGGER, "Failed to initialize robot model pointer");

@@ -10,6 +10,7 @@ robot_reach_study_node:
     get_avg_neighbor_count: false
     compare_dbs: [""]
     visualize_results: true
+    planning_group: "manipulator"
 
     optimization:
       radius: 0.2

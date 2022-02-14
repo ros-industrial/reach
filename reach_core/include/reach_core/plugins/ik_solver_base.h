@@ -22,6 +22,7 @@
 #include <Eigen/Dense>
 
 #include <rclcpp/rclcpp.hpp>
+#include<moveit/robot_model/robot_model.h>
 
 namespace reach
 {
@@ -47,7 +48,7 @@ namespace reach
    * @param config
    * @return
    */
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model) = 0;
 
       /**
    * @brief solveIKFromSeed attempts to find a valid IK solution for the given target pose starting from the input seed state.

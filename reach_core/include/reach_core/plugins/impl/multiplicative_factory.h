@@ -35,7 +35,7 @@ namespace reach
           }
       }
 
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, std::shared_ptr<moveit::core::RobotModel> model) override;
 
       virtual double calculateScore(const std::map<std::string, double> &pose) override;
 

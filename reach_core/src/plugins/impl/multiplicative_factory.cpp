@@ -34,7 +34,7 @@ namespace reach
     {
     }
 
-    bool MultiplicativeFactory::initialize(std::string& name, rclcpp::Node::SharedPtr node)
+    bool MultiplicativeFactory::initialize(std::string& name, rclcpp::Node::SharedPtr const node,std::shared_ptr<moveit::core::RobotModel> model )
     {
       try
       {
@@ -60,7 +60,7 @@ namespace reach
             continue;
           }
 
-          if (!plugin->initialize(name, node))
+          if (!plugin->initialize(name, node, model))
           {
             RCLCPP_WARN_STREAM(LOGGER, "Plugin '" << name << "' failed to be initialized; excluding it from the list");
             continue;

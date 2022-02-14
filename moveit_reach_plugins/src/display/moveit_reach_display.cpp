@@ -36,10 +36,10 @@ MoveItReachDisplay::MoveItReachDisplay()
 
 }
 
-bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr node)
+bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model)
 {
     RCLCPP_INFO(LOGGER, "Initializing MoveItReachDisplay!");
-    if (!reach::plugins::DisplayBase::initialize(name, node))
+    if (!reach::plugins::DisplayBase::initialize(name, node, model))
     {
         return false;
     }
@@ -58,7 +58,8 @@ bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr n
     return false;
   }
 
-    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+//    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+    model_ = model;
 
     if(!model_)
   {

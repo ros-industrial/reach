@@ -42,6 +42,7 @@ public:
             !this->get_parameter("object_frame", sp_.object_frame) ||
             !this->get_parameter("pcd_package", sp_.pcd_package) ||
             !this->get_parameter("pcd_filename_path", sp_.pcd_filename_path) ||
+            !this->get_parameter("planning_group", sp_.planning_group) ||
             !this->get_parameter("optimization.radius", sp_.optimization.radius) ||
             !this->get_parameter("optimization.max_steps", sp_.optimization.max_steps) ||
             !this->get_parameter("optimization.step_improvement_threshold", sp_.optimization.step_improvement_threshold) ||

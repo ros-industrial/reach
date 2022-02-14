@@ -30,7 +30,7 @@ DistancePenaltyMoveIt::DistancePenaltyMoveIt()
 
 }
 
-bool DistancePenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr node)
+bool DistancePenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model)
 {
     std::string planning_group;
 
@@ -50,7 +50,8 @@ bool DistancePenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPt
         touch_links_.clear();
     }
 
-    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+//    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+    model_ = model;
 
   if(!model_)
   {

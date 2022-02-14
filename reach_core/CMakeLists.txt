@@ -18,6 +18,8 @@ find_package(reach_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -38,6 +40,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_eigen
   tf2_ros
   visualization_msgs
+  moveit_ros_planning_interface
 )
 
 ###########
@@ -47,6 +50,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
 include_directories(
   include
   ${PCL_INCLUDE_DIRS}
+  ${moveit_ros_planning_interface_INCLUDE_DIRS}
 )
 
 # Plugins Library
@@ -108,7 +112,7 @@ target_include_directories(${PROJECT_NAME}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_plugins ${PROJECT_NAME}_utils)
+target_link_libraries(${PROJECT_NAME} ${PROJECT_NAME}_utils)
 ament_target_dependencies(${PROJECT_NAME}
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
@@ -125,12 +129,8 @@ target_include_directories(robot_reach_study_node
 target_link_libraries(robot_reach_study_node
   ${PROJECT_NAME}
   ${PROJECT_NAME}_utils
-  ${PROJECT_NAME}_plugins
+#  ${PROJECT_NAME}_plugins li promijenio
 )
-#ament_target_dependencies(robot_reach_study_node
-#  ${THIS_PACKAGE_INCLUDE_DEPENDS}
-#  pluginlib
-#)
 
 ## Load Point Cloud Server Node
 add_executable(load_point_cloud_server_node
@@ -140,7 +140,6 @@ target_link_libraries(load_point_cloud_server_node
   ${PROJECT_NAME}
 )
 ament_target_dependencies(load_point_cloud_server_node
-#  ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 

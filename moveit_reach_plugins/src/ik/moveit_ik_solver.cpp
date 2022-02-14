@@ -34,7 +34,7 @@ MoveItIKSolver::MoveItIKSolver()
 
 }
 
-bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
+bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model)
 {
     node_ = node;
 
@@ -66,7 +66,7 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
     }
     try
     {
-        if(!eval_->initialize(evaluation_plugin_name_, node))
+        if(!eval_->initialize(evaluation_plugin_name_, node, model))
         {
           RCLCPP_ERROR_STREAM(LOGGER, "Failed to initialize evaluation plugin");
           return false;
@@ -78,7 +78,8 @@ bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
         return false;
       }
 
-    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+//    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+    model_ = model;
 
   if(!model_)
   {

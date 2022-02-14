@@ -19,16 +19,6 @@
 #include <reach_core/plugins/evaluation_base.h>
 #include <moveit_msgs/msg/planning_scene.hpp>
 
-namespace moveit
-{
-namespace core
-{
-class RobotModel;
-typedef std::shared_ptr<const RobotModel> RobotModelConstPtr;
-class JointModelGroup;
-}
-}
-
 namespace planning_scene
 {
 class PlanningScene;
@@ -50,13 +40,13 @@ public:
 
   DistancePenaltyMoveIt();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node,const std::shared_ptr<moveit::core::RobotModel> model) override;
 
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 
 private:
 
-  moveit::core::RobotModelConstPtr model_;
+  moveit::core::RobotModelPtr model_;
 
   const moveit::core::JointModelGroup* jmg_;
 

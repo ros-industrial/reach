@@ -59,15 +59,23 @@ namespace reach
     {
 
     }
+    ReachStudy::~ReachStudy(){
+        ik_solver_.reset();
+        display_.reset();
 
-    bool ReachStudy::initializeStudy()
+    }
+
+    bool ReachStudy::initializeStudy(const StudyParameters &sp)
     {
       ik_solver_.reset();
       display_.reset();
+      // create robot model shared ptr
+      model_ = moveit::planning_interface::getSharedRobotModelLoader(node_, "robot_description")->getModel();
+      RCLCPP_INFO(LOGGER, "Created robot model!!!");
 
-        ps_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("pose_stamped", 1);
+      ps_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("pose_stamped", 1);
 
-        try
+      try
       {
         ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
         display_ = display_loader_.createSharedInstance(sp_.display_config_name);
@@ -75,19 +83,25 @@ namespace reach
       catch (const pluginlib::PluginlibException &ex)
       {
         RCLCPP_ERROR(LOGGER, "Pluginlib exception thrown while creating shared instances of ik solver and/or display: '%s'", ex.what());
+        ik_solver_.reset();
+        display_.reset();
         return false;
       }
       catch (const std::exception &ex)
       {
           RCLCPP_ERROR(LOGGER, "Error while creating shared instances of ik solver and/or display: '%s'", ex.what());
+          ik_solver_.reset();
+          display_.reset();
           return false;
       }
 
       // Initialize the IK solver plugin and display plugin
-      if (!ik_solver_->initialize(sp_.ik_solver_config_name, node_) ||
-          !display_->initialize(sp_.display_config_name, node_))
+      if (!ik_solver_->initialize(sp_.ik_solver_config_name, node_, model_) ||
+          !display_->initialize(sp_.display_config_name, node_, model_))
       {
-          RCLCPP_ERROR(LOGGER, "Could not initialized both display and ik solver plugins!");
+        RCLCPP_ERROR(LOGGER, "Could not initialized both display and ik solver plugins!");
+        ik_solver_.reset();
+        display_.reset();
         return false;
       }
 
@@ -122,7 +136,7 @@ namespace reach
       sp_ = sp;
 
       // Initialize the study
-      if (!initializeStudy())
+      if (!initializeStudy(sp))
       {
         RCLCPP_ERROR(LOGGER, "Failed to initialize the reach study");
         return false;
@@ -132,6 +146,8 @@ namespace reach
       if (!getReachObjectPointCloud())
       {
         RCLCPP_ERROR(LOGGER, "Unable to obtain reach object point cloud");
+        ik_solver_.reset();
+        display_.reset();
         return false;
       }
 
@@ -223,6 +239,9 @@ namespace reach
           }
         }
       }
+
+      ik_solver_.reset();
+      display_.reset();
 
       return true;
     }

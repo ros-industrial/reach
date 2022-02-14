@@ -21,16 +21,6 @@
 
 #include <rclcpp/rclcpp.hpp>
 
-namespace moveit
-{
-namespace core
-{
-class RobotModel;
-typedef std::shared_ptr<const RobotModel> RobotModelConstPtr;
-class JointModelGroup;
-}
-}
-
 namespace planning_scene
 {
 class PlanningScene;
@@ -52,7 +42,7 @@ public:
 
   MoveItReachDisplay();
 
-  bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
+  bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model) override;
 
   virtual void showEnvironment() override;
 
@@ -62,7 +52,7 @@ public:
 
 private:
 
-  moveit::core::RobotModelConstPtr model_;
+  moveit::core::RobotModelPtr model_;
 
   planning_scene::PlanningScenePtr scene_;
 

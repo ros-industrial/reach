@@ -23,16 +23,16 @@
 // PlanningScene
 #include <moveit_msgs/msg/planning_scene.hpp>
 
-namespace moveit
-{
-namespace core
-{
-class RobotModel;
-typedef std::shared_ptr<const RobotModel> RobotModelConstPtr;
-class JointModelGroup;
-class RobotState;
-}
-}
+//namespace moveit
+//{
+//namespace core
+//{
+//class RobotModel;
+//typedef std::shared_ptr<const RobotModel> RobotModelConstPtr;
+//class JointModelGroup;
+//class RobotState;
+//}
+//}
 
 namespace planning_scene
 {
@@ -55,7 +55,11 @@ public:
 
   MoveItIKSolver();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) override;
+  ~MoveItIKSolver(){
+      eval_.reset();
+  }
+
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model) override;
 
   virtual std::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
                                                   const std::map<std::string, double> &seed,
@@ -69,7 +73,7 @@ protected:
                          const moveit::core::JointModelGroup* jmg,
                          const double* ik_solution) const;
 
-  moveit::core::RobotModelConstPtr model_;
+  moveit::core::RobotModelPtr model_;
   planning_scene::PlanningScenePtr scene_;
   const moveit::core::JointModelGroup* jmg_;
 

@@ -25,6 +25,8 @@
 // PoseStamped
 #include<geometry_msgs/msg/pose_stamped.hpp>
 
+#include<moveit/robot_model/robot_model.h>
+
 constexpr char INTERACTIVE_MARKER_TOPIC[] = "reach_int_markers";
 constexpr char REACH_DIFF_TOPIC[] = "reach_comparison";
 constexpr char MARKER_TOPIC[] = "reach_neighbors";
@@ -53,7 +55,7 @@ namespace reach
           marker_pub_.reset();
       }
 
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node){
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model){
 
           node_ = node;
           server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, node);

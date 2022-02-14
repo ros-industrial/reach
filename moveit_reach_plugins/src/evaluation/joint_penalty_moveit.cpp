@@ -29,7 +29,7 @@ JointPenaltyMoveIt::JointPenaltyMoveIt()
 
 }
 
-bool JointPenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr node)
+bool JointPenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model)
 {
     std::string planning_group;
 
@@ -40,7 +40,8 @@ bool JointPenaltyMoveIt::initialize(std::string& name, rclcpp::Node::SharedPtr n
     return false;
   }
 
-    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+//    model_ = moveit::planning_interface::getSharedRobotModelLoader(node, "robot_description")->getModel();
+    model_ = model;
 
   if(!model_)
   {

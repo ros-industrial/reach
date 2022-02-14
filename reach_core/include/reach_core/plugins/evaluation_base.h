@@ -21,6 +21,9 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include<moveit/robot_model/robot_model.h>
+
+
 namespace reach
 {
   namespace plugins
@@ -44,7 +47,7 @@ namespace reach
    * @brief initialize
    * @param config
    */
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model) = 0;
 
       /**
    * @brief calculateScore

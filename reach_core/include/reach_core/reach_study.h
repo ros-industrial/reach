@@ -21,13 +21,25 @@
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/plugins/ik_solver_base.h>
 #include <pcl_conversions/pcl_conversions.h>
-// #include <pcl_ros/point_cloud.hpp>
 #include <pluginlib/class_loader.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <rclcpp/rclcpp.hpp>
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/pose_array.hpp"
+
+#include <moveit/common_planning_interface_objects/common_objects.h>
+
+//
+//namespace moveit
+//{
+//    namespace core
+//    {
+//        class RobotModel;
+//        typedef std::shared_ptr<const RobotModel> RobotModelConstPtr;
+//        class JointModelGroup;
+//    }
+//}
 
 namespace reach
 {
@@ -46,6 +58,8 @@ namespace reach
    */
       ReachStudy(const rclcpp::Node::SharedPtr node);
 
+      ~ReachStudy();
+
       /**
    * @brief run
    * @param sp
@@ -63,7 +77,7 @@ namespace reach
       }
 
     private:
-      bool initializeStudy();
+      bool initializeStudy(const StudyParameters &sp);
 
       bool getReachObjectPointCloud();
 
@@ -99,6 +113,9 @@ namespace reach
 
       std::shared_ptr<rclcpp::Node> node_;
       rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr ps_pub_;
+
+      // robot model
+      moveit::core::RobotModelPtr model_;
 
     };
 

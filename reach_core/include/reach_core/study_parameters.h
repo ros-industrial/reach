@@ -64,6 +64,7 @@ struct StudyParameters
   std::vector<std::string> compare_dbs;
   std::string fixed_frame;
   std::string object_frame;
+  std::string planning_group;
 };
 
 } // namespace core

@@ -40,9 +40,9 @@ DiscretizedMoveItIKSolver::DiscretizedMoveItIKSolver()
 
 }
 
-bool DiscretizedMoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node)
+bool DiscretizedMoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node,  const std::shared_ptr<moveit::core::RobotModel> model)
 {
-  if(!MoveItIKSolver::initialize(name, node))
+  if(!MoveItIKSolver::initialize(name, node, model))
   {
     RCLCPP_ERROR(LOGGER, "Failed to initialize MoveItIKSolver plugin");
     return false;
