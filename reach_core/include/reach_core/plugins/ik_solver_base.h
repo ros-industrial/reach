@@ -48,7 +48,7 @@ namespace reach
    * @param config
    * @return
    */
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<const moveit::core::RobotModel> model) = 0;
 
       /**
    * @brief solveIKFromSeed attempts to find a valid IK solution for the given target pose starting from the input seed state.

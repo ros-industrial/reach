@@ -115,7 +115,7 @@ namespace reach
       rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr ps_pub_;
 
       // robot model
-      moveit::core::RobotModelPtr model_;
+      moveit::core::RobotModelConstPtr model_;
 
     };
 

@@ -42,7 +42,7 @@ public:
 
   MoveItReachDisplay();
 
-  bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model) override;
+  bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<const moveit::core::RobotModel> model) override;
 
   virtual void showEnvironment() override;
 
@@ -52,7 +52,7 @@ public:
 
 private:
 
-  moveit::core::RobotModelPtr model_;
+  moveit::core::RobotModelConstPtr model_;
 
   planning_scene::PlanningScenePtr scene_;
 

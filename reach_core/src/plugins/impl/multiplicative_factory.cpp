@@ -34,7 +34,7 @@ namespace reach
     {
     }
 
-    bool MultiplicativeFactory::initialize(std::string& name, rclcpp::Node::SharedPtr const node,std::shared_ptr<moveit::core::RobotModel> model )
+    bool MultiplicativeFactory::initialize(std::string& name, rclcpp::Node::SharedPtr const node,std::shared_ptr<const moveit::core::RobotModel> model )
     {
       try
       {

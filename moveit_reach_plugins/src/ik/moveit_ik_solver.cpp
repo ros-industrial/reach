@@ -34,7 +34,7 @@ MoveItIKSolver::MoveItIKSolver()
 
 }
 
-bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model)
+bool MoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<const moveit::core::RobotModel> model)
 {
     node_ = node;
 

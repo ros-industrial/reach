@@ -40,7 +40,7 @@ DiscretizedMoveItIKSolver::DiscretizedMoveItIKSolver()
 
 }
 
-bool DiscretizedMoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node,  const std::shared_ptr<moveit::core::RobotModel> model)
+bool DiscretizedMoveItIKSolver::initialize(std::string& name, rclcpp::Node::SharedPtr node,  const std::shared_ptr<const moveit::core::RobotModel> model)
 {
   if(!MoveItIKSolver::initialize(name, node, model))
   {

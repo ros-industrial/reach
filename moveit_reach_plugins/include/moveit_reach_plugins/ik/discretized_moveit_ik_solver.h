@@ -30,7 +30,7 @@ public:
 
   DiscretizedMoveItIKSolver();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node,  const std::shared_ptr<moveit::core::RobotModel> model) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node,  const std::shared_ptr<const moveit::core::RobotModel> model) override;
 
   virtual std::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
                                                   const std::map<std::string, double>& seed,

@@ -47,7 +47,7 @@ namespace reach
    * @brief initialize
    * @param config
    */
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model) = 0;
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<const moveit::core::RobotModel> model) = 0;
 
       /**
    * @brief calculateScore

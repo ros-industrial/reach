@@ -36,7 +36,7 @@ MoveItReachDisplay::MoveItReachDisplay()
 
 }
 
-bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model)
+bool MoveItReachDisplay::initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<const moveit::core::RobotModel> model)
 {
     RCLCPP_INFO(LOGGER, "Initializing MoveItReachDisplay!");
     if (!reach::plugins::DisplayBase::initialize(name, node, model))

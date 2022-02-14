@@ -55,7 +55,7 @@ namespace reach
           marker_pub_.reset();
       }
 
-      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<moveit::core::RobotModel> model){
+      virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<const moveit::core::RobotModel> model){
 
           node_ = node;
           server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, node);

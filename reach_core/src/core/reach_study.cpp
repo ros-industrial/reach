@@ -70,8 +70,7 @@ namespace reach
       ik_solver_.reset();
       display_.reset();
       // create robot model shared ptr
-      model_ = moveit::planning_interface::getSharedRobotModelLoader(node_, "robot_description")->getModel();
-      RCLCPP_INFO(LOGGER, "Created robot model!!!");
+      model_ = moveit::planning_interface::getSharedRobotModel(node_, "robot_description");
 
       ps_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("pose_stamped", 1);
 

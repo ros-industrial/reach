@@ -40,13 +40,13 @@ public:
 
   DistancePenaltyMoveIt();
 
-  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node,const std::shared_ptr<moveit::core::RobotModel> model) override;
+  virtual bool initialize(std::string& name, rclcpp::Node::SharedPtr node,const std::shared_ptr<const moveit::core::RobotModel> model) override;
 
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 
 private:
 
-  moveit::core::RobotModelPtr model_;
+  moveit::core::RobotModelConstPtr model_;
 
   const moveit::core::JointModelGroup* jmg_;
 
