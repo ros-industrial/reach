@@ -161,16 +161,16 @@ int main(int argc, char **argv)
         for (auto it = tmp_storage.begin(); it != tmp_storage.end(); it++) {
             std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
 
-            std::cout << boost::format("%-30s %=25s %=25s\n")
+            std::cout << boost::format("%-60s %=25s %=25s\n")
                          % "Configuration Name"
                          % "Reach Percentage"
                          % "Normalized Total Pose Score";
             std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
 
-            std::cout << boost::format("%-30s ##########################################################################\n")
+            std::cout << boost::format("%-60s ##########################################################################\n")
                          % it->first;
             for (auto &iter: it->second) {
-                std::cout << boost::format("%-30s %=25.3f %=25.6f\n")
+                std::cout << boost::format("%-60s %=25.3f %=25.6f\n")
                              % iter.second.first
                              % iter.second.second.reach_percentage
                              % iter.second.second.norm_total_pose_score;
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 
         std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
 
-        std::cout << boost::format("%-30s %=25s\n")
+        std::cout << boost::format("%-60s %=25s\n")
                      % "Configuration Name"
                      % "Reach Percentage";
         std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
 
         for (auto it = per_coordinate_percenage_vec.begin(); it != per_coordinate_percenage_vec.end(); it++) {
 
-                std::cout << boost::format("%-30s %=25.3f\n")
+                std::cout << boost::format("%-60s %=25.3f\n")
                              % it->first
                              % it->second;
         }
@@ -233,14 +233,14 @@ int main(int argc, char **argv)
 
     if(print_result_total) {
         if (avg_neighbor_count) {
-            std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n")
+            std::cout << boost::format("%-60s %=25s %=25s %=25s %=25s\n")
                          % "Configuration Name"
                          % "Reach Percentage"
                          % "Normalized Total Pose Score"
                          % "Average Reachable Neighbors"
                          % "Average Joint Distance";
         } else {
-            std::cout << boost::format("%-30s %=25s %=25s\n")
+            std::cout << boost::format("%-60s %=25s %=25s\n")
                          % "Configuration Name"
                          % "Reach Percentage"
                          % "Normalized Total Pose Score";
@@ -255,14 +255,14 @@ int main(int argc, char **argv)
             if (db.load(path)) {
                 reach::core::StudyResults res = db.getStudyResults();
                 if (avg_neighbor_count) {
-                    std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n")
+                    std::cout << boost::format("%-60s %=25.3f %=25.6f %=25.3f %=25.3f\n")
                                  % config.c_str()
                                  % res.reach_percentage
                                  % res.norm_total_pose_score
                                  % res.avg_num_neighbors
                                  % res.avg_joint_distance;
                 } else {
-                    std::cout << boost::format("%-30s %=25.3f %=25.6f\n")
+                    std::cout << boost::format("%-60s %=25.3f %=25.6f\n")
                                  % config.c_str()
                                  % res.reach_percentage
                                  % res.norm_total_pose_score;
