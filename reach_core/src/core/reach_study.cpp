@@ -175,6 +175,8 @@ namespace reach
           runInitialReachStudy();
           db_->printResults();
           visualizer_->update();
+          // li added tmp
+            return true;
         }
         else
         {
@@ -184,6 +186,7 @@ namespace reach
 
           db_->printResults();
           visualizer_->update();
+
         }
 
         // Create an efficient search tree for doing nearest neighbors search
