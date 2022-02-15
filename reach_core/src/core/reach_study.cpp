@@ -175,8 +175,10 @@ namespace reach
           runInitialReachStudy();
           db_->printResults();
           visualizer_->update();
-          // li added tmp
-            return true;
+          // check if we don't have to optimize
+          if (sp.run_initial_study_only) {
+              return true;
+          }
         }
         else
         {
@@ -186,6 +188,10 @@ namespace reach
 
           db_->printResults();
           visualizer_->update();
+            // check if we don't have to optimize
+            if (sp.run_initial_study_only) {
+                return true;
+            }
 
         }
 

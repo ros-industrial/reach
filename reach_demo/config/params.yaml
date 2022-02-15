@@ -11,6 +11,7 @@ robot_reach_study_node:
     compare_dbs: [""]
     visualize_results: true
     planning_group: "manipulator"
+    run_initial_study_only: false
 
     optimization:
       radius: 0.2
