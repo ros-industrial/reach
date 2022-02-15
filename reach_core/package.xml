@@ -26,6 +26,7 @@
   <depend>tf2_ros</depend>
   <depend>tf2_eigen</depend>
   <depend>visualization_msgs</depend>
+  <depend>moveit_ros_planning_interface</depend>
 
   <export>
     <reach_core plugin="${prefix}/plugin_description.xml"/>

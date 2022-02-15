@@ -175,6 +175,10 @@ namespace reach
           runInitialReachStudy();
           db_->printResults();
           visualizer_->update();
+          // check if we don't have to optimize
+          if (sp.run_initial_study_only) {
+              return true;
+          }
         }
         else
         {
@@ -184,6 +188,11 @@ namespace reach
 
           db_->printResults();
           visualizer_->update();
+            // check if we don't have to optimize
+            if (sp.run_initial_study_only) {
+                return true;
+            }
+
         }
 
         // Create an efficient search tree for doing nearest neighbors search

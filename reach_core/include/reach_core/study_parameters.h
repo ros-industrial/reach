@@ -65,6 +65,7 @@ struct StudyParameters
   std::string fixed_frame;
   std::string object_frame;
   std::string planning_group;
+  bool run_initial_study_only;
 };
 
 } // namespace core
