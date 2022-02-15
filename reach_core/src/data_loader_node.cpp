@@ -22,7 +22,8 @@
 #include <boost/format.hpp>
 
 const static std::string RESULTS_FOLDER_NAME = "results";
-const static std::string OPT_DB_NAME = "optimized_reach.db";
+//const static std::string OPT_DB_NAME = "optimized_reach.db";
+const static std::string OPT_DB_NAME = "reach.db";
 
 typedef std::pair<double, double> coordinate_pair_type;
 typedef  std::pair<std::filesystem::path, coordinate_pair_type> coordinate_path;
@@ -48,55 +49,12 @@ bool get_all(const std::filesystem::path& root,
         std::pair<std::filesystem::path, std::filesystem::path> tmp;
         tmp.first = it->path().parent_path().filename();
         tmp.second = it->path();
-          //###########3
-//          {
-//              if (tmp.first.string().find("(") != std::string::npos) {
-//                  size_t idx_start = tmp.first.string().find('(') + 1;
-//                  size_t idx_end = tmp.first.string().find(')') - 1;
-//                  std::string config_name = tmp.first.string().substr(0, idx_start - 2);
-//                  std::string coordinates = tmp.first.string().substr(idx_start, idx_end);
-//
-//                  std::stringstream ss(coordinates);
-//                  std::vector<double> v;
-//
-//                  while (ss.good()) {
-//                      std::string substr;
-//                      getline(ss, substr, ',');
-//                      v.push_back(std::stod(substr));
-//                  }
-//
-//                  name_map[config_name].push_back(std::make_pair(tmp.first ,std::make_pair(tmp.second, std::make_pair(v[0], v[1]))));
-//                  std::cout << config_name << std::endl;
-//                  for (size_t i = 0; i < v.size(); i++)
-//                      std::cout << v[i] << std::endl;
-//              }
-//          }
-          // ##################
-
         ret.push_back(tmp);
       }
     }
     ++it;
   }
 
-//  for(auto &name: name_map) {
-//  std::sort(name.second.begin(), name.second.end(),
-//            [&](coordinate_config &first,
-//                coordinate_config &second){
-//
-//                reach::core::ReachDatabase db;
-//                // first
-//                db.load(first.first);
-//                reach::core::StudyResults res = db.getStudyResults();
-//                float first_reach_percentage = res.reach_percentage;
-//                // second
-//                db.load(second.first);
-//                res = db.getStudyResults();
-//                float second_reach_percentage = res.reach_percentage;
-//                return first_reach_percentage > second_reach_percentage;
-//
-//            });
-//  }
 
     std::sort(ret.begin(), ret.end(),
               [&](const std::pair<std::filesystem::path, std::filesystem::path> &first,
@@ -131,11 +89,17 @@ int main(int argc, char **argv)
     std::string dir_name;
     bool chk_all_sub_dirs;
     bool avg_neighbor_count;
+    bool print_per_patient_config = false;
+    bool print_result_total = false;
+    bool print_per_coordinate = false;
 
     node->get_parameter_or<std::string>("package_name", pkg_name, "reach_core");
     node->get_parameter_or<std::string>("directory_name", dir_name, RESULTS_FOLDER_NAME);
     node->get_parameter_or<bool>("check_all_subdirectories", chk_all_sub_dirs, false);
     node->get_parameter_or<bool>("avg_neighbor_count", avg_neighbor_count, false);
+    node->get_parameter_or<bool>("print_total", print_result_total, false);
+    node->get_parameter_or<bool>("print_per_patient_config", print_per_patient_config, false);
+    node->get_parameter_or<bool>("print_per_coordinate", print_per_coordinate, false);
 
 
   std::string root_path = std::string(ament_index_cpp::get_package_share_directory(pkg_name)) + "/" + dir_name;
@@ -155,8 +119,8 @@ int main(int argc, char **argv)
     return 0;
   }
 
-    //##
-    {
+  // specific printing
+   if(print_per_patient_config) {
         std::map<std::string, std::vector<std::pair<std::string, std::pair<std::string, reach::core::StudyResults>>>> tmp_storage;
         for (size_t i = 0; i < files.size(); ++i) {
             const std::string config = files[i].first.string();
@@ -195,11 +159,15 @@ int main(int argc, char **argv)
 
 
         for (auto it = tmp_storage.begin(); it != tmp_storage.end(); it++) {
+            std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
+
             std::cout << boost::format("%-30s %=25s %=25s\n")
                          % "Configuration Name"
                          % "Reach Percentage"
                          % "Normalized Total Pose Score";
-            std::cout << boost::format("%-30s\n")
+            std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
+
+            std::cout << boost::format("%-30s ##########################################################################\n")
                          % it->first;
             for (auto &iter: it->second) {
                 std::cout << boost::format("%-30s %=25.3f %=25.6f\n")
@@ -210,9 +178,59 @@ int main(int argc, char **argv)
         }
     }
 
-        //##
+    if(print_per_coordinate) {
+        std::map<std::string, std::vector<std::pair<std::string, std::pair<std::string, reach::core::StudyResults>>>> tmp_storage;
+        for (size_t i = 0; i < files.size(); ++i) {
+            const std::string config = files[i].first.string();
+            const std::string path = files[i].second.string();
+            size_t idx_start = config.find('(') + 1;
+            size_t idx_end = config.find(')') - 1;
+            std::string config_name_map = config.substr(idx_start, idx_end);
 
-    bool print_result_total = false;
+            reach::core::ReachDatabase db;
+            if (db.load(path)) {
+                reach::core::StudyResults res = db.getStudyResults();
+                tmp_storage[config_name_map].push_back(std::make_pair(path, std::make_pair(config, res)));
+            }
+
+        }
+
+        std::map<std::string, double> per_coordinate_percentage;
+        for (auto it = tmp_storage.begin(); it != tmp_storage.end(); it++) {
+
+            per_coordinate_percentage[it->first] = 0.0;
+            for(auto &item: it->second){
+                per_coordinate_percentage[it->first] += item.second.second.reach_percentage;
+            }
+            per_coordinate_percentage[it->first] /= it->second.size();
+
+        }
+        std::vector<std::pair<std::string, double>> per_coordinate_percenage_vec(per_coordinate_percentage.begin(), per_coordinate_percentage.end());
+
+        std::sort(per_coordinate_percenage_vec.begin(), per_coordinate_percenage_vec.end(),
+                  [&](const std::pair<std::string, double> &first,
+                      std::pair<std::string, double> &second){
+
+                      return first.second > second.second;
+
+                  });
+
+        std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
+
+        std::cout << boost::format("%-30s %=25s\n")
+                     % "Configuration Name"
+                     % "Reach Percentage";
+        std::cout << boost::format("----------------------------------------------------------------------------\n")<<std::endl;
+
+
+        for (auto it = per_coordinate_percenage_vec.begin(); it != per_coordinate_percenage_vec.end(); it++) {
+
+                std::cout << boost::format("%-30s %=25.3f\n")
+                             % it->first
+                             % it->second;
+        }
+    }
+
     if(print_result_total) {
         if (avg_neighbor_count) {
             std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n")
