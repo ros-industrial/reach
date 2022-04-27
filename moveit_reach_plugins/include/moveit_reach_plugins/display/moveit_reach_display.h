@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,42 +16,40 @@
 #ifndef MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 #define MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 
-#include <reach_core/plugins/reach_display_base.h>
-#include <moveit_msgs/msg/planning_scene.hpp>
-
 #include <rclcpp/rclcpp.hpp>
 
-namespace planning_scene
-{
+#include <moveit_msgs/msg/planning_scene.hpp>
+#include <reach_core/plugins/reach_display_base.h>
+
+namespace planning_scene {
 class PlanningScene;
 typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
+}  // namespace planning_scene
+
+namespace moveit_reach_plugins {
+namespace {
+const rclcpp::Logger LOGGER =
+    rclcpp::get_logger("moveit_reach_plugins.MoveItReachDisplay");
 }
+namespace display {
 
-namespace moveit_reach_plugins
-{
-    namespace
-    {
-        const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_reach_plugins.MoveItReachDisplay");
-    }
-namespace display
-{
-
-class MoveItReachDisplay : public reach::plugins::DisplayBase
-{
-public:
-
+class MoveItReachDisplay : public reach::plugins::DisplayBase {
+ public:
   MoveItReachDisplay();
 
-  bool initialize(std::string& name, rclcpp::Node::SharedPtr node, const std::shared_ptr<const moveit::core::RobotModel> model) override;
+  bool initialize(
+      std::string& name, rclcpp::Node::SharedPtr node,
+      const std::shared_ptr<const moveit::core::RobotModel> model) override;
 
   virtual void showEnvironment() override;
 
-  virtual void showEnvironment(const std::vector<std::string> & names, const std::vector<double>& positions) override;
+  virtual void showEnvironment(const std::vector<std::string>& names,
+                               const std::vector<double>& positions) override;
 
-  virtual void updateRobotPose(const std::map<std::string, double>& pose) override;
+  virtual void updateRobotPose(
+      const std::map<std::string, double>& pose) override;
 
-private:
-
+ private:
   moveit::core::RobotModelConstPtr model_;
 
   planning_scene::PlanningScenePtr scene_;
@@ -65,7 +63,7 @@ private:
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr scene_pub_;
 };
 
-} // namespace display
-} // namespace moveit_reach_plugins
+}  // namespace display
+}  // namespace moveit_reach_plugins
 
-#endif // MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
+#endif  // MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H

@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,16 +20,13 @@
 #include <vector>
 //#include <xmlrpcpp/XmlRpcValue.h>
 
-namespace reach
-{
-namespace core
-{
+namespace reach {
+namespace core {
 
 /**
  * @brief The StudyResults struct
  */
-struct StudyResults
-{
+struct StudyResults {
   float total_pose_score = 0.0f;
   float norm_total_pose_score = 0.0f;
   float reach_percentage = 0.0f;
@@ -37,20 +34,19 @@ struct StudyResults
   float avg_joint_distance = 0.0f;
 };
 
-struct StudyOptimization
-{
+struct StudyOptimization {
   int max_steps;
   float step_improvement_threshold;
   float radius;
 };
 
 /**
- * @brief The StudyParameters struct contains all necessary parameters for the reach study
+ * @brief The StudyParameters struct contains all necessary parameters for the
+ * reach study
  */
-struct StudyParameters
-{
-//  XmlRpc::XmlRpcValue ik_solver_config;
-//  XmlRpc::XmlRpcValue display_config;
+struct StudyParameters {
+  //  XmlRpc::XmlRpcValue ik_solver_config;
+  //  XmlRpc::XmlRpcValue display_config;
   std::string ik_solver_config_name;
   std::string display_config_name;
   StudyOptimization optimization;
@@ -68,7 +64,7 @@ struct StudyParameters
   bool run_initial_study_only;
 };
 
-} // namespace core
-} // namespace reach
+}  // namespace core
+}  // namespace reach
 
-#endif // REACH_CORE_PARAMETERS_H
+#endif  // REACH_CORE_PARAMETERS_H

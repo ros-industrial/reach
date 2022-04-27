@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach_core/reach_study.h>
-#include <reach_core/utils/serialization_utils.h>
-#include <reach_core/utils/general_utils.h>
-
-#include <reach_msgs/srv/load_point_cloud.hpp>
-#include <reach_msgs/msg/reach_record.hpp>
-
-#include <numeric>
 #include "tf2_eigen/tf2_eigen.h"
-#include <pluginlib/class_loader.hpp>
+
 #include <exception>
-
 #include <filesystem>
+#include <numeric>
 
-#include <rclcpp/rclcpp.hpp>
 #include <rclcpp/callback_group.hpp>
-#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <rclcpp/rclcpp.hpp>
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <pluginlib/class_loader.hpp>
+#include <reach_core/reach_study.h>
+#include <reach_core/utils/general_utils.h>
+#include <reach_core/utils/serialization_utils.h>
+#include <reach_msgs/msg/reach_record.hpp>
+#include <reach_msgs/srv/load_point_cloud.hpp>
 
 constexpr char SAMPLE_MESH_SRV_TOPIC[] = "sample_mesh";
 const static double SRV_TIMEOUT = 5.0;
@@ -38,472 +36,468 @@ constexpr char INPUT_CLOUD_TOPIC[] = "input_cloud";
 constexpr char SAVED_DB_NAME[] = "reach.db";
 constexpr char OPT_SAVED_DB_NAME[] = "optimized_reach.db";
 
-namespace reach
-{
-  namespace core
-  {
-    namespace
-    {
-      const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_visualizer");
-    }
-      constexpr char PACKAGE[] = "reach_core";
-      constexpr char IK_BASE_CLASS[] = "reach::plugins::IKSolverBase";
-      constexpr char DISPLAY_BASE_CLASS[] = "reach::plugins::DisplayBase";
+namespace reach {
+namespace core {
+namespace {
+const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_visualizer");
+}
+constexpr char PACKAGE[] = "reach_core";
+constexpr char IK_BASE_CLASS[] = "reach::plugins::IKSolverBase";
+constexpr char DISPLAY_BASE_CLASS[] = "reach::plugins::DisplayBase";
 
-    ReachStudy::ReachStudy(const rclcpp::Node::SharedPtr node)
-        : node_(node),
-        cloud_(new pcl::PointCloud<pcl::PointNormal>()),
-        db_(new ReachDatabase()),
-        solver_loader_(PACKAGE, IK_BASE_CLASS),
-        display_loader_(PACKAGE, DISPLAY_BASE_CLASS)
-    {
+ReachStudy::ReachStudy(const rclcpp::Node::SharedPtr node)
+    : node_(node),
+      cloud_(new pcl::PointCloud<pcl::PointNormal>()),
+      db_(new ReachDatabase()),
+      solver_loader_(PACKAGE, IK_BASE_CLASS),
+      display_loader_(PACKAGE, DISPLAY_BASE_CLASS) {}
+ReachStudy::~ReachStudy() {
+  ik_solver_.reset();
+  display_.reset();
+}
 
-    }
-    ReachStudy::~ReachStudy(){
-        ik_solver_.reset();
-        display_.reset();
+bool ReachStudy::initializeStudy(const StudyParameters &sp) {
+  ik_solver_.reset();
+  display_.reset();
+  // create robot model shared ptr
+  model_ = moveit::planning_interface::getSharedRobotModel(node_,
+                                                           "robot_description");
 
-    }
+  ps_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>(
+      "pose_stamped", 1);
 
-    bool ReachStudy::initializeStudy(const StudyParameters &sp)
-    {
-      ik_solver_.reset();
-      display_.reset();
-      // create robot model shared ptr
-      model_ = moveit::planning_interface::getSharedRobotModel(node_, "robot_description");
+  try {
+    ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
+    display_ = display_loader_.createSharedInstance(sp_.display_config_name);
+  } catch (const pluginlib::PluginlibException &ex) {
+    RCLCPP_ERROR(LOGGER,
+                 "Pluginlib exception thrown while creating shared instances "
+                 "of ik solver and/or display: '%s'",
+                 ex.what());
+    ik_solver_.reset();
+    display_.reset();
+    return false;
+  } catch (const std::exception &ex) {
+    RCLCPP_ERROR(LOGGER,
+                 "Error while creating shared instances of ik solver and/or "
+                 "display: '%s'",
+                 ex.what());
+    ik_solver_.reset();
+    display_.reset();
+    return false;
+  }
 
-      ps_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>("pose_stamped", 1);
+  // Initialize the IK solver plugin and display plugin
+  if (!ik_solver_->initialize(sp_.ik_solver_config_name, node_, model_) ||
+      !display_->initialize(sp_.display_config_name, node_, model_)) {
+    RCLCPP_ERROR(LOGGER,
+                 "Could not initialized both display and ik solver plugins!");
+    ik_solver_.reset();
+    display_.reset();
+    return false;
+  }
 
-      try
-      {
-        ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
-        display_ = display_loader_.createSharedInstance(sp_.display_config_name);
+  display_->showEnvironment();
+
+  // Create a directory to store results of study
+  std::string tmp_dir =
+      ament_index_cpp::get_package_share_directory(sp_.results_package) + "/" +
+      sp_.results_directory;
+  if (!tmp_dir.empty() && std::filesystem::exists(tmp_dir.c_str())) {
+    dir_ = tmp_dir + "/";
+  } else {
+    dir_ = ament_index_cpp::get_package_share_directory("reach_core") +
+           "/results/";
+    RCLCPP_WARN(LOGGER, "Using default results file directory: '%s'",
+                dir_.c_str());
+  }
+  results_dir_ = dir_ + sp_.config_name + "/";
+  const char *char_dir = results_dir_.c_str();
+
+  if (!std::filesystem::exists(char_dir)) {
+    std::filesystem::path path(char_dir);
+    std::filesystem::create_directory(path);
+  }
+
+  return true;
+}
+
+bool ReachStudy::run(const StudyParameters &sp) {
+  // Overwrite the old study parameters
+  sp_ = sp;
+
+  // Initialize the study
+  if (!initializeStudy(sp)) {
+    RCLCPP_ERROR(LOGGER, "Failed to initialize the reach study");
+    return false;
+  }
+
+  // Get the reach object point cloud
+  if (!getReachObjectPointCloud()) {
+    RCLCPP_ERROR(LOGGER, "Unable to obtain reach object point cloud");
+    ik_solver_.reset();
+    display_.reset();
+    return false;
+  }
+
+  // Show the reach object collision object and reach object point cloud
+  if (sp_.visualize_results) {
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub =
+        node_->create_publisher<sensor_msgs::msg::PointCloud2>(
+            INPUT_CLOUD_TOPIC, 1);
+    pub->publish(cloud_msg_);
+  }
+
+  // Create markers
+  visualizer_.reset(
+      new ReachVisualizer(db_, ik_solver_, display_, sp_.optimization.radius));
+
+  // Attempt to load previously saved optimized reach_study database
+  if (!db_->load(results_dir_ + OPT_SAVED_DB_NAME)) {
+    RCLCPP_INFO(LOGGER, "Unable to load optimized database at '%s'!",
+                (results_dir_ + OPT_SAVED_DB_NAME).c_str());
+    // Attempt to load previously saved initial reach study database
+    if (!db_->load(results_dir_ + SAVED_DB_NAME)) {
+      RCLCPP_INFO(LOGGER, "------------------------------");
+      RCLCPP_INFO(LOGGER, "No reach study database loaded");
+      RCLCPP_INFO(LOGGER, "------------------------------");
+
+      // Run the first pass of the reach study
+      runInitialReachStudy();
+      db_->printResults();
+      visualizer_->update();
+      // check if we don't have to optimize
+      if (sp.run_initial_study_only) {
+        return true;
       }
-      catch (const pluginlib::PluginlibException &ex)
-      {
-        RCLCPP_ERROR(LOGGER, "Pluginlib exception thrown while creating shared instances of ik solver and/or display: '%s'", ex.what());
-        ik_solver_.reset();
-        display_.reset();
-        return false;
+    } else {
+      RCLCPP_INFO(LOGGER,
+                  "----------------------------------------------------");
+      RCLCPP_INFO(LOGGER,
+                  "Unoptimized reach study database successfully loaded");
+      RCLCPP_INFO(LOGGER,
+                  "----------------------------------------------------");
+
+      db_->printResults();
+      visualizer_->update();
+      // check if we don't have to optimize
+      if (sp.run_initial_study_only) {
+        return true;
       }
-      catch (const std::exception &ex)
-      {
-          RCLCPP_ERROR(LOGGER, "Error while creating shared instances of ik solver and/or display: '%s'", ex.what());
-          ik_solver_.reset();
-          display_.reset();
-          return false;
-      }
-
-      // Initialize the IK solver plugin and display plugin
-      if (!ik_solver_->initialize(sp_.ik_solver_config_name, node_, model_) ||
-          !display_->initialize(sp_.display_config_name, node_, model_))
-      {
-        RCLCPP_ERROR(LOGGER, "Could not initialized both display and ik solver plugins!");
-        ik_solver_.reset();
-        display_.reset();
-        return false;
-      }
-
-      display_->showEnvironment();
-
-      // Create a directory to store results of study
-      std::string tmp_dir = ament_index_cpp::get_package_share_directory(sp_.results_package) + "/" + sp_.results_directory;
-      if (!tmp_dir.empty() && std::filesystem::exists(tmp_dir.c_str()))
-      {
-        dir_ = tmp_dir + "/";
-      }
-      else
-      {
-        dir_ = ament_index_cpp::get_package_share_directory("reach_core") + "/results/";
-        RCLCPP_WARN(LOGGER, "Using default results file directory: '%s'", dir_.c_str());
-      }
-      results_dir_ = dir_ + sp_.config_name + "/";
-      const char *char_dir = results_dir_.c_str();
-
-      if (!std::filesystem::exists(char_dir))
-      {
-          std::filesystem::path path(char_dir);
-          std::filesystem::create_directory(path);
-      }
-
-      return true;
-    }
-
-    bool ReachStudy::run(const StudyParameters &sp)
-    {
-      // Overwrite the old study parameters
-      sp_ = sp;
-
-      // Initialize the study
-      if (!initializeStudy(sp))
-      {
-        RCLCPP_ERROR(LOGGER, "Failed to initialize the reach study");
-        return false;
-      }
-
-      // Get the reach object point cloud
-      if (!getReachObjectPointCloud())
-      {
-        RCLCPP_ERROR(LOGGER, "Unable to obtain reach object point cloud");
-        ik_solver_.reset();
-        display_.reset();
-        return false;
-      }
-
-      // Show the reach object collision object and reach object point cloud
-      if (sp_.visualize_results)
-      {
-        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub = node_->create_publisher<sensor_msgs::msg::PointCloud2>(INPUT_CLOUD_TOPIC, 1);
-        pub->publish(cloud_msg_);
-      }
-
-      // Create markers
-      visualizer_.reset(new ReachVisualizer(db_, ik_solver_, display_, sp_.optimization.radius));
-
-      // Attempt to load previously saved optimized reach_study database
-      if (!db_->load(results_dir_ + OPT_SAVED_DB_NAME))
-      {
-          RCLCPP_INFO(LOGGER, "Unable to load optimized database at '%s'!",(results_dir_ + OPT_SAVED_DB_NAME).c_str());
-        // Attempt to load previously saved initial reach study database
-        if (!db_->load(results_dir_ + SAVED_DB_NAME))
-        {
-          RCLCPP_INFO(LOGGER, "------------------------------");
-          RCLCPP_INFO(LOGGER, "No reach study database loaded");
-          RCLCPP_INFO(LOGGER, "------------------------------");
-
-          // Run the first pass of the reach study
-          runInitialReachStudy();
-          db_->printResults();
-          visualizer_->update();
-          // check if we don't have to optimize
-          if (sp.run_initial_study_only) {
-              return true;
-          }
-        }
-        else
-        {
-          RCLCPP_INFO(LOGGER, "----------------------------------------------------");
-          RCLCPP_INFO(LOGGER, "Unoptimized reach study database successfully loaded");
-          RCLCPP_INFO(LOGGER, "----------------------------------------------------");
-
-          db_->printResults();
-          visualizer_->update();
-            // check if we don't have to optimize
-            if (sp.run_initial_study_only) {
-                return true;
-            }
-
-        }
-
-        // Create an efficient search tree for doing nearest neighbors search
-        search_tree_.reset(new SearchTree(flann::KDTreeSingleIndexParams(1, true)));
-
-        flann::Matrix<double> dataset(new double[db_->size() * 3], db_->size(), 3);
-        for (std::size_t i = 0; i < db_->size(); ++i)
-        {
-          auto it = db_->begin();
-          std::advance(it, i);
-
-          dataset[i][0] = static_cast<double>(it->second.goal.position.x);
-          dataset[i][1] = static_cast<double>(it->second.goal.position.y);
-          dataset[i][2] = static_cast<double>(it->second.goal.position.z);
-        }
-        search_tree_->buildIndex(dataset);
-
-        // Run the optimization
-        optimizeReachStudyResults();
-        db_->printResults();
-        visualizer_->update();
-      }
-      else
-      {
-        RCLCPP_INFO(LOGGER, "--------------------------------------------------");
-        RCLCPP_INFO(LOGGER, "Optimized reach study database successfully loaded");
-        RCLCPP_INFO(LOGGER, "--------------------------------------------------");
-
-        db_->printResults();
-        visualizer_->update();
-      }
-
-      // Find the average number of neighboring points can be reached by the robot from any given point
-      if (sp_.get_neighbors)
-      {
-        // Perform the calculation if it hasn't already been done
-        if (db_->getStudyResults().avg_num_neighbors == 0.0f)
-        {
-          getAverageNeighborsCount();
-        }
-      }
-
-      // Visualize the results of the reach study
-      if (sp_.visualize_results)
-      {
-        // Compare database results
-        if (!sp_.compare_dbs.empty())
-        {
-          if (!compareDatabases())
-          {
-            RCLCPP_ERROR(LOGGER, "Unable to compare the current reach study database with the other specified databases");
-          }
-        }
-      }
-
-      ik_solver_.reset();
-      display_.reset();
-
-      return true;
     }
 
-    bool ReachStudy::getReachObjectPointCloud()
-    {
-      // Call the sample mesh service to create a point cloud of the reach object mesh
-        auto callback_group_input_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-        auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(SAMPLE_MESH_SRV_TOPIC, rmw_qos_profile_services_default, callback_group_input_);
+    // Create an efficient search tree for doing nearest neighbors search
+    search_tree_.reset(new SearchTree(flann::KDTreeSingleIndexParams(1, true)));
 
-        auto req = std::make_shared<reach_msgs::srv::LoadPointCloud::Request>();
-      req->cloud_filename = ament_index_cpp::get_package_share_directory(sp_.pcd_package) + "/" + sp_.pcd_filename_path;
-      req->fixed_frame = sp_.fixed_frame;
-      req->object_frame = sp_.object_frame;
+    flann::Matrix<double> dataset(new double[db_->size() * 3], db_->size(), 3);
+    for (std::size_t i = 0; i < db_->size(); ++i) {
+      auto it = db_->begin();
+      std::advance(it, i);
 
-      RCLCPP_INFO(LOGGER, "Waiting for service '%s'.", SAMPLE_MESH_SRV_TOPIC);
-      client->wait_for_service();
-      bool success_tmp = false;
-      bool inner_callback_finished = false;
+      dataset[i][0] = static_cast<double>(it->second.goal.position.x);
+      dataset[i][1] = static_cast<double>(it->second.goal.position.y);
+      dataset[i][2] = static_cast<double>(it->second.goal.position.z);
+    }
+    search_tree_->buildIndex(dataset);
 
-        auto inner_client_callback = [&,this](rclcpp::Client<reach_msgs::srv::LoadPointCloud>::SharedFuture inner_future)
-        {
-            success_tmp = inner_future.get()->success;
-            cloud_msg_ = inner_future.get()->cloud;
-            RCLCPP_INFO(LOGGER, "Inner service callback message: '%s'", inner_future.get()->message.c_str());
-            inner_callback_finished = true;
-        };
-        auto inner_future_result = client->async_send_request(req, inner_client_callback);
+    // Run the optimization
+    optimizeReachStudyResults();
+    db_->printResults();
+    visualizer_->update();
+  } else {
+    RCLCPP_INFO(LOGGER, "--------------------------------------------------");
+    RCLCPP_INFO(LOGGER, "Optimized reach study database successfully loaded");
+    RCLCPP_INFO(LOGGER, "--------------------------------------------------");
 
-        // quick fix to wait for inner callback to finish
-        //TODO(livanov93) Add visible flag within the inner callback
-        while(!inner_callback_finished) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
+    db_->printResults();
+    visualizer_->update();
+  }
 
-        if (success_tmp){
-            pcl::fromROSMsg(cloud_msg_, *cloud_);
+  // Find the average number of neighboring points can be reached by the robot
+  // from any given point
+  if (sp_.get_neighbors) {
+    // Perform the calculation if it hasn't already been done
+    if (db_->getStudyResults().avg_num_neighbors == 0.0f) {
+      getAverageNeighborsCount();
+    }
+  }
 
-                cloud_msg_.header.frame_id = sp_.fixed_frame;
-                cloud_msg_.header.stamp = node_->now();
+  // Visualize the results of the reach study
+  if (sp_.visualize_results) {
+    // Compare database results
+    if (!sp_.compare_dbs.empty()) {
+      if (!compareDatabases()) {
+        RCLCPP_ERROR(LOGGER,
+                     "Unable to compare the current reach study database with "
+                     "the other specified databases");
+      }
+    }
+  }
 
-                return true;
+  ik_solver_.reset();
+  display_.reset();
 
-        } else {
-                RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '" << client->get_service_name()
-                                                                                           << "'");
-                return false;
-            }
-        }
+  return true;
+}
 
-    void ReachStudy::runInitialReachStudy()
-    {
-      // Rotation to flip the Z axis of the surface normal point
-      const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
+bool ReachStudy::getReachObjectPointCloud() {
+  // Call the sample mesh service to create a point cloud of the reach object
+  // mesh
+  auto callback_group_input_ = node_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+  auto client = node_->create_client<reach_msgs::srv::LoadPointCloud>(
+      SAMPLE_MESH_SRV_TOPIC, rmw_qos_profile_services_default,
+      callback_group_input_);
 
-      // Loop through all points in point cloud and get IK solution
-      std::atomic<int> current_counter, previous_pct;
-      current_counter = previous_pct = 0;
-      const int cloud_size = static_cast<int>(cloud_->points.size());
+  auto req = std::make_shared<reach_msgs::srv::LoadPointCloud::Request>();
+  req->cloud_filename =
+      ament_index_cpp::get_package_share_directory(sp_.pcd_package) + "/" +
+      sp_.pcd_filename_path;
+  req->fixed_frame = sp_.fixed_frame;
+  req->object_frame = sp_.object_frame;
+
+  RCLCPP_INFO(LOGGER, "Waiting for service '%s'.", SAMPLE_MESH_SRV_TOPIC);
+  client->wait_for_service();
+  bool success_tmp = false;
+  bool inner_callback_finished = false;
+
+  auto inner_client_callback =
+      [&, this](rclcpp::Client<reach_msgs::srv::LoadPointCloud>::SharedFuture
+                    inner_future) {
+        success_tmp = inner_future.get()->success;
+        cloud_msg_ = inner_future.get()->cloud;
+        RCLCPP_INFO(LOGGER, "Inner service callback message: '%s'",
+                    inner_future.get()->message.c_str());
+        inner_callback_finished = true;
+      };
+  auto inner_future_result =
+      client->async_send_request(req, inner_client_callback);
+
+  // quick fix to wait for inner callback to finish
+  // TODO(livanov93) Add visible flag within the inner callback
+  while (!inner_callback_finished) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+
+  if (success_tmp) {
+    pcl::fromROSMsg(cloud_msg_, *cloud_);
+
+    cloud_msg_.header.frame_id = sp_.fixed_frame;
+    cloud_msg_.header.stamp = node_->now();
+
+    return true;
+
+  } else {
+    RCLCPP_ERROR_STREAM(LOGGER, "Failed to call point cloud loading service '"
+                                    << client->get_service_name() << "'");
+    return false;
+  }
+}
+
+void ReachStudy::runInitialReachStudy() {
+  // Rotation to flip the Z axis of the surface normal point
+  const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
+
+  // Loop through all points in point cloud and get IK solution
+  std::atomic<int> current_counter, previous_pct;
+  current_counter = previous_pct = 0;
+  const int cloud_size = static_cast<int>(cloud_->points.size());
 
 #pragma omp parallel for
-      for (int i = 0; i < cloud_size; ++i)
-      {
-        // Get pose from point cloud array
-        const pcl::PointNormal &pt = cloud_->points[i];
-        Eigen::Isometry3d tgt_frame;
-        tgt_frame = utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
-        tgt_frame = tgt_frame * tool_z_rot;
+  for (int i = 0; i < cloud_size; ++i) {
+    // Get pose from point cloud array
+    const pcl::PointNormal &pt = cloud_->points[i];
+    Eigen::Isometry3d tgt_frame;
+    tgt_frame =
+        utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
+    tgt_frame = tgt_frame * tool_z_rot;
 
-        // Get the seed position
-        sensor_msgs::msg::JointState seed_state;
-        seed_state.name = ik_solver_->getJointNames();
-        seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
+    // Get the seed position
+    sensor_msgs::msg::JointState seed_state;
+    seed_state.name = ik_solver_->getJointNames();
+    seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
 
-        // Solve IK
-        std::vector<double> solution;
-        std::optional<double> score = ik_solver_->solveIKFromSeed(tgt_frame, jointStateMsgToMap(seed_state), solution);
+    // Solve IK
+    std::vector<double> solution;
+    std::optional<double> score = ik_solver_->solveIKFromSeed(
+        tgt_frame, jointStateMsgToMap(seed_state), solution);
 
-        // Create objects to save in the reach record
-        geometry_msgs::msg::Pose tgt_pose;
-        tgt_pose = tf2::toMsg(tgt_frame);
+    // Create objects to save in the reach record
+    geometry_msgs::msg::Pose tgt_pose;
+    tgt_pose = tf2::toMsg(tgt_frame);
 
-        sensor_msgs::msg::JointState goal_state(seed_state);
+    sensor_msgs::msg::JointState goal_state(seed_state);
 
-        if (score)
-        {
-            geometry_msgs::msg::PoseStamped tgt_pose_stamped;
-            tgt_pose_stamped.pose = tgt_pose;
-            tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
-            ps_pub_->publish(tgt_pose_stamped);
+    if (score) {
+      geometry_msgs::msg::PoseStamped tgt_pose_stamped;
+      tgt_pose_stamped.pose = tgt_pose;
+      tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
+      ps_pub_->publish(tgt_pose_stamped);
 
-          std::map<std::string, double> robot_configuration;
-            // create map
-            std::transform(goal_state.name.begin(), goal_state.name.end(), solution.begin(), std::inserter(robot_configuration, robot_configuration.end()),
-                           [](std::string &jname, double jvalue)
-            {
-                return std::make_pair(jname, jvalue);
-            });
+      std::map<std::string, double> robot_configuration;
+      // create map
+      std::transform(
+          goal_state.name.begin(), goal_state.name.end(), solution.begin(),
+          std::inserter(robot_configuration, robot_configuration.end()),
+          [](std::string &jname, double jvalue) {
+            return std::make_pair(jname, jvalue);
+          });
 
-          display_->updateRobotPose(robot_configuration);
-          goal_state.position = solution;
-          auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
-          db_->put(msg);
-        }
-        else
-        {
-          auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state, 0.0);
-          db_->put(msg);
-        }
-
-        // Print function progress
-        current_counter++;
-        utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
-      }
-
-      // Save the results of the reach study to a database that we can query later
-      db_->calculateResults();
-      db_->save(results_dir_ + SAVED_DB_NAME);
+      display_->updateRobotPose(robot_configuration);
+      goal_state.position = solution;
+      auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
+                            goal_state, *score);
+      db_->put(msg);
+    } else {
+      auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,
+                            goal_state, 0.0);
+      db_->put(msg);
     }
 
-    void ReachStudy::optimizeReachStudyResults()
-    {
-      RCLCPP_INFO(LOGGER, "----------------------");
-      RCLCPP_INFO(LOGGER, "Beginning optimization");
+    // Print function progress
+    current_counter++;
+    utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
+  }
 
-      // Create sequential vector to be randomized
-      std::vector<std::size_t> rand_vec(db_->size());
-      std::iota(rand_vec.begin(), rand_vec.end(), 0);
+  // Save the results of the reach study to a database that we can query later
+  db_->calculateResults();
+  db_->save(results_dir_ + SAVED_DB_NAME);
+}
 
-      // Iterate
-      std::atomic<int> current_counter, previous_pct;
-      const int cloud_size = static_cast<int>(cloud_->size());
-      int n_opt = 0;
-      float previous_score = 0.0;
-      float pct_improve = 1.0;
+void ReachStudy::optimizeReachStudyResults() {
+  RCLCPP_INFO(LOGGER, "----------------------");
+  RCLCPP_INFO(LOGGER, "Beginning optimization");
 
-      while (pct_improve > sp_.optimization.step_improvement_threshold && n_opt < sp_.optimization.max_steps)
-      {
-        RCLCPP_INFO(LOGGER, "Entering optimization loop %d", n_opt);
-        previous_score = db_->getStudyResults().norm_total_pose_score;
-        current_counter = 0;
-        previous_pct = 0;
+  // Create sequential vector to be randomized
+  std::vector<std::size_t> rand_vec(db_->size());
+  std::iota(rand_vec.begin(), rand_vec.end(), 0);
 
-        // Randomize
-        std::random_shuffle(rand_vec.begin(), rand_vec.end());
+  // Iterate
+  std::atomic<int> current_counter, previous_pct;
+  const int cloud_size = static_cast<int>(cloud_->size());
+  int n_opt = 0;
+  float previous_score = 0.0;
+  float pct_improve = 1.0;
+
+  while (pct_improve > sp_.optimization.step_improvement_threshold &&
+         n_opt < sp_.optimization.max_steps) {
+    RCLCPP_INFO(LOGGER, "Entering optimization loop %d", n_opt);
+    previous_score = db_->getStudyResults().norm_total_pose_score;
+    current_counter = 0;
+    previous_pct = 0;
+
+    // Randomize
+    std::random_shuffle(rand_vec.begin(), rand_vec.end());
 
 #pragma parallel for
-        for (std::size_t i = 0; i < rand_vec.size(); ++i)
-        {
-          auto it = db_->begin();
-          std::advance(it, rand_vec[i]);
-          reach_msgs::msg::ReachRecord msg = it->second;
-          if (msg.reached)
-          {
-            NeighborReachResult result = reachNeighborsDirect(db_, msg, ik_solver_, sp_.optimization.radius); //, search_tree_);
-          }
-
-          // Print function progress
-          current_counter++;
-          utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
-        }
-
-        // Recalculate optimized reach study results
-        db_->calculateResults();
-        db_->printResults();
-        pct_improve = std::abs((db_->getStudyResults().norm_total_pose_score - previous_score) / previous_score);
-        ++n_opt;
+    for (std::size_t i = 0; i < rand_vec.size(); ++i) {
+      auto it = db_->begin();
+      std::advance(it, rand_vec[i]);
+      reach_msgs::msg::ReachRecord msg = it->second;
+      if (msg.reached) {
+        NeighborReachResult result = reachNeighborsDirect(
+            db_, msg, ik_solver_, sp_.optimization.radius);  //, search_tree_);
       }
 
-      // Save the optimized reach database
-      db_->calculateResults();
-      db_->save(results_dir_ + OPT_SAVED_DB_NAME);
-
-      RCLCPP_INFO(LOGGER, "----------------------");
-      RCLCPP_INFO(LOGGER, "Optimization concluded");
+      // Print function progress
+      current_counter++;
+      utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
     }
 
-    void ReachStudy::getAverageNeighborsCount()
-    {
-      RCLCPP_INFO(LOGGER, "--------------------------------------------");
-      RCLCPP_INFO(LOGGER, "Beginning average neighbor count calculation");
+    // Recalculate optimized reach study results
+    db_->calculateResults();
+    db_->printResults();
+    pct_improve = std::abs(
+        (db_->getStudyResults().norm_total_pose_score - previous_score) /
+        previous_score);
+    ++n_opt;
+  }
 
-      std::atomic<int> current_counter, previous_pct, neighbor_count;
-      current_counter = previous_pct = neighbor_count = 0;
-      std::atomic<double> total_joint_distance;
-      const int total = db_->size();
-      // Iterate
+  // Save the optimized reach database
+  db_->calculateResults();
+  db_->save(results_dir_ + OPT_SAVED_DB_NAME);
+
+  RCLCPP_INFO(LOGGER, "----------------------");
+  RCLCPP_INFO(LOGGER, "Optimization concluded");
+}
+
+void ReachStudy::getAverageNeighborsCount() {
+  RCLCPP_INFO(LOGGER, "--------------------------------------------");
+  RCLCPP_INFO(LOGGER, "Beginning average neighbor count calculation");
+
+  std::atomic<int> current_counter, previous_pct, neighbor_count;
+  current_counter = previous_pct = neighbor_count = 0;
+  std::atomic<double> total_joint_distance;
+  const int total = db_->size();
+  // Iterate
 #pragma parallel for
-      for (auto it = db_->begin(); it != db_->end(); ++it)
-      {
-        reach_msgs::msg::ReachRecord msg = it->second;
-        if (msg.reached)
-        {
-          NeighborReachResult result;
-          reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result, search_tree_);
-          neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
-          total_joint_distance = total_joint_distance + result.joint_distance;
-        }
-
-        // Print function progress
-        ++current_counter;
-        utils::integerProgressPrinter(current_counter, previous_pct, total);
-      }
-
-      float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->size());
-      float avg_joint_distance = static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
-
-      RCLCPP_INFO_STREAM(LOGGER, "Average number of neighbors reached: " << avg_neighbor_count);
-      RCLCPP_INFO_STREAM(LOGGER, "Average joint distance: " << avg_joint_distance);
-      RCLCPP_INFO(LOGGER, "------------------------------------------------");
-
-      db_->setAverageNeighborsCount(avg_neighbor_count);
-      db_->setAverageJointDistance(avg_joint_distance);
-      db_->save(results_dir_ + OPT_SAVED_DB_NAME);
+  for (auto it = db_->begin(); it != db_->end(); ++it) {
+    reach_msgs::msg::ReachRecord msg = it->second;
+    if (msg.reached) {
+      NeighborReachResult result;
+      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius,
+                              result, search_tree_);
+      neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
+      total_joint_distance = total_joint_distance + result.joint_distance;
     }
 
-    bool ReachStudy::compareDatabases()
-    {
-      // Add the newly created database to the list if it isn't already there
-      if (std::find(sp_.compare_dbs.begin(), sp_.compare_dbs.end(), sp_.config_name) == sp_.compare_dbs.end())
-      {
-        sp_.compare_dbs.push_back(sp_.config_name);
-      }
+    // Print function progress
+    ++current_counter;
+    utils::integerProgressPrinter(current_counter, previous_pct, total);
+  }
 
-      // Create list of optimized database file names from the results folder
-      std::vector<std::string> db_filenames;
-      for (auto it = sp_.compare_dbs.begin(); it != sp_.compare_dbs.end(); ++it)
-      {
-        db_filenames.push_back(dir_ + *it + "/" + OPT_SAVED_DB_NAME);
-      }
+  float avg_neighbor_count = static_cast<float>(neighbor_count.load()) /
+                             static_cast<float>(db_->size());
+  float avg_joint_distance = static_cast<float>(total_joint_distance.load()) /
+                             static_cast<float>(neighbor_count.load());
 
-      // Load databases to be compared
-      std::map<std::string, reach_msgs::msg::ReachDatabase> data;
-      for (size_t i = 0; i < db_filenames.size(); ++i)
-      {
-        ReachDatabase db;
-        if (!db.load(db_filenames[i]))
-        {
-          RCLCPP_ERROR(LOGGER, "Cannot load database at:\n %s", db_filenames[i].c_str());
-          continue;
-        }
-        data.emplace(sp_.compare_dbs[i], db.toReachDatabaseMsg());
-      }
+  RCLCPP_INFO_STREAM(
+      LOGGER, "Average number of neighbors reached: " << avg_neighbor_count);
+  RCLCPP_INFO_STREAM(LOGGER, "Average joint distance: " << avg_joint_distance);
+  RCLCPP_INFO(LOGGER, "------------------------------------------------");
 
-      if (data.size() < 2)
-      {
-        RCLCPP_ERROR(LOGGER, "Only %lu database(s) loaded; cannot compare fewer than 2 databases", data.size());
-        return false;
-      }
+  db_->setAverageNeighborsCount(avg_neighbor_count);
+  db_->setAverageJointDistance(avg_joint_distance);
+  db_->save(results_dir_ + OPT_SAVED_DB_NAME);
+}
 
-      display_->compareDatabases(data);
+bool ReachStudy::compareDatabases() {
+  // Add the newly created database to the list if it isn't already there
+  if (std::find(sp_.compare_dbs.begin(), sp_.compare_dbs.end(),
+                sp_.config_name) == sp_.compare_dbs.end()) {
+    sp_.compare_dbs.push_back(sp_.config_name);
+  }
 
-      return true;
+  // Create list of optimized database file names from the results folder
+  std::vector<std::string> db_filenames;
+  for (auto it = sp_.compare_dbs.begin(); it != sp_.compare_dbs.end(); ++it) {
+    db_filenames.push_back(dir_ + *it + "/" + OPT_SAVED_DB_NAME);
+  }
+
+  // Load databases to be compared
+  std::map<std::string, reach_msgs::msg::ReachDatabase> data;
+  for (size_t i = 0; i < db_filenames.size(); ++i) {
+    ReachDatabase db;
+    if (!db.load(db_filenames[i])) {
+      RCLCPP_ERROR(LOGGER, "Cannot load database at:\n %s",
+                   db_filenames[i].c_str());
+      continue;
     }
+    data.emplace(sp_.compare_dbs[i], db.toReachDatabaseMsg());
+  }
 
-  } // namespace core
-} // namespace reach
+  if (data.size() < 2) {
+    RCLCPP_ERROR(
+        LOGGER,
+        "Only %lu database(s) loaded; cannot compare fewer than 2 databases",
+        data.size());
+    return false;
+  }
+
+  display_->compareDatabases(data);
+
+  return true;
+}
+
+}  // namespace core
+}  // namespace reach

@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,148 +14,137 @@
  * limitations under the License.
  */
 #include "reach_core/utils/visualization_utils.h"
+
 #include "tf2_eigen/tf2_eigen.h"
+
 #include <pcl/features/moment_of_inertia_estimation.h>
 
 const static double ARROW_SCALE_RATIO = 6.0;
 const static double NEIGHBOR_MARKER_SCALE_RATIO = ARROW_SCALE_RATIO / 2.0;
 
-namespace reach
-{
-  namespace utils
-  {
+namespace reach {
+namespace utils {
 
-    visualization_msgs::msg::Marker makeVisual(const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
-                                               const std::string &frame,
-                                               const double scale,
-                                               const std::string &ns,
-                                               const boost::optional<std::vector<float>> &color)
-    {
-      static int idx = 0;
+visualization_msgs::msg::Marker makeVisual(
+    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
+    const std::string &frame, const double scale, const std::string &ns,
+    const boost::optional<std::vector<float>> &color) {
+  static int idx = 0;
 
-      visualization_msgs::msg::Marker marker;
-      marker.header.frame_id = frame;
-      marker.header.stamp = node->now();
-      marker.ns = ns;
-      marker.id = idx++;
-      marker.type = visualization_msgs::msg::Marker::ARROW;
-      marker.action = visualization_msgs::msg::Marker::ADD;
+  visualization_msgs::msg::Marker marker;
+  marker.header.frame_id = frame;
+  marker.header.stamp = node->now();
+  marker.ns = ns;
+  marker.id = idx++;
+  marker.type = visualization_msgs::msg::Marker::ARROW;
+  marker.action = visualization_msgs::msg::Marker::ADD;
 
-      Eigen::Isometry3d goal_eigen;
-      tf2::fromMsg(r.goal, goal_eigen);
+  Eigen::Isometry3d goal_eigen;
+  tf2::fromMsg(r.goal, goal_eigen);
 
-      // Transform arrow such that arrow x-axis points along goal pose z-axis (Rviz convention)
-      // convert msg parameter goal to Eigen matrix
-      Eigen::AngleAxisd rot_flip_normal(M_PI, Eigen::Vector3d::UnitX());
-      Eigen::AngleAxisd rot_x_to_z(-M_PI / 2, Eigen::Vector3d::UnitY());
+  // Transform arrow such that arrow x-axis points along goal pose z-axis (Rviz
+  // convention) convert msg parameter goal to Eigen matrix
+  Eigen::AngleAxisd rot_flip_normal(M_PI, Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd rot_x_to_z(-M_PI / 2, Eigen::Vector3d::UnitY());
 
-      // Transform
-      goal_eigen = goal_eigen * rot_flip_normal * rot_x_to_z;
+  // Transform
+  goal_eigen = goal_eigen * rot_flip_normal * rot_x_to_z;
 
-      // Convert back to geometry_msgs pose
-      geometry_msgs::msg::Pose msg;
-      msg = tf2::toMsg(goal_eigen);
-      marker.pose = msg;
+  // Convert back to geometry_msgs pose
+  geometry_msgs::msg::Pose msg;
+  msg = tf2::toMsg(goal_eigen);
+  marker.pose = msg;
 
-      marker.scale.x = scale;
-      marker.scale.y = scale / ARROW_SCALE_RATIO;
-      marker.scale.z = scale / ARROW_SCALE_RATIO;
+  marker.scale.x = scale;
+  marker.scale.y = scale / ARROW_SCALE_RATIO;
+  marker.scale.z = scale / ARROW_SCALE_RATIO;
 
-      if (color)
-      {
-        std::vector<float> color_vec = *color;
-        marker.color.r = color_vec[0];
-        marker.color.g = color_vec[1];
-        marker.color.b = color_vec[2];
-        marker.color.a = color_vec[3];
-      }
-      else
-      {
-        marker.color.a = 1.0; // Don't forget to set the alpha!
+  if (color) {
+    std::vector<float> color_vec = *color;
+    marker.color.r = color_vec[0];
+    marker.color.g = color_vec[1];
+    marker.color.b = color_vec[2];
+    marker.color.a = color_vec[3];
+  } else {
+    marker.color.a = 1.0;  // Don't forget to set the alpha!
 
-        if (r.reached)
-        {
-          marker.color.r = 0.0;
-          marker.color.g = 0.0;
-          marker.color.b = 1.0;
-        }
-        else
-        {
-          marker.color.r = 1.0;
-          marker.color.g = 0.0;
-          marker.color.b = 0.0;
-        }
-      }
-
-      return marker;
+    if (r.reached) {
+      marker.color.r = 0.0;
+      marker.color.g = 0.0;
+      marker.color.b = 1.0;
+    } else {
+      marker.color.r = 1.0;
+      marker.color.g = 0.0;
+      marker.color.b = 0.0;
     }
+  }
 
-    visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(const rclcpp::Node::SharedPtr &node,
-                                                                     const reach_msgs::msg::ReachRecord &r,
-                                                                     const std::string &frame,
-                                                                     const double scale)
-    {
-      visualization_msgs::msg::InteractiveMarker m;
-      m.header.frame_id = frame;
-      m.name = r.id;
+  return marker;
+}
 
-      // Control
-      visualization_msgs::msg::InteractiveMarkerControl control;
-      control.interaction_mode = visualization_msgs::msg::InteractiveMarkerControl::BUTTON;
-      control.always_visible = true;
+visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
+    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
+    const std::string &frame, const double scale) {
+  visualization_msgs::msg::InteractiveMarker m;
+  m.header.frame_id = frame;
+  m.name = r.id;
 
-      // Visuals
-      auto visual = utils::makeVisual(node, r, frame, scale);
-      control.markers.push_back(visual);
-      m.controls.push_back(control);
+  // Control
+  visualization_msgs::msg::InteractiveMarkerControl control;
+  control.interaction_mode =
+      visualization_msgs::msg::InteractiveMarkerControl::BUTTON;
+  control.always_visible = true;
 
-      return m;
-    }
+  // Visuals
+  auto visual = utils::makeVisual(node, r, frame, scale);
+  control.markers.push_back(visual);
+  m.controls.push_back(control);
 
-    visualization_msgs::msg::Marker makeMarker(const rclcpp::Node::SharedPtr &node, const std::vector<geometry_msgs::msg::Point> &pts,
-                                               const std::string &frame,
-                                               const double scale,
-                                               const std::string &ns)
-    {
-      visualization_msgs::msg::Marker marker;
-      marker.header.frame_id = frame;
-      marker.header.stamp = node->now();
-      marker.ns = ns;
-      marker.type = visualization_msgs::msg::Marker::POINTS;
-      marker.action = visualization_msgs::msg::Marker::ADD;
+  return m;
+}
 
-      marker.scale.x = marker.scale.y = marker.scale.z = scale / NEIGHBOR_MARKER_SCALE_RATIO;
+visualization_msgs::msg::Marker makeMarker(
+    const rclcpp::Node::SharedPtr &node,
+    const std::vector<geometry_msgs::msg::Point> &pts, const std::string &frame,
+    const double scale, const std::string &ns) {
+  visualization_msgs::msg::Marker marker;
+  marker.header.frame_id = frame;
+  marker.header.stamp = node->now();
+  marker.ns = ns;
+  marker.type = visualization_msgs::msg::Marker::POINTS;
+  marker.action = visualization_msgs::msg::Marker::ADD;
 
-      marker.color.a = 1.0; // Don't forget to set the alpha!
-      marker.color.r = 0;
-      marker.color.g = 1.0;
-      marker.color.b = 0;
+  marker.scale.x = marker.scale.y = marker.scale.z =
+      scale / NEIGHBOR_MARKER_SCALE_RATIO;
 
-      for (std::size_t i = 0; i < pts.size(); ++i)
-      {
-        marker.points.push_back(pts[i]);
-      }
+  marker.color.a = 1.0;  // Don't forget to set the alpha!
+  marker.color.r = 0;
+  marker.color.g = 1.0;
+  marker.color.b = 0;
 
-      return marker;
-    }
+  for (std::size_t i = 0; i < pts.size(); ++i) {
+    marker.points.push_back(pts[i]);
+  }
 
-    double getMajorLength(pcl::PointCloud<pcl::PointNormal>::Ptr cloud)
-    {
-      pcl::MomentOfInertiaEstimation<pcl::PointNormal> feature_extractor;
-      feature_extractor.setInputCloud(cloud);
-      feature_extractor.compute();
+  return marker;
+}
 
-      pcl::PointNormal min_pt, max_pt, position;
-      Eigen::Matrix3f rotation;
-      feature_extractor.getOBB(min_pt, max_pt, position, rotation);
+double getMajorLength(pcl::PointCloud<pcl::PointNormal>::Ptr cloud) {
+  pcl::MomentOfInertiaEstimation<pcl::PointNormal> feature_extractor;
+  feature_extractor.setInputCloud(cloud);
+  feature_extractor.compute();
 
-      std::vector<double> lengths;
-      lengths.push_back(max_pt.x - min_pt.x);
-      lengths.push_back(max_pt.y - min_pt.y);
-      lengths.push_back(max_pt.z - min_pt.z);
+  pcl::PointNormal min_pt, max_pt, position;
+  Eigen::Matrix3f rotation;
+  feature_extractor.getOBB(min_pt, max_pt, position, rotation);
 
-      return *(std::max_element(lengths.begin(), lengths.end()));
-    }
+  std::vector<double> lengths;
+  lengths.push_back(max_pt.x - min_pt.x);
+  lengths.push_back(max_pt.y - min_pt.y);
+  lengths.push_back(max_pt.z - min_pt.z);
 
-  } // namespace utils
-} // namespace reach
+  return *(std::max_element(lengths.begin(), lengths.end()));
+}
+
+}  // namespace utils
+}  // namespace reach
