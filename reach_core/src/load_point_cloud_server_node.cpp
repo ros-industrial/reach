@@ -24,7 +24,7 @@
 #include <reach_msgs/srv/load_point_cloud.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_listener.h>
-#include <tf2_eigen/tf2_eigen.hpp>
+#include "tf2_eigen/tf2_eigen.h"
 
 constexpr char SAMPLE_MESH_SRV_TOPIC[] = "sample_mesh";
 

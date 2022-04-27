@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include "reach_core/utils/visualization_utils.h"
-#include <tf2_eigen/tf2_eigen.hpp>
+#include "tf2_eigen/tf2_eigen.h"
 #include <pcl/features/moment_of_inertia_estimation.h>
 
 const static double ARROW_SCALE_RATIO = 6.0;

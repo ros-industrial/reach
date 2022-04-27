@@ -17,7 +17,7 @@
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/utils/visualization_utils.h>
 #include <reach_msgs/msg/reach_record.hpp>
-#include <tf2_eigen/tf2_eigen.hpp>
+#include "tf2_eigen/tf2_eigen.h"
 
 #include <boost/bind.hpp>
 

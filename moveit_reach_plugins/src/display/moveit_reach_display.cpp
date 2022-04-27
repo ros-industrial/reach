@@ -21,7 +21,7 @@
 
 // conversions
 #include <moveit/robot_state/conversions.h>
-#include <tf2_eigen/tf2_eigen.hpp>
+#include "tf2_eigen/tf2_eigen.h"
 
 const static std::string PLANNING_SCENE_TOPIC = "planning_scene_display";
 
