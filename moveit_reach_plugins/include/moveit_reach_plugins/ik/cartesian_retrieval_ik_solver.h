@@ -54,6 +54,8 @@ class CartesianRetrievalIKSolver : public MoveItIKSolver {
  protected:
   // distance to retrieve from ik solution in [m]
   double retrieval_path_length_;
+  double jump_threshold_;
+  double max_eef_step_;
 };
 
 }  // namespace ik

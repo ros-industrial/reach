@@ -89,7 +89,7 @@ target_link_libraries(ik_solver_plugins
 ament_target_dependencies(ik_solver_plugins
   moveit_ros_planning_interface
   geometric_shapes
-  reach_core
+#  reach_core
   pluginlib
   rclcpp
   tf2_eigen
