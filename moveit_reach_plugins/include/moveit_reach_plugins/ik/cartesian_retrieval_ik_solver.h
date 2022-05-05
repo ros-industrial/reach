@@ -16,9 +16,10 @@
 #ifndef MOVEIT_REACH_PLUGINS_IK_CARTESIAN_RETRIEVAL_IK_SOLVER_H
 #define MOVEIT_REACH_PLUGINS_IK_CARTESIAN_RETRIEVAL_IK_SOLVER_H
 
+#include "moveit_ik_solver.h"
+
 #include <pluginlib/class_loader.hpp>
 #include <reach_core/plugins/evaluation_base.h>
-#include <reach_core/plugins/ik_solver_base.h>
 
 // PlanningScene
 #include <moveit_msgs/msg/planning_scene.hpp>
@@ -32,13 +33,10 @@ typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
 }  // namespace planning_scene
 
 namespace moveit_reach_plugins {
-namespace {
-const rclcpp::Logger LOGGER =
-    rclcpp::get_logger("moveit_reach_plugins.CartesianRetreivalIKSolver");
-}
+// using same LOGGER as MoveItIKSolver --> moveit_reach_plugins.MoveItIKSolver
 namespace ik {
 
-class CartesianRetrievalIKSolver : public reach::plugins::IKSolverBase {
+class CartesianRetrievalIKSolver : public MoveItIKSolver {
  public:
   CartesianRetrievalIKSolver();
 
@@ -56,25 +54,8 @@ class CartesianRetrievalIKSolver : public reach::plugins::IKSolverBase {
   virtual std::vector<std::string> getJointNames() const override;
 
  protected:
-  bool isIKSolutionValid(moveit::core::RobotState* state,
-                         const moveit::core::JointModelGroup* jmg,
-                         const double* ik_solution) const;
-
-  moveit::core::RobotModelConstPtr model_;
-  planning_scene::PlanningScenePtr scene_;
-  const moveit::core::JointModelGroup* jmg_;
-
-  pluginlib::ClassLoader<reach::plugins::EvaluationBase> class_loader_;
-  reach::plugins::EvaluationBasePtr eval_;
-
-  // parameters
-  double distance_threshold_;
-  std::string collision_mesh_package_;
-  std::string collision_mesh_filename_path_;
-  std::string evaluation_plugin_name_;
-  std::string collision_mesh_frame_;
-  std::vector<std::string> touch_links_;
-  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr scene_pub_;
+  // distance to retrieve from ik solution in [m]
+  double retrieval_path_length_;
 };
 
 }  // namespace ik
