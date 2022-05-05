@@ -15,6 +15,8 @@
  */
 #include "moveit_reach_plugins/ik/cartesian_retrieval_ik_solver.h"
 
+#include "moveit_reach_plugins/utils.h"
+
 #include <algorithm>
 
 namespace {
@@ -66,11 +68,49 @@ bool CartesianRetrievalIKSolver::initialize(
 std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution) {
-  return MoveItIKSolver::solveIKFromSeed(target, seed, solution);
-}
+  moveit::core::RobotState state(model_);
 
-std::vector<std::string> CartesianRetrievalIKSolver::getJointNames() const {
-  return MoveItIKSolver::getJointNames();
+  const std::vector<std::string>& joint_names =
+      jmg_->getActiveJointModelNames();
+
+  std::vector<double> seed_subset;
+  if (!utils::transcribeInputMap(seed, joint_names, seed_subset)) {
+    RCLCPP_ERROR_STREAM(
+        LOGGER, __FUNCTION__ << ": failed to transcribe input pose map");
+    return {};
+  }
+
+  state.setJointGroupPositions(jmg_, seed_subset);
+  state.update();
+
+  //  const static int SOLUTION_ATTEMPTS = 3;
+  const static double SOLUTION_TIMEOUT = 0.2;
+
+  if (state.setFromIK(jmg_, target, SOLUTION_TIMEOUT,
+                      std::bind(&MoveItIKSolver::isIKSolutionValid, this,
+                                std::placeholders::_1, std::placeholders::_2,
+                                std::placeholders::_3))) {
+    solution.clear();
+    state.copyJointGroupPositions(jmg_, solution);
+
+    // Convert back to map
+    std::map<std::string, double> solution_map;
+    for (std::size_t i = 0; i < solution.size(); ++i) {
+      solution_map.emplace(joint_names[i], solution[i]);
+    }
+
+    // compute retrieval path
+    std::vector<std::shared_ptr<moveit::core::RobotState>> traj;
+    Eigen::Isometry3d target;
+    double fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
+        &state, jmg_, traj, state.getLinkModel(jmg_->getEndEffectorName()),
+        target, true, moveit::core::MaxEEFStep(0.2),
+        moveit::core::JumpThreshold(0.01));
+
+    return (fraction == 1.0 ? 1.0 : 0.0) * eval_->calculateScore(solution_map);
+  } else {
+    return {};
+  }
 }
 
 }  // namespace ik

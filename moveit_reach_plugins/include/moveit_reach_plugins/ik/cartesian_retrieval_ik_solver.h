@@ -51,8 +51,6 @@ class CartesianRetrievalIKSolver : public MoveItIKSolver {
       const std::map<std::string, double>& seed,
       std::vector<double>& solution) override;
 
-  virtual std::vector<std::string> getJointNames() const override;
-
  protected:
   // distance to retrieve from ik solution in [m]
   double retrieval_path_length_;

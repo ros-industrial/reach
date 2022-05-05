@@ -63,11 +63,11 @@ class MoveItIKSolver : public reach::plugins::IKSolverBase {
 
   virtual std::vector<std::string> getJointNames() const override;
 
- protected:
   bool isIKSolutionValid(moveit::core::RobotState* state,
                          const moveit::core::JointModelGroup* jmg,
                          const double* ik_solution) const;
 
+ protected:
   moveit::core::RobotModelConstPtr model_;
   planning_scene::PlanningScenePtr scene_;
   const moveit::core::JointModelGroup* jmg_;
