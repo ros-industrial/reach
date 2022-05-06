@@ -58,8 +58,8 @@ class MoveItIKSolver : public reach::plugins::IKSolverBase {
 
   virtual std::optional<double> solveIKFromSeed(
       const Eigen::Isometry3d& target,
-      const std::map<std::string, double>& seed,
-      std::vector<double>& solution) override;
+      const std::map<std::string, double>& seed, std::vector<double>& solution,
+      std::vector<std::vector<double>>& trajectory) override;
 
   virtual std::vector<std::string> getJointNames() const override;
 

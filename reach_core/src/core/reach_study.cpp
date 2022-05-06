@@ -303,7 +303,7 @@ void ReachStudy::runInitialReachStudy() {
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-#pragma omp parallel for
+//#pragma omp parallel for
   for (int i = 0; i < cloud_size; ++i) {
     // Get pose from point cloud array
     const pcl::PointNormal &pt = cloud_->points[i];
@@ -319,8 +319,9 @@ void ReachStudy::runInitialReachStudy() {
 
     // Solve IK
     std::vector<double> solution;
+    std::vector<std::vector<double>> trajectory;
     std::optional<double> score = ik_solver_->solveIKFromSeed(
-        tgt_frame, jointStateMsgToMap(seed_state), solution);
+        tgt_frame, jointStateMsgToMap(seed_state), solution, trajectory);
 
     // Create objects to save in the reach record
     geometry_msgs::msg::Pose tgt_pose;
@@ -344,9 +345,25 @@ void ReachStudy::runInitialReachStudy() {
           });
 
       display_->updateRobotPose(robot_configuration);
-      goal_state.position = solution;
+
+        // display trajectory
+        std::vector<std::map<std::string, double>> trajectory_configuration;
+        trajectory_configuration.resize(trajectory.size());
+        for(size_t k = 0; k < trajectory.size(); ++k){
+            std::transform(
+                    goal_state.name.begin(), goal_state.name.end(), trajectory[k].begin(),
+                    std::inserter(trajectory_configuration[k], trajectory_configuration[k].end()),
+                    [](std::string &jname, double jvalue) {
+                        return std::make_pair(jname, jvalue);
+                    });
+        }
+
+        display_->updateRobotTrajectory(trajectory_configuration);
+
+        goal_state.position = solution;
+
       auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
-                            goal_state, *score);
+                            goal_state, *score, trajectory.size() ? true : false);
       db_->put(msg);
     } else {
       auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,

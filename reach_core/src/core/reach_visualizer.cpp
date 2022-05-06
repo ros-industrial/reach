@@ -86,8 +86,9 @@ void ReachVisualizer::reSolveIKCB(
 
     // Re-solve IK at the selected marker
     std::vector<double> goal_pose;
+    std::vector<std::vector<double>> trajectory;
     std::optional<double> score =
-        solver_->solveIKFromSeed(target, seed_map, goal_pose);
+        solver_->solveIKFromSeed(target, seed_map, goal_pose, trajectory);
 
     // Update the database if the IK solution was valid
     if (score) {

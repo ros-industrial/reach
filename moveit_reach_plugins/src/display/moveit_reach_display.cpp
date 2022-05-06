@@ -20,13 +20,13 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/planning_scene/planning_scene.h>
-
 // conversions
 #include "tf2_eigen/tf2_eigen.h"
 
 #include <moveit/robot_state/conversions.h>
 
 const static std::string PLANNING_SCENE_TOPIC = "planning_scene_display";
+const static std::string TRAJECTORY_SCENE_TOPIC = "trajectory_display";
 
 namespace moveit_reach_plugins {
 namespace display {
@@ -101,6 +101,9 @@ bool MoveItReachDisplay::initialize(
   scene_pub_ = node_->create_publisher<moveit_msgs::msg::PlanningScene>(
       PLANNING_SCENE_TOPIC, 1);
 
+  traj_pub_ = node_->create_publisher<moveit_msgs::msg::DisplayTrajectory>(
+      TRAJECTORY_SCENE_TOPIC, 1);
+
   RCLCPP_INFO_STREAM(LOGGER,
                      "Successfully initialized MoveItReachDisplay plugin");
   return true;
@@ -126,6 +129,37 @@ void MoveItReachDisplay::updateRobotPose(
     scene_pub_->publish(scene_msg);
   } else {
     RCLCPP_ERROR(LOGGER, "Failed to transcribe input joints");
+  }
+}
+void MoveItReachDisplay::updateRobotTrajectory(
+    const std::vector<std::map<std::string, double>>& traj) {
+  const size_t& size = traj.size();
+  if (size > 0) {
+    std::vector<std::string> joint_names = jmg_->getActiveJointModelNames();
+    moveit_msgs::msg::DisplayTrajectory trajectory_msg;
+    trajectory_msg.trajectory.resize(1);
+    trajectory_msg.trajectory[0].joint_trajectory.joint_names = joint_names;
+    trajectory_msg.trajectory[0].joint_trajectory.points.resize(size);
+
+    for (size_t i = 0; i < traj.size(); ++i) {
+      std::vector<double> joints;
+
+      if (utils::transcribeInputMap(traj[i], joint_names, joints)) {
+        if (i == 0) {
+          trajectory_msg.trajectory_start.joint_state.name = joint_names;
+          trajectory_msg.trajectory_start.joint_state.position = joints;
+          trajectory_msg.trajectory_start.is_diff = true;
+        }
+        trajectory_msg.trajectory[0].joint_trajectory.points[i].positions =
+            joints;
+        trajectory_msg.trajectory[0].joint_trajectory.joint_names = joint_names;
+
+      } else {
+        RCLCPP_ERROR(LOGGER, "Failed to transcribe input joints");
+      }
+    }
+    // publish trajectory
+    traj_pub_->publish(trajectory_msg);
   }
 }
 

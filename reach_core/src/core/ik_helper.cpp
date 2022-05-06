@@ -106,8 +106,9 @@ NeighborReachResult reachNeighborsDirect(
 
       // Use current point's IK solution as seed
       std::vector<double> new_solution;
+        std::vector<std::vector<double>> new_trajectory;
       std::optional<double> score =
-          solver->solveIKFromSeed(target, previous_solution, new_solution);
+          solver->solveIKFromSeed(target, previous_solution, new_solution, new_trajectory);
 
       if (score) {
         // Change database if currently solved point didn't have solution before
@@ -167,9 +168,10 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
         Eigen::Isometry3d target;
         tf2::fromMsg(neighbors[i].goal, target);
 
+        std::vector<std::vector<double>> trajectory;
         // Use current point's IK solution as seed
         std::optional<double> score =
-            solver->solveIKFromSeed(target, current_pose_map, new_pose);
+            solver->solveIKFromSeed(target, current_pose_map, new_pose, trajectory);
         if (score) {
           // Calculate the joint distance between the seed and new goal states
           for (std::size_t j = 0; j < current_pose.size(); ++j) {

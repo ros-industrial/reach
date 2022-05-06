@@ -18,6 +18,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 
+#include <moveit_msgs/msg/display_trajectory.hpp>
 #include <moveit_msgs/msg/planning_scene.hpp>
 #include <reach_core/plugins/reach_display_base.h>
 
@@ -49,6 +50,9 @@ class MoveItReachDisplay : public reach::plugins::DisplayBase {
   virtual void updateRobotPose(
       const std::map<std::string, double>& pose) override;
 
+  virtual void updateRobotTrajectory(
+      const std::vector<std::map<std::string, double>>& traj) override;
+
  private:
   moveit::core::RobotModelConstPtr model_;
 
@@ -61,6 +65,7 @@ class MoveItReachDisplay : public reach::plugins::DisplayBase {
   std::string collision_mesh_frame_;
 
   rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr scene_pub_;
+  rclcpp::Publisher<moveit_msgs::msg::DisplayTrajectory>::SharedPtr traj_pub_;
 };
 
 }  // namespace display

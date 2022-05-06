@@ -64,7 +64,8 @@ bool DiscretizedMoveItIKSolver::initialize(
 
 std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
-    std::vector<double>& solution) {
+    std::vector<double>& solution,
+    std::vector<std::vector<double>>& trajectory) {
   // RCLCPP_INFO(LOGGER, " TARGET: %f %f %f ", target.translation().x(),
   // target.translation().y(),target.translation().z());
 
@@ -80,8 +81,8 @@ std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(
     Eigen::Isometry3d discretized_target(
         target * Eigen::AngleAxisd(double(i) * dt_, Eigen::Vector3d::UnitZ()));
     std::vector<double> tmp_solution;
-    std::optional<double> score =
-        MoveItIKSolver::solveIKFromSeed(discretized_target, seed, tmp_solution);
+    std::optional<double> score = MoveItIKSolver::solveIKFromSeed(
+        discretized_target, seed, tmp_solution, trajectory);
     if (score.has_value() && (score.value() > best_score)) {
       best_score = score.value();
       best_solution = std::move(tmp_solution);

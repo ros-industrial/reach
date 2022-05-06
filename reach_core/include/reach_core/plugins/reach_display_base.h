@@ -72,7 +72,9 @@ class DisplayBase {
 
   virtual void updateRobotPose(const std::map<std::string, double> &pose) = 0;
 
-  void addInteractiveMarkerData(
+  virtual void updateRobotTrajectory(const std::vector<std::map<std::string, double>> &trajectory) = 0;
+
+    void addInteractiveMarkerData(
       const reach_msgs::msg::ReachDatabase &database) {
     server_->clear();
     for (const reach_msgs::msg::ReachRecord &rec : database.records) {
