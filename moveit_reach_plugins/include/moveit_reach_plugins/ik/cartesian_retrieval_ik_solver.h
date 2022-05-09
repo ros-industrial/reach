@@ -56,6 +56,7 @@ class CartesianRetrievalIKSolver : public MoveItIKSolver {
   double retrieval_path_length_;
   double jump_threshold_;
   double max_eef_step_;
+  std::string tool_frame_;
 };
 
 }  // namespace ik

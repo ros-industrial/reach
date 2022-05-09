@@ -9,3 +9,5 @@ float64 score
 bool retrieved
 sensor_msgs/JointState[] joint_space_trajectory
 geometry_msgs/Pose[] waypoints
+# ik solver name
+string ik_solver

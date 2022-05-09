@@ -43,7 +43,7 @@ reach_msgs::msg::ReachRecord makeRecord(
     const geometry_msgs::msg::Pose &goal,
     const sensor_msgs::msg::JointState &seed_state,
     const sensor_msgs::msg::JointState &goal_state, const double score,
-    bool retrieved = false);
+    const std::string &ik_solver_name, bool retrieved = false);
 
 /**
  * @brief toMap

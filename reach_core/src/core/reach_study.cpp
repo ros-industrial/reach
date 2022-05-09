@@ -54,6 +54,7 @@ ReachStudy::ReachStudy(const rclcpp::Node::SharedPtr node)
 ReachStudy::~ReachStudy() {
   ik_solver_.reset();
   display_.reset();
+  visualizer_.reset();
 }
 
 bool ReachStudy::initializeStudy(const StudyParameters &sp) {
@@ -168,6 +169,8 @@ bool ReachStudy::run(const StudyParameters &sp) {
       visualizer_->update();
       // check if we don't have to optimize
       if (sp.run_initial_study_only) {
+        // leave some time to see the poses
+        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
         return true;
       }
     } else {
@@ -180,8 +183,12 @@ bool ReachStudy::run(const StudyParameters &sp) {
 
       db_->printResults();
       visualizer_->update();
+
       // check if we don't have to optimize
       if (sp.run_initial_study_only) {
+        // leave some time to see the poses
+        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+
         return true;
       }
     }
@@ -236,6 +243,7 @@ bool ReachStudy::run(const StudyParameters &sp) {
 
   ik_solver_.reset();
   display_.reset();
+  visualizer_.reset();
 
   return true;
 }
@@ -266,15 +274,15 @@ bool ReachStudy::getReachObjectPointCloud() {
                     inner_future) {
         success_tmp = inner_future.get()->success;
         cloud_msg_ = inner_future.get()->cloud;
-        RCLCPP_INFO(LOGGER, "Inner service callback message: '%s'",
-                    inner_future.get()->message.c_str());
+        RCLCPP_DEBUG(LOGGER, "Inner service callback message: '%s'",
+                     inner_future.get()->message.c_str());
         inner_callback_finished = true;
       };
   auto inner_future_result =
       client->async_send_request(req, inner_client_callback);
 
   // quick fix to wait for inner callback to finish
-  // TODO(livanov93) Add visible flag within the inner callback
+  // TODO(livanov93) Quick fix - find other solution
   while (!inner_callback_finished) {
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
@@ -303,7 +311,7 @@ void ReachStudy::runInitialReachStudy() {
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-#pragma omp parallel for
+  //#pragma omp parallel for
   for (int i = 0; i < cloud_size; ++i) {
     // Get pose from point cloud array
     const pcl::PointNormal &pt = cloud_->points[i];
@@ -344,6 +352,7 @@ void ReachStudy::runInitialReachStudy() {
             return std::make_pair(jname, jvalue);
           });
 
+      // show robot pose
       display_->updateRobotPose(robot_configuration);
 
       // display trajectory
@@ -359,17 +368,18 @@ void ReachStudy::runInitialReachStudy() {
                        });
       }
 
+      // show trajectory if one exists
       display_->updateRobotTrajectory(trajectory_configuration);
 
       goal_state.position = solution;
 
       auto msg =
           makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state,
-                     *score, trajectory.size() ? true : false);
+                     *score, sp_.ik_solver_config_name, trajectory.size() != 0);
       db_->put(msg);
     } else {
       auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,
-                            goal_state, 0.0);
+                            goal_state, 0.0, sp_.ik_solver_config_name);
       db_->put(msg);
     }
 

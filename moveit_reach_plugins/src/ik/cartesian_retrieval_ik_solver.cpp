@@ -65,6 +65,12 @@ bool CartesianRetrievalIKSolver::initialize(
                    "'ik_solver_config.jump_threshold' ");
       return false;
     }
+    if (!node->get_parameter("ik_solver_config.tool_frame", tool_frame_)) {
+      RCLCPP_ERROR(LOGGER,
+                   "No parameter defined by the name "
+                   "'ik_solver_config.jump_threshold' ");
+      return false;
+    }
     // make sure it is positive to follow solvers logic
     retrieval_path_length_ = std::abs(double(retrieval_path_length_));
     max_eef_step_ = std::abs(double(max_eef_step_));
@@ -120,8 +126,8 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     Eigen::Isometry3d retrieval_target =
         target * Eigen::Translation3d(0.0, 0.0, -retrieval_path_length_);
     double fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
-        &state, jmg_, traj, state.getLinkModel("tcp"), retrieval_target, true,
-        moveit::core::MaxEEFStep(max_eef_step_),
+        &state, jmg_, traj, state.getLinkModel(tool_frame_), retrieval_target,
+        true, moveit::core::MaxEEFStep(max_eef_step_),
         moveit::core::JumpThreshold(jump_threshold_),
         std::bind(&MoveItIKSolver::isIKSolutionValid, this,
                   std::placeholders::_1, std::placeholders::_2,
@@ -132,6 +138,9 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
       for (size_t i = 0; i < traj.size(); ++i) {
         traj[i]->copyJointGroupPositions(jmg_, trajectory[i]);
       }
+    } else {
+      // make sure trajectory is empty on exit
+      trajectory.clear();
     }
     return (fraction == 1.0 ? 1.0 : 0.0) * eval_->calculateScore(solution_map);
   } else {

@@ -19,7 +19,11 @@ robot_reach_study_node:
       step_improvement_threshold: 0.01
 
     ik_solver_config:
-      name: "moveit_reach_plugins/ik/MoveItIKSolver"
+      name: "moveit_reach_plugins/ik/CartesianRetrievalIKSolver"
+      retrieval_distance: 0.2
+      tool_frame: "tcp"
+      max_eef_step: 0.005
+      jump_threshold: 0.0
       distance_threshold: 0.0
       planning_group: "manipulator"
 #      collision_mesh_package: "reach_demo"
