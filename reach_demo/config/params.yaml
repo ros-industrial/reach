@@ -11,7 +11,7 @@ robot_reach_study_node:
     compare_dbs: [""]
     visualize_results: true
     planning_group: "manipulator"
-    run_initial_study_only: false
+    run_initial_study_only: true
 
     optimization:
       radius: 0.2
@@ -20,6 +20,7 @@ robot_reach_study_node:
 
     ik_solver_config:
       name: "moveit_reach_plugins/ik/CartesianRetrievalIKSolver"
+#      name: "moveit_reach_plugins/ik/MoveItIKSolver"
       retrieval_distance: 0.2
       tool_frame: "tcp"
       max_eef_step: 0.005

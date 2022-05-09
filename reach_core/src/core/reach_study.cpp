@@ -311,7 +311,7 @@ void ReachStudy::runInitialReachStudy() {
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-  //#pragma omp parallel for
+#pragma omp parallel for
   for (int i = 0; i < cloud_size; ++i) {
     // Get pose from point cloud array
     const pcl::PointNormal &pt = cloud_->points[i];
