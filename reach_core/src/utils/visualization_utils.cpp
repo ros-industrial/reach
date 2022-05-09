@@ -21,6 +21,7 @@
 
 const static double ARROW_SCALE_RATIO = 6.0;
 const static double NEIGHBOR_MARKER_SCALE_RATIO = ARROW_SCALE_RATIO / 2.0;
+const static double SPHERE_DIAMETER = 0.005;
 
 namespace reach {
 namespace utils {
@@ -115,9 +116,9 @@ visualization_msgs::msg::Marker makeVisualTraj(
   }
 
   // sphere diameters
-  marker.scale.x = 0.005;
-  marker.scale.y = 0.005;
-  marker.scale.z = 0.005;
+  marker.scale.x = SPHERE_DIAMETER;
+  marker.scale.y = SPHERE_DIAMETER;
+  marker.scale.z = SPHERE_DIAMETER;
 
   if (color) {
     std::vector<float> color_vec = *color;
