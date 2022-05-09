@@ -49,7 +49,8 @@ class CartesianRetrievalIKSolver : public MoveItIKSolver {
   virtual std::optional<double> solveIKFromSeed(
       const Eigen::Isometry3d& target,
       const std::map<std::string, double>& seed, std::vector<double>& solution,
-      std::vector<std::vector<double>>& trajectory) override;
+      std::vector<std::vector<double>>& trajectory,
+      std::vector<Eigen::Isometry3d>& waypoints) override;
 
  protected:
   // distance to retrieve from ik solution in [m]

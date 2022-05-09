@@ -44,6 +44,19 @@ visualization_msgs::msg::Marker makeVisual(
  * @param scale
  * @return
  */
+visualization_msgs::msg::Marker makeVisualTraj(
+    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
+    const std::string &frame, const double scale,
+    const std::string &ns = "reach",
+    const boost::optional<std::vector<float>> &color = {});
+
+/**
+ * @brief makeInteractiveMarker
+ * @param r
+ * @param frame
+ * @param scale
+ * @return
+ */
 visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
     const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
     const std::string &frame, const double scale);

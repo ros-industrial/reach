@@ -328,14 +328,18 @@ void ReachStudy::runInitialReachStudy() {
     // Solve IK
     std::vector<double> solution;
     std::vector<std::vector<double>> trajectory;
-    std::optional<double> score = ik_solver_->solveIKFromSeed(
-        tgt_frame, jointStateMsgToMap(seed_state), solution, trajectory);
+    std::vector<Eigen::Isometry3d> waypoints;
+    std::optional<double> score =
+        ik_solver_->solveIKFromSeed(tgt_frame, jointStateMsgToMap(seed_state),
+                                    solution, trajectory, waypoints);
 
     // Create objects to save in the reach record
     geometry_msgs::msg::Pose tgt_pose;
     tgt_pose = tf2::toMsg(tgt_frame);
 
     sensor_msgs::msg::JointState goal_state(seed_state);
+
+    const size_t &trajectory_size = trajectory.size();
 
     if (score) {
       geometry_msgs::msg::PoseStamped tgt_pose_stamped;
@@ -351,14 +355,13 @@ void ReachStudy::runInitialReachStudy() {
           [](std::string &jname, double jvalue) {
             return std::make_pair(jname, jvalue);
           });
-
       // show robot pose
       display_->updateRobotPose(robot_configuration);
 
-      // display trajectory
       std::vector<std::map<std::string, double>> trajectory_configuration;
-      trajectory_configuration.resize(trajectory.size());
-      for (size_t k = 0; k < trajectory.size(); ++k) {
+      // display trajectory
+      trajectory_configuration.resize(trajectory_size);
+      for (size_t k = 0; k < trajectory_size; ++k) {
         std::transform(goal_state.name.begin(), goal_state.name.end(),
                        trajectory[k].begin(),
                        std::inserter(trajectory_configuration[k],
@@ -367,19 +370,43 @@ void ReachStudy::runInitialReachStudy() {
                          return std::make_pair(jname, jvalue);
                        });
       }
-
       // show trajectory if one exists
       display_->updateRobotTrajectory(trajectory_configuration);
 
+      // export trajectory for record
+      std::vector<geometry_msgs::msg::Pose> cartesian_space_waypoints;
+      cartesian_space_waypoints.resize(trajectory_size);
+      std::vector<sensor_msgs::msg::JointState> joint_space_trajectory;
+      joint_space_trajectory.resize(trajectory_size);
+      for (size_t k = 0; k < trajectory_size; ++k) {
+        geometry_msgs::msg::Pose csw_tmp;
+        csw_tmp.position.set__x(waypoints[k].translation().x());
+        csw_tmp.position.set__y(waypoints[k].translation().y());
+        csw_tmp.position.set__z(waypoints[k].translation().z());
+        Eigen::Quaterniond q(waypoints[k].rotation());
+        csw_tmp.orientation.set__x(q.x());
+        csw_tmp.orientation.set__y(q.y());
+        csw_tmp.orientation.set__z(q.z());
+        csw_tmp.orientation.set__w(q.w());
+        cartesian_space_waypoints[k] = csw_tmp;
+
+        sensor_msgs::msg::JointState jst_tmp;
+        jst_tmp.name = goal_state.name;
+        jst_tmp.position = trajectory[k];
+      }
+
+      // fill the goal state
       goal_state.position = solution;
 
-      auto msg =
-          makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state,
-                     *score, sp_.ik_solver_config_name, trajectory.size() != 0);
+      auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
+                            goal_state, *score, sp_.ik_solver_config_name,
+                            cartesian_space_waypoints, joint_space_trajectory,
+                            trajectory.size() != 0);
       db_->put(msg);
     } else {
-      auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,
-                            goal_state, 0.0, sp_.ik_solver_config_name);
+      auto msg =
+          makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state,
+                     0.0, sp_.ik_solver_config_name, {}, {}, false);
       db_->put(msg);
     }
 

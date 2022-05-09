@@ -123,8 +123,8 @@ bool MoveItIKSolver::initialize(
 
 std::optional<double> MoveItIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
-    std::vector<double>& solution,
-    std::vector<std::vector<double>>& trajectory) {
+    std::vector<double>& solution, std::vector<std::vector<double>>& trajectory,
+    std::vector<Eigen::Isometry3d>& waypoints) {
   moveit::core::RobotState state(model_);
 
   const std::vector<std::string>& joint_names =

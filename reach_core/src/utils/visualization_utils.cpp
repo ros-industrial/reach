@@ -91,6 +91,66 @@ visualization_msgs::msg::Marker makeVisual(
   return marker;
 }
 
+visualization_msgs::msg::Marker makeVisualTraj(
+    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
+    const std::string &frame, const double scale, const std::string &ns,
+    const boost::optional<std::vector<float>> &color) {
+  static int idx = 0;
+
+  visualization_msgs::msg::Marker marker;
+  marker.header.frame_id = frame;
+  marker.header.stamp = node->now();
+  marker.ns = ns;
+  marker.id = idx++;
+  marker.type = visualization_msgs::msg::Marker::SPHERE_LIST;
+  marker.action = visualization_msgs::msg::Marker::ADD;
+
+  // Convert back to geometry_msgs pose
+  geometry_msgs::msg::Pose msg;
+  marker.pose = msg;
+
+  // fill the points
+  for (size_t i = 0; i < r.waypoints.size(); ++i) {
+    marker.points.push_back(r.waypoints[i].position);
+  }
+
+  // sphere diameters
+  marker.scale.x = 0.005;
+  marker.scale.y = 0.005;
+  marker.scale.z = 0.005;
+
+  if (color) {
+    std::vector<float> color_vec = *color;
+    marker.color.r = color_vec[0];
+    marker.color.g = color_vec[1];
+    marker.color.b = color_vec[2];
+    marker.color.a = color_vec[3];
+  } else {
+    marker.color.a = 1.0;  // Don't forget to set the alpha!
+
+    if (r.reached) {
+      // decide on color based on name of ik solver
+      if (r.ik_solver == "moveit_reach_plugins/ik/CartesianRetrievalIKSolver" &&
+          !r.retrieved) {
+        // go with purple
+        marker.color.r = 1.0;
+        marker.color.g = 0.0;
+        marker.color.b = 1.0;
+      } else {
+        marker.color.r = 0.0;
+        marker.color.g = 1.0;
+        marker.color.b = 0.0;
+      }
+    } else {
+      marker.color.r = 1.0;
+      marker.color.g = 0.0;
+      marker.color.b = 0.0;
+    }
+  }
+
+  return marker;
+}
+
 visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
     const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
     const std::string &frame, const double scale) {
@@ -107,6 +167,10 @@ visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
   // Visuals
   auto visual = utils::makeVisual(node, r, frame, scale);
   control.markers.push_back(visual);
+  if (!r.waypoints.empty()) {
+    auto visual_traj = utils::makeVisualTraj(node, r, frame, scale);
+    control.markers.push_back(visual_traj);
+  }
   m.controls.push_back(control);
 
   return m;

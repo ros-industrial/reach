@@ -5,10 +5,10 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MarkerArray1/Topic1
+        - /InteractiveMarkers1
         - /Marker1/Topic1
         - /MarkerArray2/Topic1
         - /TF1/Frames1
-        - /PlanningScene1/Status1
         - /PlanningScene1/Scene Geometry1
       Splitter Ratio: 0.5
     Tree Height: 647
@@ -29,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: PointCloud2
   - Class: rviz_visual_tools/RvizVisualToolsGui
     Name: RvizVisualToolsGui
 Visualization Manager:
@@ -100,13 +100,13 @@ Visualization Manager:
         Value: /reach_comparison
       Value: false
     - Class: rviz_default_plugins/InteractiveMarkers
-      Enable Transparency: false
+      Enable Transparency: true
       Enabled: true
       Interactive Markers Namespace: /reach_int_markers
       Name: InteractiveMarkers
       Show Axes: true
       Show Descriptions: true
-      Show Visual Aids: false
+      Show Visual Aids: true
       Value: true
     - Class: rviz_default_plugins/Marker
       Enabled: false
@@ -499,7 +499,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 3.2978122234344482
+      Distance: 0.2639774680137634
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -517,7 +517,7 @@ Visualization Manager:
       Pitch: 0.15020470321178436
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.9373509883880615
+      Yaw: 2.9973509311676025
     Saved: ~
 Window Geometry:
   Displays:

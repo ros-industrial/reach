@@ -88,8 +88,8 @@ bool CartesianRetrievalIKSolver::initialize(
 
 std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
-    std::vector<double>& solution,
-    std::vector<std::vector<double>>& trajectory) {
+    std::vector<double>& solution, std::vector<std::vector<double>>& trajectory,
+    std::vector<Eigen::Isometry3d>& waypoints) {
   moveit::core::RobotState state(model_);
 
   const std::vector<std::string>& joint_names =
@@ -135,8 +135,10 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
 
     if (fraction == 1.0) {
       trajectory.resize(traj.size());
+      waypoints.resize(traj.size());
       for (size_t i = 0; i < traj.size(); ++i) {
         traj[i]->copyJointGroupPositions(jmg_, trajectory[i]);
+        waypoints[i] = traj[i]->getFrameTransform(tool_frame_);
       }
     } else {
       // make sure trajectory is empty on exit
