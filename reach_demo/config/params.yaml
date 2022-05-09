@@ -24,7 +24,7 @@ robot_reach_study_node:
       retrieval_distance: 0.2
       tool_frame: "tcp"
       max_eef_step: 0.005
-      jump_threshold: 0.0
+      jump_threshold: 0.1 # cca 5 degrees
       distance_threshold: 0.0
       planning_group: "manipulator"
 #      collision_mesh_package: "reach_demo"

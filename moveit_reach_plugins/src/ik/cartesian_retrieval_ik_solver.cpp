@@ -128,7 +128,7 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     double fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
         &state, jmg_, traj, state.getLinkModel(tool_frame_), retrieval_target,
         true, moveit::core::MaxEEFStep(max_eef_step_),
-        moveit::core::JumpThreshold(jump_threshold_),
+        moveit::core::JumpThreshold(jump_threshold_, jump_threshold_),
         std::bind(&MoveItIKSolver::isIKSolutionValid, this,
                   std::placeholders::_1, std::placeholders::_2,
                   std::placeholders::_3));

@@ -5,11 +5,11 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MarkerArray1/Topic1
-        - /InteractiveMarkers1
         - /Marker1/Topic1
         - /MarkerArray2/Topic1
         - /TF1/Frames1
         - /PlanningScene1/Scene Geometry1
+        - /Trajectory1
       Splitter Ratio: 0.5
     Tree Height: 647
   - Class: rviz_common/Selection
@@ -316,7 +316,7 @@ Visualization Manager:
       Axes Radius: 0.004999999888241291
       Class: rviz_default_plugins/Pose
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: Pose
@@ -330,7 +330,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /pose_stamped
-      Value: true
+      Value: false
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
       Name: MarkerArray
@@ -360,7 +360,7 @@ Visualization Manager:
       Axes Radius: 0.004999999888241291
       Class: rviz_default_plugins/Pose
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: Pose
@@ -374,7 +374,7 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /pose_stamped
-      Value: true
+      Value: false
     - Class: moveit_rviz_plugin/Trajectory
       Color Enabled: false
       Enabled: true
@@ -441,15 +441,15 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-      Loop Animation: false
+      Loop Animation: true
       Name: Trajectory
       Robot Alpha: 0.5
       Robot Color: 150; 50; 150
       Robot Description: robot_description
       Show Robot Collision: false
       Show Robot Visual: true
-      Show Trail: true
-      State Display Time: 3x
+      Show Trail: false
+      State Display Time: 0.5s
       Trail Step Size: 1
       Trajectory Topic: /trajectory_display
       Value: true
@@ -499,25 +499,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 0.2639774680137634
+      Distance: 3.9545559883117676
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.4049539566040039
-        Y: 0.11036305129528046
-        Z: 1.1591986417770386
+        X: 0.5153146982192993
+        Y: -0.003627506084740162
+        Z: 1.144727349281311
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.15020470321178436
+      Pitch: 0.3102051615715027
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.9973509311676025
+      Yaw: 2.6573450565338135
     Saved: ~
 Window Geometry:
   Displays:

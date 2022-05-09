@@ -57,6 +57,13 @@ std::map<std::string, double> jointStateMsgToMap(
     const sensor_msgs::msg::JointState &state);
 
 /**
+ * @brief to vector of Map
+ * @param trectory
+ * @return
+ */
+std::vector<std::map<std::string, double>> jointStateArrayToArrayOfMaps(
+    const std::vector<sensor_msgs::msg::JointState> &trajectory);
+/**
  * @brief The Database class stores information about the robot pose for all of
  * the attempted target poses. The database also saves several key meta-results
  * of the reach study:

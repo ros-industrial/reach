@@ -169,8 +169,10 @@ bool ReachStudy::run(const StudyParameters &sp) {
       visualizer_->update();
       // check if we don't have to optimize
       if (sp.run_initial_study_only) {
-        // leave some time to see the poses
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        while (rclcpp::ok()) {
+          // keep it running
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
         return true;
       }
     } else {
@@ -186,9 +188,10 @@ bool ReachStudy::run(const StudyParameters &sp) {
 
       // check if we don't have to optimize
       if (sp.run_initial_study_only) {
-        // leave some time to see the poses
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-
+        while (rclcpp::ok()) {
+          // keep it running
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
         return true;
       }
     }
@@ -239,6 +242,11 @@ bool ReachStudy::run(const StudyParameters &sp) {
                      "the other specified databases");
       }
     }
+  }
+
+  while (rclcpp::ok()) {
+    // keep it running
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   ik_solver_.reset();
@@ -393,6 +401,7 @@ void ReachStudy::runInitialReachStudy() {
         sensor_msgs::msg::JointState jst_tmp;
         jst_tmp.name = goal_state.name;
         jst_tmp.position = trajectory[k];
+        joint_space_trajectory[k] = jst_tmp;
       }
 
       // fill the goal state

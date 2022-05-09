@@ -160,6 +160,8 @@ void MoveItReachDisplay::updateRobotTrajectory(
     }
     // publish trajectory
     traj_pub_->publish(trajectory_msg);
+  } else {
+    traj_pub_->publish(moveit_msgs::msg::DisplayTrajectory());
   }
 }
 

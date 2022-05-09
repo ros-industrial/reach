@@ -121,6 +121,8 @@ void ReachVisualizer::showResultCB(
   auto lookup = db_->get(fb->marker_name);
   if (lookup) {
     display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
+    display_->updateRobotTrajectory(
+        jointStateArrayToArrayOfMaps(lookup->joint_space_trajectory));
   } else {
     RCLCPP_ERROR_STREAM(LOGGER,
                         "Record '" << fb->marker_name

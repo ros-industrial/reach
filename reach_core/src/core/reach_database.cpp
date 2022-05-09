@@ -77,6 +77,17 @@ std::map<std::string, double> jointStateMsgToMap(
   return out;
 }
 
+std::vector<std::map<std::string, double>> jointStateArrayToArrayOfMaps(
+    const std::vector<sensor_msgs::msg::JointState> &trajectory) {
+  std::vector<std::map<std::string, double>> out;
+  out.resize(trajectory.size());
+  for (std::size_t i = 0; i < trajectory.size(); ++i) {
+    for (std::size_t j = 0; j < trajectory[i].position.size(); ++j) {
+      out[i][trajectory[i].name[j]] = trajectory[i].position[j];
+    }
+  }
+  return out;
+}
 void ReachDatabase::save(const std::string &filename) const {
   std::lock_guard<std::mutex> lock{mutex_};
   reach_msgs::msg::ReachDatabase msg = toReachDatabase(map_, results_);
@@ -157,8 +168,8 @@ void ReachDatabase::printResults() {
   RCLCPP_INFO_STREAM(LOGGER, "Normalized total points score = "
                                  << results_.norm_total_pose_score);
   //      RCLCPP_INFO_STREAM(LOGGER, "Average reachable neighbors = " <<
-  //      results_.avg_num_neighbors); RCLCPP_INFO_STREAM(LOGGER, "Average joint
-  //      distance = " << results_.avg_joint_distance);
+  //      results_.avg_num_neighbors); RCLCPP_INFO_STREAM(LOGGER, "Average
+  //      joint distance = " << results_.avg_joint_distance);
   RCLCPP_INFO_STREAM(LOGGER,
                      "------------------------------------------------");
 }
