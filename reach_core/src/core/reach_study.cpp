@@ -331,7 +331,11 @@ void ReachStudy::runInitialReachStudy() {
     // Get the seed position
     sensor_msgs::msg::JointState seed_state;
     seed_state.name = ik_solver_->getJointNames();
-    seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
+    if (seed_state.name.size() != sp_.initial_seed_state.size()) {
+      seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
+    } else {
+      seed_state.position = sp_.initial_seed_state;
+    }
 
     // Solve IK
     std::vector<double> solution;

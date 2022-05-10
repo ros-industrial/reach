@@ -62,6 +62,7 @@ struct StudyParameters {
   std::string object_frame;
   std::string planning_group;
   bool run_initial_study_only;
+  std::vector<double> initial_seed_state;
 };
 
 }  // namespace core

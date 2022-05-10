@@ -97,6 +97,9 @@ class RobotReachStudyNode : public rclcpp::Node {
         sp_.compare_dbs.clear();
       }
 
+      // additional parameters that don't have to be set
+      this->get_parameter_or("initial_seed_state", sp_.initial_seed_state, {});
+
       // set params
       sp = sp_;
 
