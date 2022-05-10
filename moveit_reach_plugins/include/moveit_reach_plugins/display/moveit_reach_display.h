@@ -37,6 +37,13 @@ namespace display {
 class MoveItReachDisplay : public reach::plugins::DisplayBase {
  public:
   MoveItReachDisplay();
+  ~MoveItReachDisplay() {
+    model_.reset();
+    scene_.reset();
+    //    delete jmg_;
+    scene_pub_.reset();
+    traj_pub_.reset();
+  }
 
   bool initialize(
       std::string& name, rclcpp::Node::SharedPtr node,

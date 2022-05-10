@@ -142,6 +142,7 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
       }
     } else {
       // make sure trajectory is empty on exit
+      waypoints.clear();
       trajectory.clear();
     }
     return (fraction == 1.0 ? 1.0 : 0.0) * eval_->calculateScore(solution_map);

@@ -28,6 +28,10 @@ namespace evaluation {
 class ManipulabilityMoveIt : public reach::plugins::EvaluationBase {
  public:
   ManipulabilityMoveIt();
+  ~ManipulabilityMoveIt() {
+    model_.reset();
+    //    delete jmg_;
+  }
 
   virtual bool initialize(
       std::string& name, rclcpp::Node::SharedPtr node,

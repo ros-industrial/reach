@@ -34,6 +34,11 @@ namespace evaluation {
 class DistancePenaltyMoveIt : public reach::plugins::EvaluationBase {
  public:
   DistancePenaltyMoveIt();
+  ~DistancePenaltyMoveIt() {
+    model_.reset();
+    scene_.reset();
+    //    delete jmg_;
+  }
 
   virtual bool initialize(
       std::string& name, rclcpp::Node::SharedPtr node,

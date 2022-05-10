@@ -28,6 +28,10 @@ namespace evaluation {
 class JointPenaltyMoveIt : public reach::plugins::EvaluationBase {
  public:
   JointPenaltyMoveIt();
+  ~JointPenaltyMoveIt() {
+    model_.reset();
+    //    delete jmg_;
+  }
 
   virtual bool initialize(
       std::string& name, rclcpp::Node::SharedPtr node,

@@ -50,7 +50,12 @@ class MoveItIKSolver : public reach::plugins::IKSolverBase {
  public:
   MoveItIKSolver();
 
-  ~MoveItIKSolver() { eval_.reset(); }
+  ~MoveItIKSolver() {
+    eval_.reset();
+    model_.reset();
+    scene_pub_.reset();
+    scene_.reset();
+  }
 
   virtual bool initialize(
       std::string& name, rclcpp::Node::SharedPtr node,

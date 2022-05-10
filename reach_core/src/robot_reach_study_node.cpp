@@ -140,7 +140,9 @@ int main(int argc, char** argv) {
   if (!rs.run(sp) || !rclcpp::ok()) {
     RCLCPP_ERROR(rclcpp::get_logger("robot_reach_study_node"),
                  "Unable to perform the reach study");
-    return -1;
+    rclcpp::shutdown();
+    t1.join();
+    return 0;
   }
 
   rclcpp::shutdown();

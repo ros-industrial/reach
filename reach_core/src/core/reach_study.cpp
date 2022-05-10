@@ -55,6 +55,11 @@ ReachStudy::~ReachStudy() {
   ik_solver_.reset();
   display_.reset();
   visualizer_.reset();
+  db_.reset();
+  cloud_.reset();
+  node_.reset();
+  model_.reset();
+  ps_pub_.reset();
 }
 
 bool ReachStudy::initializeStudy(const StudyParameters &sp) {
@@ -98,8 +103,6 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
     return false;
   }
 
-  display_->showEnvironment();
-
   // Create a directory to store results of study
   std::string tmp_dir =
       ament_index_cpp::get_package_share_directory(sp_.results_package) + "/" +
@@ -119,6 +122,9 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
     std::filesystem::path path(char_dir);
     std::filesystem::create_directory(path);
   }
+
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+  display_->showEnvironment();
 
   return true;
 }
@@ -357,33 +363,35 @@ void ReachStudy::runInitialReachStudy() {
       geometry_msgs::msg::PoseStamped tgt_pose_stamped;
       tgt_pose_stamped.pose = tgt_pose;
       tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
-      ps_pub_->publish(tgt_pose_stamped);
-
-      std::map<std::string, double> robot_configuration;
-      // create map
-      std::transform(
-          goal_state.name.begin(), goal_state.name.end(), solution.begin(),
-          std::inserter(robot_configuration, robot_configuration.end()),
-          [](std::string &jname, double jvalue) {
-            return std::make_pair(jname, jvalue);
-          });
-      // show robot pose
-      display_->updateRobotPose(robot_configuration);
-
-      std::vector<std::map<std::string, double>> trajectory_configuration;
-      // display trajectory
-      trajectory_configuration.resize(trajectory_size);
-      for (size_t k = 0; k < trajectory_size; ++k) {
-        std::transform(goal_state.name.begin(), goal_state.name.end(),
-                       trajectory[k].begin(),
-                       std::inserter(trajectory_configuration[k],
-                                     trajectory_configuration[k].end()),
-                       [](std::string &jname, double jvalue) {
-                         return std::make_pair(jname, jvalue);
-                       });
-      }
-      // show trajectory if one exists
-      display_->updateRobotTrajectory(trajectory_configuration);
+      //      ps_pub_->publish(tgt_pose_stamped);
+      //
+      //      std::map<std::string, double> robot_configuration;
+      //      // create map
+      //      std::transform(
+      //          goal_state.name.begin(), goal_state.name.end(),
+      //          solution.begin(), std::inserter(robot_configuration,
+      //          robot_configuration.end()),
+      //          [](std::string &jname, double jvalue) {
+      //            return std::make_pair(jname, jvalue);
+      //          });
+      //      // show robot pose
+      //      display_->updateRobotPose(robot_configuration);
+      //
+      //      std::vector<std::map<std::string, double>>
+      //      trajectory_configuration;
+      //      // display trajectory
+      //      trajectory_configuration.resize(trajectory_size);
+      //      for (size_t k = 0; k < trajectory_size; ++k) {
+      //        std::transform(goal_state.name.begin(), goal_state.name.end(),
+      //                       trajectory[k].begin(),
+      //                       std::inserter(trajectory_configuration[k],
+      //                                     trajectory_configuration[k].end()),
+      //                       [](std::string &jname, double jvalue) {
+      //                         return std::make_pair(jname, jvalue);
+      //                       });
+      //      }
+      //      // show trajectory if one exists
+      //      display_->updateRobotTrajectory(trajectory_configuration);
 
       // export trajectory for record
       std::vector<geometry_msgs::msg::Pose> cartesian_space_waypoints;
