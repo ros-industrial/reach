@@ -106,7 +106,8 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
   state.update();
 
   //  const static int SOLUTION_ATTEMPTS = 3;
-  const static double SOLUTION_TIMEOUT = 0.2;
+  // use default timeout for the ik solver
+  const static double SOLUTION_TIMEOUT = 0.0;
 
   if (state.setFromIK(jmg_, target, SOLUTION_TIMEOUT,
                       std::bind(&MoveItIKSolver::isIKSolutionValid, this,
@@ -140,12 +141,13 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
         traj[i]->copyJointGroupPositions(jmg_, trajectory[i]);
         waypoints[i] = traj[i]->getFrameTransform(tool_frame_);
       }
+      return eval_->calculateScore(solution_map);
     } else {
       // make sure trajectory is empty on exit
       waypoints.clear();
       trajectory.clear();
+      return {};
     }
-    return (fraction == 1.0 ? 1.0 : 0.0) * eval_->calculateScore(solution_map);
   } else {
     return {};
   }

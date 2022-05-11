@@ -16,6 +16,7 @@
 #include "tf2_eigen/tf2_eigen.h"
 
 #include <reach_core/ik_helper.h>
+#include <reach_core/utils/general_utils.h>
 
 namespace reach {
 namespace core {
@@ -112,6 +113,12 @@ NeighborReachResult reachNeighborsDirect(
           solver->solveIKFromSeed(target, previous_solution, new_solution,
                                   new_trajectory, new_waypoints);
 
+      std::vector<geometry_msgs::msg::Pose> cartesian_space_waypoints;
+      std::vector<sensor_msgs::msg::JointState> joint_space_trajectory;
+      utils::trajectoryFiller(
+          new_trajectory, new_waypoints, neighbors[i].goal_state.name,
+          cartesian_space_waypoints, joint_space_trajectory);
+
       if (score) {
         // Change database if currently solved point didn't have solution before
         // or if its current manipulability is better than that saved in the
@@ -124,6 +131,8 @@ NeighborReachResult reachNeighborsDirect(
           msg.seed_state.position = rec.goal_state.position;
           msg.goal_state.position = new_solution;
           msg.score = *score;
+          msg.joint_space_trajectory = joint_space_trajectory;
+          msg.waypoints = cartesian_space_waypoints;
           db->put(msg);
         }
 

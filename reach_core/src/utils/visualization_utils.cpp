@@ -71,17 +71,18 @@ visualization_msgs::msg::Marker makeVisual(
 
     if (r.reached) {
       // decide on color based on name of ik solver
-      if (r.ik_solver == "moveit_reach_plugins/ik/CartesianRetrievalIKSolver" &&
-          !r.retrieved) {
-        // go with purple
-        marker.color.r = 1.0;
-        marker.color.g = 0.0;
-        marker.color.b = 1.0;
-      } else {
-        marker.color.r = 0.0;
-        marker.color.g = 0.0;
-        marker.color.b = 1.0;
-      }
+      //      if (r.ik_solver ==
+      //      "moveit_reach_plugins/ik/CartesianRetrievalIKSolver" &&
+      //          !r.retrieved) {
+      //        // go with purple
+      //        marker.color.r = 1.0;
+      //        marker.color.g = 0.0;
+      //        marker.color.b = 1.0;
+      //      } else {
+      marker.color.r = 0.0;
+      marker.color.g = 0.0;
+      marker.color.b = 1.0;
+      //      }
     } else {
       marker.color.r = 1.0;
       marker.color.g = 0.0;
@@ -130,18 +131,9 @@ visualization_msgs::msg::Marker makeVisualTraj(
     marker.color.a = 1.0;  // Don't forget to set the alpha!
 
     if (r.reached) {
-      // decide on color based on name of ik solver
-      if (r.ik_solver == "moveit_reach_plugins/ik/CartesianRetrievalIKSolver" &&
-          !r.retrieved) {
-        // go with purple
-        marker.color.r = 1.0;
-        marker.color.g = 0.0;
-        marker.color.b = 1.0;
-      } else {
-        marker.color.r = 0.0;
-        marker.color.g = 1.0;
-        marker.color.b = 0.0;
-      }
+      marker.color.r = 0.0;
+      marker.color.g = 1.0;
+      marker.color.b = 0.0;
     } else {
       marker.color.r = 1.0;
       marker.color.g = 0.0;

@@ -141,7 +141,8 @@ std::optional<double> MoveItIKSolver::solveIKFromSeed(
   state.update();
 
   //  const static int SOLUTION_ATTEMPTS = 3;
-  const static double SOLUTION_TIMEOUT = 0.2;
+  // use default timeout for the ik solver
+  const static double SOLUTION_TIMEOUT = 0.0;
 
   if (state.setFromIK(jmg_, target, SOLUTION_TIMEOUT,
                       std::bind(&MoveItIKSolver::isIKSolutionValid, this,
@@ -174,12 +175,15 @@ bool MoveItIKSolver::isIKSolutionValid(moveit::core::RobotState* state,
       (scene_->distanceToCollision(
            *state, scene_->getAllowedCollisionMatrix()) < distance_threshold_);
 
-  //  if (!colliding && !too_close){
-  //      scene_->setCurrentState(*state);
-  //      moveit_msgs::msg::PlanningScene scene_msg;
-  //      scene_->getPlanningSceneMsg(scene_msg);
-  //      scene_pub_->publish(scene_msg);
-  //  }
+  // visualization part for debugging purposes only
+  /*
+    if (!colliding && !too_close){
+        scene_->setCurrentState(*state);
+        moveit_msgs::msg::PlanningScene scene_msg;
+        scene_->getPlanningSceneMsg(scene_msg);
+        scene_pub_->publish(scene_msg);
+    }
+    */
   return (!colliding && !too_close);
 }
 

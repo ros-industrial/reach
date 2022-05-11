@@ -19,6 +19,9 @@
 #include <Eigen/Dense>
 #include <atomic>
 
+#include <geometry_msgs/msg/pose.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
+
 namespace reach {
 namespace utils {
 
@@ -40,6 +43,22 @@ void integerProgressPrinter(std::atomic<int>& current_counter,
  */
 Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt,
                               const Eigen::Vector3f& norm);
+
+/**
+ * @brief fill trajectory
+ * @param trajectory
+ * @param waypoints
+ * @param names
+ * @param cartesian_space_waypoints
+ * @param joint_space_trajectory
+ * @return void
+ */
+void trajectoryFiller(
+    const std::vector<std::vector<double>>& trajectory,
+    const std::vector<Eigen::Isometry3d>& waypoints,
+    const std::vector<std::string>& names,
+    std::vector<geometry_msgs::msg::Pose>& cartesian_space_waypoints,
+    std::vector<sensor_msgs::msg::JointState>& joint_space_trajectory);
 
 }  // namespace utils
 }  // namespace reach
