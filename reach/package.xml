@@ -6,6 +6,7 @@
 
   <maintainer email="michael.ripperger@swri.org">mripperger</maintainer>
   <author email="michael.ripperger@swri.org">mripperger</author>
+  <maintainer email="lovro.ivanov@gmail.com">livanov93</maintainer>
 
   <license>Apache 2.0</license>
 
@@ -15,12 +16,11 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>reach_msgs</exec_depend>
-  <exec_depend>reach_core</exec_depend>
+<!--  <exec_depend>reach_msgs</exec_depend>-->
+<!--  <exec_depend>reach_core</exec_depend>-->
 
   <export>
     <build_type>ament_cmake</build_type>
-    <!-- <metapackage /> -->
   </export>
 
 </package>
