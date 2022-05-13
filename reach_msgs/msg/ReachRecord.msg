@@ -7,7 +7,9 @@ sensor_msgs/JointState seed_state
 float64 score
 # needed for path computation
 bool retrieved
-sensor_msgs/JointState[] joint_space_trajectory
-geometry_msgs/Pose[] waypoints
+# in packets of size goal_state.name.size()
+float64[] joint_space_trajectory
+# each has x,y,z qx,qy,qz,qw
+float64[] waypoints
 # ik solver name
 string ik_solver
