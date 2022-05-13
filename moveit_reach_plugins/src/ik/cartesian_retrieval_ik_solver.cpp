@@ -16,8 +16,11 @@
 #include "moveit_reach_plugins/ik/cartesian_retrieval_ik_solver.h"
 
 #include "moveit_reach_plugins/utils.h"
+#include "tf2_eigen/tf2_eigen.h"
 
 #include <algorithm>
+
+#include <reach_core/utils/general_utils.h>
 
 namespace {
 
@@ -88,8 +91,8 @@ bool CartesianRetrievalIKSolver::initialize(
 
 std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
-    std::vector<double>& solution, std::vector<std::vector<double>>& trajectory,
-    std::vector<Eigen::Isometry3d>& waypoints) {
+    std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
+    std::vector<double>& cartesian_space_waypoints) {
   moveit::core::RobotState state(model_);
 
   const std::vector<std::string>& joint_names =
@@ -126,6 +129,7 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     std::vector<std::shared_ptr<moveit::core::RobotState>> traj;
     Eigen::Isometry3d retrieval_target =
         target * Eigen::Translation3d(0.0, 0.0, -retrieval_path_length_);
+
     double fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
         &state, jmg_, traj, state.getLinkModel(tool_frame_), retrieval_target,
         true, moveit::core::MaxEEFStep(max_eef_step_),
@@ -135,17 +139,54 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
                   std::placeholders::_3));
 
     if (fraction == 1.0) {
-      trajectory.resize(traj.size());
-      waypoints.resize(traj.size());
-      for (size_t i = 0; i < traj.size(); ++i) {
-        traj[i]->copyJointGroupPositions(jmg_, trajectory[i]);
-        waypoints[i] = traj[i]->getFrameTransform(tool_frame_);
+      const size_t trajectory_size = traj.size();
+      const size_t joints_size = joint_names.size();
+      size_t joint_space_idx = 0;
+      size_t cartesian_space_idx = 0;
+      //      RCLCPP_ERROR(LOGGER, "trajectory size = '%zu', joints_size =
+      //      '%zu'",
+      //                   trajectory_size, joints_size);
+      const size_t joint_space_traj_size = trajectory_size * joints_size;
+      const size_t cartesian_space_wpts_size = trajectory_size * 7;
+      joint_space_trajectory.resize(joint_space_traj_size);
+      cartesian_space_waypoints.resize(cartesian_space_wpts_size);
+
+      for (size_t i = 0;
+           i < trajectory_size && joint_space_idx < joint_space_traj_size &&
+           cartesian_space_idx < cartesian_space_wpts_size;
+           ++i) {
+        std::vector<double> joint_positions_tmp;
+        traj[i]->copyJointGroupPositions(jmg_, joint_positions_tmp);
+        geometry_msgs::msg::Pose pose_tmp =
+            tf2::toMsg(traj[i]->getFrameTransform(tool_frame_));
+
+        for (size_t j = 0; j < joints_size; ++j) {
+          joint_space_trajectory[joint_space_idx + j] = joint_positions_tmp[j];
+        }
+        joint_space_idx += joints_size;
+
+        cartesian_space_waypoints[cartesian_space_idx + 0] =
+            pose_tmp.position.x;
+        cartesian_space_waypoints[cartesian_space_idx + 1] =
+            pose_tmp.position.y;
+        cartesian_space_waypoints[cartesian_space_idx + 2] =
+            pose_tmp.position.z;
+        cartesian_space_waypoints[cartesian_space_idx + 3] =
+            pose_tmp.orientation.x;
+        cartesian_space_waypoints[cartesian_space_idx + 4] =
+            pose_tmp.orientation.y;
+        cartesian_space_waypoints[cartesian_space_idx + 5] =
+            pose_tmp.orientation.z;
+        cartesian_space_waypoints[cartesian_space_idx + 6] =
+            pose_tmp.orientation.w;
+        cartesian_space_idx += 7;
       }
+
       return eval_->calculateScore(solution_map);
     } else {
       // make sure trajectory is empty on exit
-      waypoints.clear();
-      trajectory.clear();
+      cartesian_space_waypoints.clear();
+      joint_space_trajectory.clear();
       return {};
     }
   } else {

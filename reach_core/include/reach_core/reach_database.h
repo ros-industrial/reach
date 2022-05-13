@@ -43,10 +43,8 @@ reach_msgs::msg::ReachRecord makeRecord(
     const geometry_msgs::msg::Pose &goal,
     const sensor_msgs::msg::JointState &seed_state,
     const sensor_msgs::msg::JointState &goal_state, const double score,
-    const std::string &ik_solver_name,
-    const std::vector<geometry_msgs::msg::Pose> &waypoints,
-    const std::vector<sensor_msgs::msg::JointState> &trajectory,
-    bool retrieved = false);
+    const std::string &ik_solver_name, const std::vector<double> &waypoints,
+    const std::vector<double> &trajectory, bool retrieved = false);
 
 /**
  * @brief toMap
@@ -62,7 +60,8 @@ std::map<std::string, double> jointStateMsgToMap(
  * @return
  */
 std::vector<std::map<std::string, double>> jointStateArrayToArrayOfMaps(
-    const std::vector<sensor_msgs::msg::JointState> &trajectory);
+    const std::vector<double> &trajectory,
+    const std::vector<std::string> &names);
 /**
  * @brief The Database class stores information about the robot pose for all of
  * the attempted target poses. The database also saves several key meta-results

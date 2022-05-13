@@ -50,10 +50,8 @@ reach_msgs::msg::ReachRecord makeRecord(
     const geometry_msgs::msg::Pose &goal,
     const sensor_msgs::msg::JointState &seed_state,
     const sensor_msgs::msg::JointState &goal_state, const double score,
-    const std::string &ik_solver_name,
-    const std::vector<geometry_msgs::msg::Pose> &waypoints,
-    const std::vector<sensor_msgs::msg::JointState> &trajectory,
-    bool retrieved) {
+    const std::string &ik_solver_name, const std::vector<double> &waypoints,
+    const std::vector<double> &trajectory, bool retrieved) {
   reach_msgs::msg::ReachRecord r;
   r.id = id;
   r.goal = goal;
@@ -78,16 +76,25 @@ std::map<std::string, double> jointStateMsgToMap(
 }
 
 std::vector<std::map<std::string, double>> jointStateArrayToArrayOfMaps(
-    const std::vector<sensor_msgs::msg::JointState> &trajectory) {
+    const std::vector<double> &trajectory,
+    const std::vector<std::string> &names) {
   std::vector<std::map<std::string, double>> out;
-  out.resize(trajectory.size());
-  for (std::size_t i = 0; i < trajectory.size(); ++i) {
-    for (std::size_t j = 0; j < trajectory[i].position.size(); ++j) {
-      out[i][trajectory[i].name[j]] = trajectory[i].position[j];
+  if (trajectory.size() % names.size() != 0) {
+    RCLCPP_ERROR(LOGGER, "Can't convert trajectory!");
+  }
+  const size_t total_size = trajectory.size();
+  const size_t joints_size = names.size();
+  const size_t max_idx = total_size / joints_size;
+  size_t trajectory_idx = 0;
+  out.resize(max_idx);
+  for (std::size_t i = 0; i < max_idx && trajectory_idx < total_size; ++i) {
+    for (std::size_t j = 0; j < joints_size; ++j) {
+      out[i][names[j]] = trajectory[trajectory_idx++];
     }
   }
   return out;
 }
+
 void ReachDatabase::save(const std::string &filename) const {
   std::lock_guard<std::mutex> lock{mutex_};
   reach_msgs::msg::ReachDatabase msg = toReachDatabase(map_, results_);

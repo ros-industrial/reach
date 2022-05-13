@@ -107,17 +107,11 @@ NeighborReachResult reachNeighborsDirect(
 
       // Use current point's IK solution as seed
       std::vector<double> new_solution;
-      std::vector<std::vector<double>> new_trajectory;
-      std::vector<Eigen::Isometry3d> new_waypoints;
-      std::optional<double> score =
-          solver->solveIKFromSeed(target, previous_solution, new_solution,
-                                  new_trajectory, new_waypoints);
-
-      std::vector<geometry_msgs::msg::Pose> cartesian_space_waypoints;
-      std::vector<sensor_msgs::msg::JointState> joint_space_trajectory;
-      utils::trajectoryFiller(
-          new_trajectory, new_waypoints, neighbors[i].goal_state.name,
-          cartesian_space_waypoints, joint_space_trajectory);
+      std::vector<double> new_cartesian_space_waypoints;
+      std::vector<double> new_joint_space_trajectory;
+      std::optional<double> score = solver->solveIKFromSeed(
+          target, previous_solution, new_solution, new_joint_space_trajectory,
+          new_cartesian_space_waypoints);
 
       if (score) {
         // Change database if currently solved point didn't have solution before
@@ -131,8 +125,8 @@ NeighborReachResult reachNeighborsDirect(
           msg.seed_state.position = rec.goal_state.position;
           msg.goal_state.position = new_solution;
           msg.score = *score;
-          msg.joint_space_trajectory = joint_space_trajectory;
-          msg.waypoints = cartesian_space_waypoints;
+          msg.joint_space_trajectory = new_joint_space_trajectory;
+          msg.waypoints = new_cartesian_space_waypoints;
           db->put(msg);
         }
 
@@ -179,11 +173,12 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
         Eigen::Isometry3d target;
         tf2::fromMsg(neighbors[i].goal, target);
 
-        std::vector<std::vector<double>> trajectory;
-        std::vector<Eigen::Isometry3d> waypoints;
+        std::vector<double> cartesian_space_waypoints;
+        std::vector<double> joint_space_trajectory;
         // Use current point's IK solution as seed
         std::optional<double> score = solver->solveIKFromSeed(
-            target, current_pose_map, new_pose, trajectory, waypoints);
+            target, current_pose_map, new_pose, joint_space_trajectory,
+            cartesian_space_waypoints);
         if (score) {
           // Calculate the joint distance between the seed and new goal states
           for (std::size_t j = 0; j < current_pose.size(); ++j) {

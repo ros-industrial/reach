@@ -325,7 +325,6 @@ void ReachStudy::runInitialReachStudy() {
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-//#pragma parallel for
 #pragma omp parallel for
   for (int i = 0; i < cloud_size; ++i) {
     // Get pose from point cloud array
@@ -346,11 +345,11 @@ void ReachStudy::runInitialReachStudy() {
 
     // Solve IK
     std::vector<double> solution;
-    std::vector<std::vector<double>> trajectory;
-    std::vector<Eigen::Isometry3d> waypoints;
-    std::optional<double> score =
-        ik_solver_->solveIKFromSeed(tgt_frame, jointStateMsgToMap(seed_state),
-                                    solution, trajectory, waypoints);
+    std::vector<double> cartesian_space_waypoints;
+    std::vector<double> joint_space_trajectory;
+    std::optional<double> score = ik_solver_->solveIKFromSeed(
+        tgt_frame, jointStateMsgToMap(seed_state), solution,
+        joint_space_trajectory, cartesian_space_waypoints);
 
     // Create objects to save in the reach record
     geometry_msgs::msg::Pose tgt_pose;
@@ -396,20 +395,13 @@ void ReachStudy::runInitialReachStudy() {
             display_->updateRobotTrajectory(trajectory_configuration);
        */
 
-      // export trajectory for record
-      std::vector<geometry_msgs::msg::Pose> cartesian_space_waypoints;
-      std::vector<sensor_msgs::msg::JointState> joint_space_trajectory;
-      utils::trajectoryFiller(trajectory, waypoints, goal_state.name,
-                              cartesian_space_waypoints,
-                              joint_space_trajectory);
-
       // fill the goal state
       goal_state.position = solution;
 
       auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
                             goal_state, *score, sp_.ik_solver_config_name,
                             cartesian_space_waypoints, joint_space_trajectory,
-                            trajectory.size() != 0);
+                            joint_space_trajectory.size() != 0);
       db_->put(msg);
     } else {
       auto msg =

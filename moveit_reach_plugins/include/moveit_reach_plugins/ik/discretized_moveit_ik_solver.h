@@ -35,8 +35,8 @@ class DiscretizedMoveItIKSolver : public MoveItIKSolver {
   virtual std::optional<double> solveIKFromSeed(
       const Eigen::Isometry3d& target,
       const std::map<std::string, double>& seed, std::vector<double>& solution,
-      std::vector<std::vector<double>>& trajectory,
-      std::vector<Eigen::Isometry3d>& waypoints) override;
+      std::vector<double>& joint_space_trajectory,
+      std::vector<double>& cartesian_space_waypoints) override;
 
  protected:
   double dt_;

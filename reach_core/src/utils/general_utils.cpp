@@ -73,27 +73,27 @@ void trajectoryFiller(
     const std::vector<std::string> &names,
     std::vector<geometry_msgs::msg::Pose> &cartesian_space_waypoints,
     std::vector<sensor_msgs::msg::JointState> &joint_space_trajectory) {
-  const size_t &trajectory_size = trajectory.size();
-  cartesian_space_waypoints.resize(trajectory_size);
-  joint_space_trajectory.resize(trajectory_size);
+  //  const size_t trajectory_size = trajectory.size();
+  //  cartesian_space_waypoints.resize(trajectory_size);
+  //  joint_space_trajectory.resize(trajectory_size);
 
-  for (size_t k = 0; k < trajectory_size; ++k) {
-    geometry_msgs::msg::Pose csw_tmp;
-    csw_tmp.position.set__x(waypoints[k].translation().x());
-    csw_tmp.position.set__y(waypoints[k].translation().y());
-    csw_tmp.position.set__z(waypoints[k].translation().z());
-    Eigen::Quaterniond q(waypoints[k].rotation());
-    csw_tmp.orientation.set__x(q.x());
-    csw_tmp.orientation.set__y(q.y());
-    csw_tmp.orientation.set__z(q.z());
-    csw_tmp.orientation.set__w(q.w());
-    cartesian_space_waypoints[k] = csw_tmp;
-
-    sensor_msgs::msg::JointState jst_tmp;
-    jst_tmp.name = names;
-    jst_tmp.position = trajectory[k];
-    joint_space_trajectory[k] = jst_tmp;
-  }
+  //  for (size_t k = 0; k < trajectory_size; ++k) {
+  //    geometry_msgs::msg::Pose csw_tmp;
+  //    csw_tmp.position.set__x(waypoints[k].translation().x());
+  //    csw_tmp.position.set__y(waypoints[k].translation().y());
+  //    csw_tmp.position.set__z(waypoints[k].translation().z());
+  //    Eigen::Quaterniond q(waypoints[k].rotation());
+  //    csw_tmp.orientation.set__x(q.x());
+  //    csw_tmp.orientation.set__y(q.y());
+  //    csw_tmp.orientation.set__z(q.z());
+  //    csw_tmp.orientation.set__w(q.w());
+  //    cartesian_space_waypoints[k] = csw_tmp;
+  //
+  //    sensor_msgs::msg::JointState jst_tmp;
+  //    jst_tmp.name = names;
+  //    jst_tmp.position = trajectory[k];
+  //    joint_space_trajectory[k] = jst_tmp;
+  //  }
 }
 
 }  // namespace utils

@@ -111,9 +111,14 @@ visualization_msgs::msg::Marker makeVisualTraj(
   geometry_msgs::msg::Pose msg;
   marker.pose = msg;
 
+  size_t wpts_size = r.waypoints.size();
   // fill the points
-  for (size_t i = 0; i < r.waypoints.size(); ++i) {
-    marker.points.push_back(r.waypoints[i].position);
+  for (size_t i = 0; i < wpts_size && ((wpts_size % 7u) == 0u); i += 7u) {
+    geometry_msgs::msg::Point p_tmp;
+    p_tmp.set__x(r.waypoints[i + 0]);
+    p_tmp.set__y(r.waypoints[i + 1]);
+    p_tmp.set__z(r.waypoints[i + 2]);
+    marker.points.push_back(p_tmp);
   }
 
   // sphere diameters

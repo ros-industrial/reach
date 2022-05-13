@@ -86,6 +86,8 @@ double MultiplicativeFactory::calculateScore(
   for (const EvaluationBasePtr &plugin : eval_plugins_) {
     score *= plugin->calculateScore(pose);
   }
+  //    RCLCPP_INFO(LOGGER, "EVAL score = '%f'", score);
+
   return score;
 }
 
