@@ -19,6 +19,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
+find_package(std_msgs REQUIRED)
 
 
 find_package(OpenMP)

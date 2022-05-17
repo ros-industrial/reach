@@ -99,6 +99,7 @@ class RobotReachStudyNode : public rclcpp::Node {
 
       // additional parameters that don't have to be set
       this->get_parameter_or("initial_seed_state", sp_.initial_seed_state, {});
+      this->get_parameter_or("keep_running", sp_.keep_running, false);
 
       // set params
       sp = sp_;

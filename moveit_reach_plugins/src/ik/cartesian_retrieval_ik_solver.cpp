@@ -138,7 +138,7 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
                   std::placeholders::_1, std::placeholders::_2,
                   std::placeholders::_3));
 
-    if (fraction == 1.0) {
+    if (fraction != 0.0) {
       const size_t trajectory_size = traj.size();
       const size_t joints_size = joint_names.size();
       size_t joint_space_idx = 0;
@@ -182,7 +182,7 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
         cartesian_space_idx += 7;
       }
 
-      return eval_->calculateScore(solution_map);
+      return fraction * eval_->calculateScore(solution_map);
     } else {
       // make sure trajectory is empty on exit
       cartesian_space_waypoints.clear();

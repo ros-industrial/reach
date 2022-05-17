@@ -71,6 +71,7 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
 
   ps_pub_ = node_->create_publisher<geometry_msgs::msg::PoseStamped>(
       "pose_stamped", 1);
+  done_pub_ = node_->create_publisher<std_msgs::msg::Empty>("analysis_done", 1);
 
   try {
     ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
@@ -175,7 +176,8 @@ bool ReachStudy::run(const StudyParameters &sp) {
       visualizer_->update();
       // check if we don't have to optimize
       if (sp.run_initial_study_only) {
-        while (rclcpp::ok()) {
+        done_pub_->publish(std_msgs::msg::Empty());
+        while (rclcpp::ok() && sp_.keep_running) {
           // keep it running
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -194,7 +196,8 @@ bool ReachStudy::run(const StudyParameters &sp) {
 
       // check if we don't have to optimize
       if (sp.run_initial_study_only) {
-        while (rclcpp::ok()) {
+        done_pub_->publish(std_msgs::msg::Empty());
+        while (rclcpp::ok() && sp_.keep_running) {
           // keep it running
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -250,7 +253,9 @@ bool ReachStudy::run(const StudyParameters &sp) {
     }
   }
 
-  while (rclcpp::ok()) {
+  done_pub_->publish(std_msgs::msg::Empty());
+
+  while (rclcpp::ok() && sp_.keep_running) {
     // keep it running
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -337,11 +342,11 @@ void ReachStudy::runInitialReachStudy() {
     // Get the seed position
     sensor_msgs::msg::JointState seed_state;
     seed_state.name = ik_solver_->getJointNames();
-    if (seed_state.name.size() != sp_.initial_seed_state.size()) {
-      seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
-    } else {
-      seed_state.position = sp_.initial_seed_state;
-    }
+    //    if (seed_state.name.size() != sp_.initial_seed_state.size()) {
+    seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
+    //    } else {
+    //      seed_state.position = sp_.initial_seed_state;
+    //    }
 
     // Solve IK
     std::vector<double> solution;
@@ -361,39 +366,6 @@ void ReachStudy::runInitialReachStudy() {
       geometry_msgs::msg::PoseStamped tgt_pose_stamped;
       tgt_pose_stamped.pose = tgt_pose;
       tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
-      // visualization part - debugging purposes only
-      /*
-            ps_pub_->publish(tgt_pose_stamped);
-
-            std::map<std::string, double> robot_configuration;
-            // create map
-            std::transform(
-                goal_state.name.begin(), goal_state.name.end(),
-                solution.begin(), std::inserter(robot_configuration,
-                robot_configuration.end()),
-                [](std::string &jname, double jvalue) {
-                  return std::make_pair(jname, jvalue);
-                });
-            // show robot pose
-            display_->updateRobotPose(robot_configuration);
-
-            std::vector<std::map<std::string, double>>
-            trajectory_configuration;
-            // display trajectory
-            const size_t &trajectory_size = trajectory.size();
-            trajectory_configuration.resize(trajectory_size);
-            for (size_t k = 0; k < trajectory_size; ++k) {
-              std::transform(goal_state.name.begin(), goal_state.name.end(),
-                             trajectory[k].begin(),
-                             std::inserter(trajectory_configuration[k],
-                                           trajectory_configuration[k].end()),
-                             [](std::string &jname, double jvalue) {
-                               return std::make_pair(jname, jvalue);
-                             });
-            }
-            // show trajectory if one exists
-            display_->updateRobotTrajectory(trajectory_configuration);
-       */
 
       // fill the goal state
       goal_state.position = solution;
