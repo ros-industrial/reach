@@ -174,9 +174,10 @@ void ReachDatabase::printResults() {
                      "Total points score = " << results_.total_pose_score);
   RCLCPP_INFO_STREAM(LOGGER, "Normalized total points score = "
                                  << results_.norm_total_pose_score);
-  //      RCLCPP_INFO_STREAM(LOGGER, "Average reachable neighbors = " <<
-  //      results_.avg_num_neighbors); RCLCPP_INFO_STREAM(LOGGER, "Average
-  //      joint distance = " << results_.avg_joint_distance);
+  RCLCPP_INFO_STREAM(
+      LOGGER, "Average reachable neighbors = " << results_.avg_num_neighbors);
+  RCLCPP_INFO_STREAM(
+      LOGGER, "Average joint distance = " << results_.avg_joint_distance);
   RCLCPP_INFO_STREAM(LOGGER,
                      "------------------------------------------------");
 }

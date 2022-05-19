@@ -417,7 +417,7 @@ void ReachStudy::optimizeReachStudyResults() {
     // Randomize
     std::random_shuffle(rand_vec.begin(), rand_vec.end());
 
-#pragma parallel for
+#pragma omp parallel for
     for (std::size_t i = 0; i < rand_vec.size(); ++i) {
       auto it = db_->begin();
       std::advance(it, rand_vec[i]);
@@ -462,9 +462,10 @@ void ReachStudy::getAverageNeighborsCount() {
   for (auto it = db_->begin(); it != db_->end(); ++it) {
     reach_msgs::msg::ReachRecord msg = it->second;
     if (msg.reached) {
-      NeighborReachResult result;
-      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius,
-                              result, search_tree_);
+      NeighborReachResult result = reachNeighborsDirect(
+          db_, msg, ik_solver_, sp_.optimization.radius, search_tree_);
+      // TODO(livanov93): reachNeighboursRecursive does not return - Direct is
+      // too slow
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;
     }

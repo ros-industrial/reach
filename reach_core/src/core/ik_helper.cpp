@@ -100,6 +100,8 @@ NeighborReachResult reachNeighborsDirect(
                                 rec.goal_state.position[i]);
     }
 
+    const std::vector<double> &current_pose = rec.goal_state.position;
+
     for (std::size_t i = 0; i < neighbors.size(); ++i) {
       // Initialize new target pose and new empty robot goal state
       Eigen::Isometry3d target;
@@ -114,6 +116,11 @@ NeighborReachResult reachNeighborsDirect(
           new_cartesian_space_waypoints);
 
       if (score) {
+        // Calculate the joint distance between the seed and new goal states
+        for (std::size_t j = 0; j < current_pose.size(); ++j) {
+          result.joint_distance += std::abs(new_solution[j] - current_pose[j]);
+        }
+
         // Change database if currently solved point didn't have solution before
         // or if its current manipulability is better than that saved in the
         // databas

@@ -23,8 +23,8 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
 const static std::string RESULTS_FOLDER_NAME = "results";
-// const static std::string OPT_DB_NAME = "optimized_reach.db";
-const static std::string OPT_DB_NAME = "reach.db";
+const static std::string OPT_DB_NAME = "optimized_reach.db";
+// const static std::string OPT_DB_NAME = "reach.db";
 
 typedef std::pair<double, double> coordinate_pair_type;
 typedef std::pair<std::filesystem::path, coordinate_pair_type> coordinate_path;
