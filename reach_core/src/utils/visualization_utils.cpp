@@ -70,19 +70,9 @@ visualization_msgs::msg::Marker makeVisual(
     marker.color.a = 1.0;  // Don't forget to set the alpha!
 
     if (r.reached) {
-      // decide on color based on name of ik solver
-      //      if (r.ik_solver ==
-      //      "moveit_reach_plugins/ik/CartesianRetrievalIKSolver" &&
-      //          !r.retrieved) {
-      //        // go with purple
-      //        marker.color.r = 1.0;
-      //        marker.color.g = 0.0;
-      //        marker.color.b = 1.0;
-      //      } else {
-      marker.color.r = 0.0;
-      marker.color.g = 0.0;
-      marker.color.b = 1.0;
-      //      }
+      marker.color.r = 1.0 - r.retrieved_fraction;
+      marker.color.g = 1.0 - r.retrieved_fraction;
+      marker.color.b = r.retrieved_fraction;
     } else {
       marker.color.r = 1.0;
       marker.color.g = 0.0;
@@ -165,10 +155,12 @@ visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
   // Visuals
   auto visual = utils::makeVisual(node, r, frame, scale);
   control.markers.push_back(visual);
-  if (!r.waypoints.empty()) {
-    auto visual_traj = utils::makeVisualTraj(node, r, frame, scale);
-    control.markers.push_back(visual_traj);
-  }
+  // TODO (livanov93): what to do with this since trajectory fraction now is
+  // colorized by scaling between red and blue
+  //  if (!r.waypoints.empty()) {
+  //    auto visual_traj = utils::makeVisualTraj(node, r, frame, scale);
+  //    control.markers.push_back(visual_traj);
+  //  }
   m.controls.push_back(control);
 
   return m;

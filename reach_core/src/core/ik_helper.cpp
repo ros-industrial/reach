@@ -111,9 +111,10 @@ NeighborReachResult reachNeighborsDirect(
       std::vector<double> new_solution;
       std::vector<double> new_cartesian_space_waypoints;
       std::vector<double> new_joint_space_trajectory;
+      double new_fraction;
       std::optional<double> score = solver->solveIKFromSeed(
           target, previous_solution, new_solution, new_joint_space_trajectory,
-          new_cartesian_space_waypoints);
+          new_cartesian_space_waypoints, new_fraction);
 
       if (score) {
         // Calculate the joint distance between the seed and new goal states
@@ -134,6 +135,7 @@ NeighborReachResult reachNeighborsDirect(
           msg.score = *score;
           msg.joint_space_trajectory = new_joint_space_trajectory;
           msg.waypoints = new_cartesian_space_waypoints;
+          msg.retrieved_fraction = new_fraction;
           db->put(msg);
         }
 
@@ -182,10 +184,11 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
 
         std::vector<double> cartesian_space_waypoints;
         std::vector<double> joint_space_trajectory;
+        double fraction;
         // Use current point's IK solution as seed
         std::optional<double> score = solver->solveIKFromSeed(
             target, current_pose_map, new_pose, joint_space_trajectory,
-            cartesian_space_waypoints);
+            cartesian_space_waypoints, fraction);
         if (score) {
           // Calculate the joint distance between the seed and new goal states
           for (std::size_t j = 0; j < current_pose.size(); ++j) {

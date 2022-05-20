@@ -105,9 +105,10 @@ visualization_msgs::msg::Marker makeVisual(
     marker.color.a = 1.0;  // Don't forget to set the alpha!
 
     if (r.reached) {
-      marker.color.r = 0.0;
-      marker.color.g = 0.0;
-      marker.color.b = 1.0;
+      marker.color.r = 1.0 - r.retrieved_fraction;
+      marker.color.g = 1.0 - r.retrieved_fraction;
+      marker.color.b = r.retrieved_fraction;
+
     } else {
       marker.color.r = 1.0;
       marker.color.g = 0.0;

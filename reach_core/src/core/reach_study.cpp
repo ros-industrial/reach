@@ -251,6 +251,14 @@ bool ReachStudy::run(const StudyParameters &sp) {
                      "the other specified databases");
       }
     }
+    if (!sp_.visualize_dbs.empty()) {
+      RCLCPP_INFO(LOGGER, "Visualizing databases...");
+      if (!visualizeDatabases()) {
+        RCLCPP_ERROR(LOGGER,
+                     "Unable to compare the current reach study database with "
+                     "the other specified databases");
+      }
+    }
   }
 
   done_pub_->publish(std_msgs::msg::Empty());
@@ -352,9 +360,10 @@ void ReachStudy::runInitialReachStudy() {
     std::vector<double> solution;
     std::vector<double> cartesian_space_waypoints;
     std::vector<double> joint_space_trajectory;
+    double fraction;
     std::optional<double> score = ik_solver_->solveIKFromSeed(
         tgt_frame, jointStateMsgToMap(seed_state), solution,
-        joint_space_trajectory, cartesian_space_waypoints);
+        joint_space_trajectory, cartesian_space_waypoints, fraction);
 
     // Create objects to save in the reach record
     geometry_msgs::msg::Pose tgt_pose;
@@ -373,12 +382,12 @@ void ReachStudy::runInitialReachStudy() {
       auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
                             goal_state, *score, sp_.ik_solver_config_name,
                             cartesian_space_waypoints, joint_space_trajectory,
-                            joint_space_trajectory.size() != 0);
+                            fraction);
       db_->put(msg);
     } else {
       auto msg =
           makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state,
-                     0.0, sp_.ik_solver_config_name, {}, {}, false);
+                     0.0, sp_.ik_solver_config_name, {}, {}, fraction);
       db_->put(msg);
     }
 
@@ -423,6 +432,7 @@ void ReachStudy::optimizeReachStudyResults() {
       std::advance(it, rand_vec[i]);
       reach_msgs::msg::ReachRecord msg = it->second;
       if (msg.reached) {
+#pragma omp critical
         NeighborReachResult result = reachNeighborsDirect(
             db_, msg, ik_solver_, sp_.optimization.radius);  //, search_tree_);
       }
@@ -524,6 +534,44 @@ bool ReachStudy::compareDatabases() {
   }
 
   display_->compareDatabases(data);
+
+  return true;
+}
+
+bool ReachStudy::visualizeDatabases() {
+  // Add the newly created database to the list if it isn't already there
+  if (std::find(sp_.visualize_dbs.begin(), sp_.visualize_dbs.end(),
+                sp_.config_name) == sp_.visualize_dbs.end()) {
+    sp_.visualize_dbs.push_back(sp_.config_name);
+  }
+  // Create list of optimized database file names from the results folder
+  std::vector<std::string> db_filenames;
+  for (auto it = sp_.visualize_dbs.begin(); it != sp_.visualize_dbs.end();
+       ++it) {
+    db_filenames.push_back(dir_ + *it + "/" + OPT_SAVED_DB_NAME);
+  }
+
+  // Load databases to be compared
+  std::map<std::string, reach_msgs::msg::ReachDatabase> data;
+  for (size_t i = 0; i < db_filenames.size(); ++i) {
+    ReachDatabase db;
+    if (!db.load(db_filenames[i])) {
+      RCLCPP_ERROR(LOGGER, "Cannot load database at:\n %s",
+                   db_filenames[i].c_str());
+      continue;
+    }
+    data.emplace(sp_.visualize_dbs[i], db.toReachDatabaseMsg());
+  }
+
+  if (data.size() < 2) {
+    RCLCPP_ERROR(
+        LOGGER,
+        "Only %lu database(s) loaded; cannot compare fewer than 2 databases",
+        data.size());
+    return false;
+  }
+
+  display_->visualizeDatabases(data);
 
   return true;
 }

@@ -134,7 +134,6 @@ void MoveItReachDisplay::updateRobotPose(
 void MoveItReachDisplay::updateRobotTrajectory(
     const std::vector<std::map<std::string, double>>& traj) {
   const size_t& size = traj.size();
-  //    RCLCPP_ERROR(LOGGER, "Update robot traj with size '%zu'", size);
 
   if (size > 0) {
     std::vector<std::string> joint_names = jmg_->getActiveJointModelNames();

@@ -89,9 +89,10 @@ void ReachVisualizer::reSolveIKCB(
     std::vector<double> goal_pose;
     std::vector<double> cartesian_space_waypoints;
     std::vector<double> joint_space_trajectory;
+    double fraction;
     std::optional<double> score = solver_->solveIKFromSeed(
         target, seed_map, goal_pose, joint_space_trajectory,
-        cartesian_space_waypoints);
+        cartesian_space_waypoints, fraction);
 
     // Update the database if the IK solution was valid
     if (score) {
@@ -102,6 +103,7 @@ void ReachVisualizer::reSolveIKCB(
       lookup->goal_state.position = goal_pose;
       lookup->joint_space_trajectory = joint_space_trajectory;
       lookup->waypoints = cartesian_space_waypoints;
+      lookup->retrieved_fraction = fraction;
 
       // Update the interactive marker server
       display_->updateInteractiveMarker(*lookup);

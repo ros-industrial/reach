@@ -58,6 +58,7 @@ struct StudyParameters {
   bool visualize_results;
   bool get_neighbors;
   std::vector<std::string> compare_dbs;
+  std::vector<std::string> visualize_dbs;
   std::string fixed_frame;
   std::string object_frame;
   std::string planning_group;

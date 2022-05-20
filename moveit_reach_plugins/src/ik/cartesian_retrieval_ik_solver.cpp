@@ -92,7 +92,7 @@ bool CartesianRetrievalIKSolver::initialize(
 std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
-    std::vector<double>& cartesian_space_waypoints) {
+    std::vector<double>& cartesian_space_waypoints, double& fraction) {
   moveit::core::RobotState state(model_);
 
   const std::vector<std::string>& joint_names =
@@ -130,22 +130,20 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     Eigen::Isometry3d retrieval_target =
         target * Eigen::Translation3d(0.0, 0.0, -retrieval_path_length_);
 
-    double fraction = moveit::core::CartesianInterpolator::computeCartesianPath(
+    double f = moveit::core::CartesianInterpolator::computeCartesianPath(
         &state, jmg_, traj, state.getLinkModel(tool_frame_), retrieval_target,
         true, moveit::core::MaxEEFStep(max_eef_step_),
         moveit::core::JumpThreshold(jump_threshold_, jump_threshold_),
         std::bind(&MoveItIKSolver::isIKSolutionValid, this,
                   std::placeholders::_1, std::placeholders::_2,
                   std::placeholders::_3));
+    fraction = f;
 
-    if (fraction != 0.0) {
+    if (f != 0.0) {
       const size_t trajectory_size = traj.size();
       const size_t joints_size = joint_names.size();
       size_t joint_space_idx = 0;
       size_t cartesian_space_idx = 0;
-      //      RCLCPP_ERROR(LOGGER, "trajectory size = '%zu', joints_size =
-      //      '%zu'",
-      //                   trajectory_size, joints_size);
       const size_t joint_space_traj_size = trajectory_size * joints_size;
       const size_t cartesian_space_wpts_size = trajectory_size * 7;
       joint_space_trajectory.resize(joint_space_traj_size);
@@ -190,6 +188,7 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
       return {};
     }
   } else {
+    fraction = 0.0;
     return {};
   }
 }

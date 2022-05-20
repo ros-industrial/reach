@@ -124,7 +124,7 @@ bool MoveItIKSolver::initialize(
 std::optional<double> MoveItIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
-    std::vector<double>& cartesian_space_waypoints) {
+    std::vector<double>& cartesian_space_waypoints, double& fraction) {
   moveit::core::RobotState state(model_);
 
   const std::vector<std::string>& joint_names =
@@ -148,6 +148,7 @@ std::optional<double> MoveItIKSolver::solveIKFromSeed(
                       std::bind(&MoveItIKSolver::isIKSolutionValid, this,
                                 std::placeholders::_1, std::placeholders::_2,
                                 std::placeholders::_3))) {
+    fraction = 1.0;
     solution.clear();
     state.copyJointGroupPositions(jmg_, solution);
 
@@ -159,6 +160,7 @@ std::optional<double> MoveItIKSolver::solveIKFromSeed(
 
     return eval_->calculateScore(solution_map);
   } else {
+    fraction = 0.0;
     return {};
   }
 }

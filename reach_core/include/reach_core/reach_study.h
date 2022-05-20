@@ -85,6 +85,8 @@ class ReachStudy {
 
   bool compareDatabases();
 
+  bool visualizeDatabases();
+
   StudyParameters sp_;
 
   pcl::PointCloud<pcl::PointNormal>::Ptr cloud_;

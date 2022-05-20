@@ -62,7 +62,7 @@ class IKSolverBase {
       const Eigen::Isometry3d &target,
       const std::map<std::string, double> &seed, std::vector<double> &solution,
       std::vector<double> &joint_space_trajectory,
-      std::vector<double> &cartesian_space_waypoints) = 0;
+      std::vector<double> &cartesian_space_waypoints, double &fraction) = 0;
 
   /**
    * @brief getJointNames

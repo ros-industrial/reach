@@ -65,10 +65,7 @@ bool DiscretizedMoveItIKSolver::initialize(
 std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
-    std::vector<double>& cartesian_space_waypoints) {
-  // RCLCPP_INFO(LOGGER, " TARGET: %f %f %f ", target.translation().x(),
-  // target.translation().y(),target.translation().z());
-
+    std::vector<double>& cartesian_space_waypoints, double& fraction) {
   // Calculate the number of discretizations necessary to achieve discretization
   // angle
   const static int n_discretizations = int((2.0 * M_PI) / dt_);
@@ -83,7 +80,7 @@ std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(
     std::vector<double> tmp_solution;
     std::optional<double> score = MoveItIKSolver::solveIKFromSeed(
         discretized_target, seed, tmp_solution, joint_space_trajectory,
-        cartesian_space_waypoints);
+        cartesian_space_waypoints, fraction);
     if (score.has_value() && (score.value() > best_score)) {
       best_score = score.value();
       best_solution = std::move(tmp_solution);
@@ -96,6 +93,7 @@ std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(
     solution = std::move(best_solution);
     return std::optional<double>(best_score);
   } else {
+    fraction = 0.0;
     return {};
   }
 }

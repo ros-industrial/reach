@@ -44,7 +44,7 @@ reach_msgs::msg::ReachRecord makeRecord(
     const sensor_msgs::msg::JointState &seed_state,
     const sensor_msgs::msg::JointState &goal_state, const double score,
     const std::string &ik_solver_name, const std::vector<double> &waypoints,
-    const std::vector<double> &trajectory, bool retrieved = false);
+    const std::vector<double> &trajectory, double retrieved_fraction);
 
 /**
  * @brief toMap
