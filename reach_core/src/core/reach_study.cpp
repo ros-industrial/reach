@@ -124,7 +124,7 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
     std::filesystem::create_directory(path);
   }
 
-  //  std::this_thread::sleep_for(std::chrono::seconds(5));
+  std::this_thread::sleep_for(std::chrono::seconds(5));
   display_->showEnvironment();
 
   return true;
