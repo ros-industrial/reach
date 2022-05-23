@@ -433,7 +433,7 @@ void ReachStudy::optimizeReachStudyResults() {
       reach_msgs::msg::ReachRecord msg = it->second;
       if (msg.reached) {
         NeighborReachResult result = reachNeighborsDirect(
-            db_, msg, ik_solver_, sp_.optimization.radius, search_tree_);
+            db_, msg, ik_solver_, sp_.optimization.radius);//search_tree_);
       }
       // Print function progress
       current_counter++;
@@ -463,18 +463,17 @@ void ReachStudy::getAverageNeighborsCount() {
 
   std::atomic<int> current_counter, previous_pct, neighbor_count;
   current_counter = previous_pct = neighbor_count = 0;
-  std::atomic<double> total_joint_distance;
+  std::atomic<double> total_joint_distance = 0.0;
   const int total = db_->size();
   // Iterate
-#pragma parallel for
   for (auto it = db_->begin(); it != db_->end(); ++it) {
     reach_msgs::msg::ReachRecord msg = it->second;
     if (msg.reached) {
-      NeighborReachResult result;
-      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius,
-                              result, search_tree_);
-      // TODO(livanov93): reachNeighboursRecursive does not return - Direct is
-      //  too slow
+//      NeighborReachResult result;
+//      // TODO(livanov93): find out why using search_tree_ throttles down the loop
+//      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius,
+//                              result);//, search_tree_);
+      NeighborReachResult result = reachNeighborsDirect(db_, msg, ik_solver_, sp_.optimization.radius);
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;
     }
