@@ -426,17 +426,15 @@ void ReachStudy::optimizeReachStudyResults() {
     // Randomize
     std::random_shuffle(rand_vec.begin(), rand_vec.end());
 
-#pragma omp parallel for
+#pragma parallel for
     for (std::size_t i = 0; i < rand_vec.size(); ++i) {
       auto it = db_->begin();
       std::advance(it, rand_vec[i]);
       reach_msgs::msg::ReachRecord msg = it->second;
       if (msg.reached) {
-#pragma omp critical
         NeighborReachResult result = reachNeighborsDirect(
-            db_, msg, ik_solver_, sp_.optimization.radius);  //, search_tree_);
+            db_, msg, ik_solver_, sp_.optimization.radius, search_tree_);
       }
-
       // Print function progress
       current_counter++;
       utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
@@ -472,10 +470,11 @@ void ReachStudy::getAverageNeighborsCount() {
   for (auto it = db_->begin(); it != db_->end(); ++it) {
     reach_msgs::msg::ReachRecord msg = it->second;
     if (msg.reached) {
-      NeighborReachResult result = reachNeighborsDirect(
-          db_, msg, ik_solver_, sp_.optimization.radius, search_tree_);
+      NeighborReachResult result;
+      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius,
+                              result, search_tree_);
       // TODO(livanov93): reachNeighboursRecursive does not return - Direct is
-      // too slow
+      //  too slow
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;
     }
