@@ -111,7 +111,7 @@ NeighborReachResult reachNeighborsDirect(
       std::vector<double> new_solution;
       std::vector<double> new_cartesian_space_waypoints;
       std::vector<double> new_joint_space_trajectory;
-      double new_fraction;
+      double new_fraction = 0.0;
       std::optional<double> score = solver->solveIKFromSeed(
           target, previous_solution, new_solution, new_joint_space_trajectory,
           new_cartesian_space_waypoints, new_fraction);
