@@ -223,13 +223,14 @@ class DisplayBase {
 
     // Iterate over all records in the databases and compare whether or not they
     // were reached in that database
+    RCLCPP_INFO(LOGGER, "Visualizing databases with '%zu' records.", n_records);
     for (std::size_t i = 0; i < n_records; ++i) {
-      bool not_reached_at_all = true;
+      visualization_msgs::msg::Marker arrow_marker;
       for (auto it = data.begin(); it != data.end(); ++it) {
+        arrow_marker =
+            utils::makeVisual(node_, it->second.records[i], fixed_frame_,
+                              marker_scale_, it->first);
         if (it->second.records[i].reached) {
-          visualization_msgs::msg::Marker arrow_marker =
-              utils::makeVisual(node_, it->second.records[i], fixed_frame_,
-                                marker_scale_, it->first);
           marker_array.markers.push_back(arrow_marker);
         }
       }
