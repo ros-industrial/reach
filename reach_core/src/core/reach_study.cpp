@@ -123,8 +123,10 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
     std::filesystem::path path(char_dir);
     std::filesystem::create_directory(path);
   }
-
-  std::this_thread::sleep_for(std::chrono::seconds(5));
+  if (sp_.keep_running){
+        // sleep to visualize collision object
+      std::this_thread::sleep_for(std::chrono::seconds(5));
+  }
   display_->showEnvironment();
 
   return true;
