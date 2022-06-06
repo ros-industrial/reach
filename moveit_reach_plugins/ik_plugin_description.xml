@@ -19,4 +19,10 @@
       This plugin additionally does retrieval path computation from the specified pose.
     </description>
   </class>
+  <class name="moveit_reach_plugins/ik/PlannerBasedIKSolver" type="moveit_reach_plugins::ik::PlannerBasedIKSolver" base_class_type="reach::plugins::IKSolverBase">
+    <description>
+      An inverse kinematics solver plugin which utilizes the MoveIt framework for solving robot inverse kinematics with respect to a given planning environment
+      This plugin additionally does path planning to the specified pose.
+    </description>
+  </class>
 </library>

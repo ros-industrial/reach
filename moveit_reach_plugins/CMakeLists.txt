@@ -77,6 +77,7 @@ add_library(ik_solver_plugins
   src/ik/moveit_ik_solver.cpp
   src/ik/discretized_moveit_ik_solver.cpp
   src/ik/cartesian_retrieval_ik_solver.cpp
+  src/ik/planner_based_ik_solver.cpp
 )
 target_include_directories(ik_solver_plugins
   PUBLIC
