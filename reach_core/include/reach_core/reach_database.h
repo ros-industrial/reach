@@ -39,12 +39,12 @@ namespace core {
  * @return
  */
 reach_msgs::msg::ReachRecord makeRecord(
-    const std::string &id, const bool reached,
-    const geometry_msgs::msg::Pose &goal,
-    const sensor_msgs::msg::JointState &seed_state,
-    const sensor_msgs::msg::JointState &goal_state, const double score,
-    const std::string &ik_solver_name, const std::vector<double> &waypoints,
-    const std::vector<double> &trajectory, double retrieved_fraction);
+    const std::string& id, const bool reached,
+    const geometry_msgs::msg::Pose& goal,
+    const sensor_msgs::msg::JointState& seed_state,
+    const sensor_msgs::msg::JointState& goal_state, const double score,
+    const std::string& ik_solver_name, const std::vector<double>& waypoints,
+    const std::vector<double>& trajectory, double retrieved_fraction);
 
 /**
  * @brief toMap
@@ -52,7 +52,7 @@ reach_msgs::msg::ReachRecord makeRecord(
  * @return
  */
 std::map<std::string, double> jointStateMsgToMap(
-    const sensor_msgs::msg::JointState &state);
+    const sensor_msgs::msg::JointState& state);
 
 /**
  * @brief to vector of Map
@@ -60,8 +60,8 @@ std::map<std::string, double> jointStateMsgToMap(
  * @return
  */
 std::vector<std::map<std::string, double>> jointStateArrayToArrayOfMaps(
-    const std::vector<double> &trajectory,
-    const std::vector<std::string> &names);
+    const std::vector<double>& trajectory,
+    const std::vector<std::string>& names);
 /**
  * @brief The Database class stores information about the robot pose for all of
  * the attempted target poses. The database also saves several key meta-results
@@ -92,27 +92,27 @@ class ReachDatabase {
    * @brief save saves the reach study database to a file at the input location
    * @param filename
    */
-  void save(const std::string &filename) const;
+  void save(const std::string& filename) const;
 
   /**
    * @brief load loads a saved reach study database from the input location
    * @param filename
    * @return true on success, false on failure
    */
-  bool load(const std::string &filename);
+  bool load(const std::string& filename);
 
   /**
    * @brief get returns a ReachRecord message from the database
    * @param id
    * @return
    */
-  std::optional<reach_msgs::msg::ReachRecord> get(const std::string &id) const;
+  std::optional<reach_msgs::msg::ReachRecord> get(const std::string& id) const;
 
   /**
    * @brief put adds a ReachRecord message to the database
    * @param record
    */
-  void put(const reach_msgs::msg::ReachRecord &record);
+  void put(const reach_msgs::msg::ReachRecord& record);
 
   /**
    * @brief count counts the number of entries in the database
@@ -162,7 +162,7 @@ class ReachDatabase {
   reach_msgs::msg::ReachDatabase toReachDatabaseMsg();
 
  private:
-  void putHelper(const reach_msgs::msg::ReachRecord &record);
+  void putHelper(const reach_msgs::msg::ReachRecord& record);
 
   std::unordered_map<std::string, reach_msgs::msg::ReachRecord> map_;
 

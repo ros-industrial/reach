@@ -36,12 +36,12 @@ typedef flann::KDTreeSingleIndex<flann::L2_3D<double>> SearchTree;
 typedef std::shared_ptr<SearchTree> SearchTreePtr;
 
 NeighborReachResult reachNeighborsDirect(
-    std::shared_ptr<ReachDatabase> db, const reach_msgs::msg::ReachRecord &rec,
+    std::shared_ptr<ReachDatabase> db, const reach_msgs::msg::ReachRecord& rec,
     reach::plugins::IKSolverBasePtr solver, const double radius,
     SearchTreePtr search_tree = nullptr);
 
 void reachNeighborsRecursive(std::shared_ptr<ReachDatabase> db,
-                             const reach_msgs::msg::ReachRecord &msg,
+                             const reach_msgs::msg::ReachRecord& msg,
                              reach::plugins::IKSolverBasePtr solver,
                              const double radius, NeighborReachResult result,
                              SearchTreePtr search_tree = nullptr);

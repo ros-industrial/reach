@@ -62,7 +62,7 @@ ReachStudy::~ReachStudy() {
   ps_pub_.reset();
 }
 
-bool ReachStudy::initializeStudy(const StudyParameters &sp) {
+bool ReachStudy::initializeStudy(const StudyParameters& sp) {
   ik_solver_.reset();
   display_.reset();
   // create robot model shared ptr
@@ -76,7 +76,7 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
   try {
     ik_solver_ = solver_loader_.createSharedInstance(sp_.ik_solver_config_name);
     display_ = display_loader_.createSharedInstance(sp_.display_config_name);
-  } catch (const pluginlib::PluginlibException &ex) {
+  } catch (const pluginlib::PluginlibException& ex) {
     RCLCPP_ERROR(LOGGER,
                  "Pluginlib exception thrown while creating shared instances "
                  "of ik solver and/or display: '%s'",
@@ -84,7 +84,7 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
     ik_solver_.reset();
     display_.reset();
     return false;
-  } catch (const std::exception &ex) {
+  } catch (const std::exception& ex) {
     RCLCPP_ERROR(LOGGER,
                  "Error while creating shared instances of ik solver and/or "
                  "display: '%s'",
@@ -117,7 +117,7 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
                 dir_.c_str());
   }
   results_dir_ = dir_ + sp_.config_name + "/";
-  const char *char_dir = results_dir_.c_str();
+  const char* char_dir = results_dir_.c_str();
 
   if (!std::filesystem::exists(char_dir)) {
     std::filesystem::path path(char_dir);
@@ -132,7 +132,7 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
   return true;
 }
 
-bool ReachStudy::run(const StudyParameters &sp) {
+bool ReachStudy::run(const StudyParameters& sp) {
   // Overwrite the old study parameters
   sp_ = sp;
 
@@ -340,10 +340,10 @@ void ReachStudy::runInitialReachStudy() {
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-#pragma omp parallel for
+  //#pragma omp parallel for
   for (int i = 0; i < cloud_size; ++i) {
     // Get pose from point cloud array
-    const pcl::PointNormal &pt = cloud_->points[i];
+    const pcl::PointNormal& pt = cloud_->points[i];
     Eigen::Isometry3d tgt_frame;
     tgt_frame =
         utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());

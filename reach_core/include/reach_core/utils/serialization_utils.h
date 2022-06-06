@@ -29,7 +29,7 @@ namespace reach {
 namespace utils {
 
 template <class T>
-bool toFile(const std::string &path, const T &msg) {
+bool toFile(const std::string& path, const T& msg) {
   auto serializer = rclcpp::Serialization<T>();
   rclcpp::SerializedMessage ser_msg;
   serializer.serialize_message(&msg, &ser_msg);
@@ -38,14 +38,14 @@ bool toFile(const std::string &path, const T &msg) {
   if (!file) {
     return false;
   } else {
-    file.write((char *)ser_msg.get_rcl_serialized_message().buffer,
+    file.write((char*)ser_msg.get_rcl_serialized_message().buffer,
                ser_msg.capacity());
     return file.good();
   }
 }
 
 template <class T>
-bool fromFile(const std::string &path, T &msg) {
+bool fromFile(const std::string& path, T& msg) {
   //      RCLCPP_INFO(rclcpp::get_logger("serialization_utils"), "Serializing
   //      from file...");
   std::ifstream ifs(path.c_str(), std::ios::in | std::ios::binary);
@@ -63,7 +63,7 @@ bool fromFile(const std::string &path, T &msg) {
   uint32_t file_size = end - begin;
 
   std::shared_ptr<uint8_t[]> ibuffer(new uint8_t[file_size]);
-  ifs.read((char *)ibuffer.get(), file_size);
+  ifs.read((char*)ibuffer.get(), file_size);
 
   //      for(size_t i=0; i<file_size; ++i){
   //          RCLCPP_INFO(rclcpp::get_logger("serialization_utils"), " %c ",

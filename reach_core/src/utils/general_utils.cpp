@@ -23,8 +23,8 @@ const rclcpp::Logger LOGGER = rclcpp::get_logger("reach.general_utils");
 }
 namespace utils {
 
-void integerProgressPrinter(std::atomic<int> &current_counter,
-                            std::atomic<int> &previous_pct,
+void integerProgressPrinter(std::atomic<int>& current_counter,
+                            std::atomic<int>& previous_pct,
                             const int total_size) {
   const float current_pct_float = (static_cast<float>(current_counter.load()) /
                                    static_cast<float>(total_size)) *
@@ -36,8 +36,8 @@ void integerProgressPrinter(std::atomic<int> &current_counter,
   previous_pct = current_pct;
 }
 
-Eigen::Isometry3d createFrame(const Eigen::Vector3f &pt,
-                              const Eigen::Vector3f &norm) {
+Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt,
+                              const Eigen::Vector3f& norm) {
   // Initialize coordinate frame and set XYZ location
   Eigen::Isometry3f p = Eigen::Isometry3f::Identity();
   p.matrix()(0, 3) = pt(0);
@@ -68,11 +68,11 @@ Eigen::Isometry3d createFrame(const Eigen::Vector3f &pt,
 }
 
 void trajectoryFiller(
-    const std::vector<std::vector<double>> &trajectory,
-    const std::vector<Eigen::Isometry3d> &waypoints,
-    const std::vector<std::string> &names,
-    std::vector<geometry_msgs::msg::Pose> &cartesian_space_waypoints,
-    std::vector<sensor_msgs::msg::JointState> &joint_space_trajectory) {
+    const std::vector<std::vector<double>>& trajectory,
+    const std::vector<Eigen::Isometry3d>& waypoints,
+    const std::vector<std::string>& names,
+    std::vector<geometry_msgs::msg::Pose>& cartesian_space_waypoints,
+    std::vector<sensor_msgs::msg::JointState>& joint_space_trajectory) {
   //  const size_t trajectory_size = trajectory.size();
   //  cartesian_space_waypoints.resize(trajectory_size);
   //  joint_space_trajectory.resize(trajectory_size);

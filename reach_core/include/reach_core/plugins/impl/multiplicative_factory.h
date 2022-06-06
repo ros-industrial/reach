@@ -27,17 +27,17 @@ class MultiplicativeFactory : public EvaluationBase {
   MultiplicativeFactory();
 
   ~MultiplicativeFactory() {
-    for (auto &ev_pl : eval_plugins_) {
+    for (auto& ev_pl : eval_plugins_) {
       ev_pl.reset();
     }
   }
 
   virtual bool initialize(
-      std::string &name, rclcpp::Node::SharedPtr node,
+      std::string& name, rclcpp::Node::SharedPtr node,
       std::shared_ptr<const moveit::core::RobotModel> model) override;
 
   virtual double calculateScore(
-      const std::map<std::string, double> &pose) override;
+      const std::map<std::string, double>& pose) override;
 
  private:
   std::vector<EvaluationBasePtr> eval_plugins_;

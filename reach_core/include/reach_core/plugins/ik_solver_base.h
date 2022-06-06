@@ -45,7 +45,7 @@ class IKSolverBase {
    * @return
    */
   virtual bool initialize(
-      std::string &name, rclcpp::Node::SharedPtr node,
+      std::string& name, rclcpp::Node::SharedPtr node,
       const std::shared_ptr<const moveit::core::RobotModel> model) = 0;
 
   /**
@@ -59,10 +59,10 @@ class IKSolverBase {
    * containing the score of the solution
    */
   virtual std::optional<double> solveIKFromSeed(
-      const Eigen::Isometry3d &target,
-      const std::map<std::string, double> &seed, std::vector<double> &solution,
-      std::vector<double> &joint_space_trajectory,
-      std::vector<double> &cartesian_space_waypoints, double &fraction) = 0;
+      const Eigen::Isometry3d& target,
+      const std::map<std::string, double>& seed, std::vector<double>& solution,
+      std::vector<double>& joint_space_trajectory,
+      std::vector<double>& cartesian_space_waypoints, double& fraction) = 0;
 
   /**
    * @brief getJointNames

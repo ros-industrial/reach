@@ -38,8 +38,8 @@ namespace utils {
  * @return
  */
 moveit_msgs::msg::CollisionObject createCollisionObject(
-    const std::string &mesh_filename, const std::string &parent_link,
-    const std::string &object_name);
+    const std::string& mesh_filename, const std::string& parent_link,
+    const std::string& object_name);
 
 /**
  * @brief makeInteractiveMarker
@@ -49,10 +49,10 @@ moveit_msgs::msg::CollisionObject createCollisionObject(
  * @return
  */
 visualization_msgs::msg::Marker makeVisual(
-    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale,
-    const std::string &ns = "reach",
-    const std::optional<std::vector<float>> &color = {});
+    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale,
+    const std::string& ns = "reach",
+    const std::optional<std::vector<float>>& color = {});
 
 /**
  * @brief makeInteractiveMarker
@@ -62,8 +62,8 @@ visualization_msgs::msg::Marker makeVisual(
  * @return
  */
 visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
-    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale);
+    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale);
 
 /**
  * @brief makeMarker
@@ -75,8 +75,8 @@ visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
  */
 visualization_msgs::msg::Marker makeMarker(
     const rclcpp::Node::SharedPtr node,
-    const std::vector<geometry_msgs::msg::Point> &pts, const std::string &frame,
-    const double scale, const std::string &ns = "");
+    const std::vector<geometry_msgs::msg::Point>& pts, const std::string& frame,
+    const double scale, const std::string& ns = "");
 
 /**
  * @brief validateInputMap
@@ -85,9 +85,9 @@ visualization_msgs::msg::Marker makeMarker(
  * @param revised_input
  * @return
  */
-bool transcribeInputMap(const std::map<std::string, double> &input,
-                        const std::vector<std::string> &joint_names,
-                        std::vector<double> &revised_input);
+bool transcribeInputMap(const std::map<std::string, double>& input,
+                        const std::vector<std::string>& joint_names,
+                        std::vector<double>& revised_input);
 
 }  // namespace utils
 }  // namespace moveit_reach_plugins

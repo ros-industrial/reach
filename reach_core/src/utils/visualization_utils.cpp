@@ -27,9 +27,9 @@ namespace reach {
 namespace utils {
 
 visualization_msgs::msg::Marker makeVisual(
-    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale, const std::string &ns,
-    const boost::optional<std::vector<float>> &color) {
+    const rclcpp::Node::SharedPtr& node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale, const std::string& ns,
+    const boost::optional<std::vector<float>>& color) {
   static int idx = 0;
 
   visualization_msgs::msg::Marker marker;
@@ -84,9 +84,9 @@ visualization_msgs::msg::Marker makeVisual(
 }
 
 visualization_msgs::msg::Marker makeVisualTraj(
-    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale, const std::string &ns,
-    const boost::optional<std::vector<float>> &color) {
+    const rclcpp::Node::SharedPtr& node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale, const std::string& ns,
+    const boost::optional<std::vector<float>>& color) {
   static int idx = 0;
 
   visualization_msgs::msg::Marker marker;
@@ -140,8 +140,8 @@ visualization_msgs::msg::Marker makeVisualTraj(
 }
 
 visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
-    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale) {
+    const rclcpp::Node::SharedPtr& node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale) {
   visualization_msgs::msg::InteractiveMarker m;
   m.header.frame_id = frame;
   m.name = r.id;
@@ -167,9 +167,9 @@ visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
 }
 
 visualization_msgs::msg::Marker makeMarker(
-    const rclcpp::Node::SharedPtr &node,
-    const std::vector<geometry_msgs::msg::Point> &pts, const std::string &frame,
-    const double scale, const std::string &ns) {
+    const rclcpp::Node::SharedPtr& node,
+    const std::vector<geometry_msgs::msg::Point>& pts, const std::string& frame,
+    const double scale, const std::string& ns) {
   visualization_msgs::msg::Marker marker;
   marker.header.frame_id = frame;
   marker.header.stamp = node->now();

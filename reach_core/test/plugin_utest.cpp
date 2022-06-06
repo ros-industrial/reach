@@ -58,7 +58,7 @@ TYPED_TEST(PluginTest, LoadPlugins) {
   EXPECT_EQ(declared_classes.size(), this->expected_count);
 
   // Loop over the available classes and attempt to load them
-  for (const std::string &cls : declared_classes) {
+  for (const std::string& cls : declared_classes) {
     std::cout << "Attempting to load '" << cls << "' class" << std::endl;
     boost::shared_ptr<TypeParam> plugin;
     EXPECT_NO_THROW(plugin = this->loader.createInstance(cls));
@@ -66,7 +66,7 @@ TYPED_TEST(PluginTest, LoadPlugins) {
   }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "plugin_utest");
   return RUN_ALL_TESTS();

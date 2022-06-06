@@ -48,24 +48,24 @@ class ReachVisualizer {
 
  private:
   void reSolveIKCB(
-      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-          &fb);
+      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+          fb);
 
   void showResultCB(
-      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-          &fb);
+      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+          fb);
 
   void showSeedCB(
-      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-          &fb);
+      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+          fb);
 
   void reachNeighborsDirectCB(
-      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-          &fb);
+      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+          fb);
 
   void reachNeighborsRecursiveCB(
-      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-          &fb);
+      const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+          fb);
 
   ReachDatabasePtr db_;
 

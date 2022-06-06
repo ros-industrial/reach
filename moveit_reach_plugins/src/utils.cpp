@@ -32,8 +32,8 @@ const rclcpp::Logger LOGGER = rclcpp::get_logger("moveit_reach_plugins.utils");
 namespace utils {
 
 moveit_msgs::msg::CollisionObject createCollisionObject(
-    const std::string &mesh_filename, const std::string &parent_link,
-    const std::string &object_name) {
+    const std::string& mesh_filename, const std::string& parent_link,
+    const std::string& object_name) {
   // Create a CollisionObject message for the reach object
   RCLCPP_INFO(LOGGER,
               "Creating collision object with mesh_filename: '%s', "
@@ -44,7 +44,7 @@ moveit_msgs::msg::CollisionObject createCollisionObject(
   obj.header.frame_id = parent_link;
   obj.id = object_name;
   shapes::ShapeMsg shape_msg;
-  shapes::Mesh *mesh = shapes::createMeshFromResource(mesh_filename);
+  shapes::Mesh* mesh = shapes::createMeshFromResource(mesh_filename);
   if (!mesh) {
     RCLCPP_ERROR(LOGGER, "Creating Mesh From Resource failed...");
   }
@@ -63,9 +63,9 @@ moveit_msgs::msg::CollisionObject createCollisionObject(
 }
 
 visualization_msgs::msg::Marker makeVisual(
-    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale, const std::string &ns,
-    const std::optional<std::vector<float>> &color) {
+    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale, const std::string& ns,
+    const std::optional<std::vector<float>>& color) {
   static int idx = 0;
 
   visualization_msgs::msg::Marker marker;
@@ -120,8 +120,8 @@ visualization_msgs::msg::Marker makeVisual(
 }
 
 visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
-    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale) {
+    const rclcpp::Node::SharedPtr node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale) {
   visualization_msgs::msg::InteractiveMarker m;
   m.header.frame_id = frame;
   m.name = r.id;
@@ -145,8 +145,8 @@ visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
 
 visualization_msgs::msg::Marker makeMarker(
     const rclcpp::Node::SharedPtr node,
-    const std::vector<geometry_msgs::msg::Point> &pts, const std::string &frame,
-    const double scale, const std::string &ns) {
+    const std::vector<geometry_msgs::msg::Point>& pts, const std::string& frame,
+    const double scale, const std::string& ns) {
   visualization_msgs::msg::Marker marker;
   marker.header.frame_id = frame;
   marker.header.stamp = node->now();
@@ -169,9 +169,9 @@ visualization_msgs::msg::Marker makeMarker(
   return marker;
 }
 
-bool transcribeInputMap(const std::map<std::string, double> &input,
-                        const std::vector<std::string> &joint_names,
-                        std::vector<double> &input_subset) {
+bool transcribeInputMap(const std::map<std::string, double>& input,
+                        const std::vector<std::string>& joint_names,
+                        std::vector<double>& input_subset) {
   if (joint_names.size() > input.size()) {
     RCLCPP_ERROR(LOGGER,
                  "Seed pose size was not at least as large as the number of "
@@ -182,7 +182,7 @@ bool transcribeInputMap(const std::map<std::string, double> &input,
   // Pull the joints of the planning group out of the input map
   std::vector<double> tmp;
   tmp.reserve(joint_names.size());
-  for (const std::string &name : joint_names) {
+  for (const std::string& name : joint_names) {
     const auto it = input.find(name);
     if (it == input.end()) {
       RCLCPP_ERROR_STREAM(

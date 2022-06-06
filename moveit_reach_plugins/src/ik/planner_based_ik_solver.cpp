@@ -50,6 +50,28 @@ bool PlannerBasedIKSolver::initialize(
     return false;
   }
 
+  planning_scene_ = std::make_shared<planning_scene::PlanningScene>(model_);
+
+  // Check that the input collision mesh frame exists
+  if (!planning_scene_->knowsFrameTransform(collision_mesh_frame_)) {
+    RCLCPP_ERROR_STREAM(LOGGER, "Specified collision mesh frame '"
+                                    << collision_mesh_frame_
+                                    << "' does not exist");
+    return false;
+  }
+
+  // Add the collision object to the planning scene
+  const std::string object_name = "reach_object";
+  moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(
+      collision_mesh_package_, collision_mesh_frame_, object_name);
+  if (!planning_scene_->processCollisionObjectMsg(obj)) {
+    RCLCPP_ERROR(LOGGER, "Failed to add collision mesh to planning scene");
+    return false;
+  } else {
+    planning_scene_->getAllowedCollisionMatrixNonConst().setEntry(
+        object_name, touch_links_, true);
+  }
+
   // get parameters for cartesian path computation
   try {
     if (!node->get_parameter("ik_solver_config.retrieval_distance",
@@ -253,7 +275,6 @@ std::optional<double> PlannerBasedIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
     std::vector<double>& cartesian_space_waypoints, double& fraction) {
-  moveit::core::RobotState state(model_);
   moveit::core::RobotState seed_state(model_);
 
   const std::vector<std::string>& joint_names =
@@ -266,19 +287,39 @@ std::optional<double> PlannerBasedIKSolver::solveIKFromSeed(
     return {};
   }
 
-  state.setJointGroupPositions(jmg_, seed_subset);
-  state.update();
-
   seed_state.setJointGroupPositions(jmg_, seed_subset);
   seed_state.update();
 
-  // use default timeout for the ik solver
-  const static double SOLUTION_TIMEOUT = 0.0;
+  // initialize motion plan request
+  moveit_msgs::msg::MotionPlanRequest req;
+  req.group_name = jmg_->getName();
+  req.planner_id = planner_id_;
+  req.allowed_planning_time = allowed_planning_time_;
+  req.start_state.is_diff = true;  // we don't specify an extra start state
+  req.num_planning_attempts = num_planning_attempts_;
+  req.max_velocity_scaling_factor = max_velocity_scaling_factor_;
+  req.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
+  req.workspace_parameters = workspace_parameter_;
 
-  if (state.setFromIK(jmg_, target, SOLUTION_TIMEOUT,
-                      std::bind(&MoveItIKSolver::isIKSolutionValid, this,
-                                std::placeholders::_1, std::placeholders::_2,
-                                std::placeholders::_3))) {
+  req.goal_constraints.resize(1);
+  //  req.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
+  //      state, jmg_, goal_joint_tolerance_);
+
+  geometry_msgs::msg::PoseStamped pose_to_plan;
+  pose_to_plan.header.frame_id = "harvester_base_link";
+  pose_to_plan.pose = tf2::toMsg(target);
+  req.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
+      tool_frame_, pose_to_plan, goal_position_tolerance_,
+      goal_orientation_tolerance_);
+
+  //      req.path_constraints = path_constraints;
+  // make sure start state is the same as seed state
+  planning_scene_->setCurrentState(seed_state);
+  ::planning_interface::MotionPlanResponse res;
+  bool success = planner_->generatePlan(planning_scene_, req, res);
+
+  if (success) {
+    moveit::core::RobotState state(res.trajectory_->getLastWayPoint());
     solution.clear();
     state.copyJointGroupPositions(jmg_, solution);
 
@@ -287,48 +328,8 @@ std::optional<double> PlannerBasedIKSolver::solveIKFromSeed(
     for (std::size_t i = 0; i < solution.size(); ++i) {
       solution_map.emplace(joint_names[i], solution[i]);
     }
-    /*
 
-    // compute retrieval path
-    std::vector<std::shared_ptr<moveit::core::RobotState>> traj;
-    Eigen::Isometry3d retrieval_target =
-        target * Eigen::Translation3d(0.0, 0.0, -retrieval_path_length_);
-
-    double f = moveit::core::CartesianInterpolator::computeCartesianPath(
-        &state, jmg_, traj, state.getLinkModel(tool_frame_), retrieval_target,
-        true, moveit::core::MaxEEFStep(max_eef_step_),
-        moveit::core::JumpThreshold(jump_threshold_, jump_threshold_),
-        std::bind(&MoveItIKSolver::isIKSolutionValid, this,
-                  std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3));
-    fraction = f;
-     */
-
-    // initialize motion plan request
-    moveit_msgs::msg::MotionPlanRequest req;
-    req.group_name = jmg_->getName();
-    req.planner_id = planner_id_;
-    req.allowed_planning_time = allowed_planning_time_;
-    req.start_state.is_diff = true;  // we don't specify an extra start state
-    req.num_planning_attempts = num_planning_attempts_;
-    req.max_velocity_scaling_factor = max_velocity_scaling_factor_;
-    req.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
-    req.workspace_parameters = workspace_parameter_;
-
-    req.goal_constraints.resize(1);
-    req.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
-        state, jmg_, goal_joint_tolerance_);
-    //      req.path_constraints = path_constraints;
-    // make sure start state is the same as seed state
-    scene_->setCurrentState(seed_state);
-    ::planning_interface::MotionPlanResponse res;
-    bool success = planner_->generatePlan(scene_, req, res);
-
-    if (success) {
-      fraction = 1.0;
-    } else {
-      fraction = 0.0;
-    }
+    fraction = 1.0;
 
     if (fraction != 0.0) {
       const size_t trajectory_size = res.trajectory_->size();

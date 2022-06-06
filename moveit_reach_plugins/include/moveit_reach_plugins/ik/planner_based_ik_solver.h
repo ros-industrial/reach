@@ -47,7 +47,7 @@ class PlannerBasedIKSolver : public MoveItIKSolver {
   // https://github.com/ros-planning/moveit_task_constructor/blob/60229db010ea305296bc1c90d04faa3e4dacd976/core/include/moveit/task_constructor/solvers/pipeline_planner.h#L58-L64
   struct PlanningSpecs {
     moveit::core::RobotModelConstPtr _robot_model;
-    std::string _namespace{"ompl"};
+    std::string _namespace{"move_group"};
     std::string _planning_pipeline{"ompl"};
     std::string _planning_adapter_param{"request_adapters"};
   };
@@ -106,6 +106,8 @@ class PlannerBasedIKSolver : public MoveItIKSolver {
 
   std::string pipeline_name_;
   planning_pipeline::PlanningPipelinePtr planner_;
+
+  planning_scene::PlanningScenePtr planning_scene_;
 };
 
 }  // namespace ik

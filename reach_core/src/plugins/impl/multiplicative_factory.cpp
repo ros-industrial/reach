@@ -32,7 +32,7 @@ MultiplicativeFactory::MultiplicativeFactory()
     : EvaluationBase(), class_loader_(PACKAGE, PLUGIN_BASE_NAME) {}
 
 bool MultiplicativeFactory::initialize(
-    std::string &name, rclcpp::Node::SharedPtr const node,
+    std::string& name, rclcpp::Node::SharedPtr const node,
     std::shared_ptr<const moveit::core::RobotModel> model) {
   try {
     std::vector<std::string> plugin_configs;
@@ -42,7 +42,7 @@ bool MultiplicativeFactory::initialize(
     eval_plugins_.reserve(plugin_configs.size());
 
     for (int i = 0; i < plugin_configs.size(); ++i) {
-      std::string &plugin_config = plugin_configs[i];
+      std::string& plugin_config = plugin_configs[i];
       const std::string plugin_name = std::string(plugin_config);
       RCLCPP_INFO(LOGGER, "Creating shared instance of plugin '%s'",
                   plugin_name.c_str());
@@ -50,7 +50,7 @@ bool MultiplicativeFactory::initialize(
       EvaluationBasePtr plugin;
       try {
         plugin = class_loader_.createSharedInstance(plugin_name);
-      } catch (const pluginlib::ClassLoaderException &ex) {
+      } catch (const pluginlib::ClassLoaderException& ex) {
         RCLCPP_WARN_STREAM(
             LOGGER, "Plugin '" << name << "' failed to load: " << ex.what()
                                << "; excluding it from the list");
@@ -68,7 +68,7 @@ bool MultiplicativeFactory::initialize(
 
       eval_plugins_.push_back(std::move(plugin));
     }
-  } catch (const std::exception &ex) {
+  } catch (const std::exception& ex) {
     RCLCPP_ERROR_STREAM(LOGGER, ex.what());
   }
 
@@ -81,9 +81,9 @@ bool MultiplicativeFactory::initialize(
 }
 
 double MultiplicativeFactory::calculateScore(
-    const std::map<std::string, double> &pose) {
+    const std::map<std::string, double>& pose) {
   double score = 1.0;
-  for (const EvaluationBasePtr &plugin : eval_plugins_) {
+  for (const EvaluationBasePtr& plugin : eval_plugins_) {
     score *= plugin->calculateScore(pose);
   }
   //    RCLCPP_INFO(LOGGER, "EVAL score = '%f'", score);

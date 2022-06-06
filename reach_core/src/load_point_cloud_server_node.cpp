@@ -38,7 +38,7 @@ using LoadPCLResSharedPtr = LoadPCLRes::SharedPtr;
 
 class PointCloudServerNode : public rclcpp::Node {
  public:
-  explicit PointCloudServerNode(const std::string &node_name)
+  explicit PointCloudServerNode(const std::string& node_name)
       : Node(node_name) {
     server_ = this->create_service<LoadPCLSrv>(
         SAMPLE_MESH_SRV_TOPIC,
@@ -91,14 +91,14 @@ class PointCloudServerNode : public rclcpp::Node {
                         tf.transform.rotation.x, tf.transform.rotation.y,
                         tf.transform.rotation.z, tf.transform.rotation.w);
 
-          } catch (const tf2::TransformException &ex) {
+          } catch (const tf2::TransformException& ex) {
             RCLCPP_ERROR(this->get_logger(), "Catch tf exception!");
 
             res->message = ex.what();
             res->success = false;
             RCLCPP_ERROR(this->get_logger(), "'%s'", ex.what());
             return false;
-          } catch (const rclcpp::exceptions::RCLError &exerr) {
+          } catch (const rclcpp::exceptions::RCLError& exerr) {
             RCLCPP_ERROR(this->get_logger(), "Catch RCLError exception!");
 
             RCLCPP_ERROR(this->get_logger(), "'%s'", exerr.what());
@@ -129,16 +129,16 @@ class PointCloudServerNode : public rclcpp::Node {
  private:
   rclcpp::Service<LoadPCLSrv>::SharedPtr server_;
 
-  bool hasNormals(pcl::PCLPointCloud2 &cloud) {
+  bool hasNormals(pcl::PCLPointCloud2& cloud) {
     auto nx = std::find_if(
         cloud.fields.begin(), cloud.fields.end(),
-        [](pcl::PCLPointField &field) { return field.name == "normal_x"; });
+        [](pcl::PCLPointField& field) { return field.name == "normal_x"; });
     auto ny = std::find_if(
         cloud.fields.begin(), cloud.fields.end(),
-        [](pcl::PCLPointField &field) { return field.name == "normal_y"; });
+        [](pcl::PCLPointField& field) { return field.name == "normal_y"; });
     auto nz = std::find_if(
         cloud.fields.begin(), cloud.fields.end(),
-        [](pcl::PCLPointField &field) { return field.name == "normal_z"; });
+        [](pcl::PCLPointField& field) { return field.name == "normal_z"; });
 
     if (nx == cloud.fields.end() || ny == cloud.fields.end() ||
         nz == cloud.fields.end()) {
@@ -149,7 +149,7 @@ class PointCloudServerNode : public rclcpp::Node {
   }
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // Initialize ROS
   rclcpp::init(argc, argv);
   // create node

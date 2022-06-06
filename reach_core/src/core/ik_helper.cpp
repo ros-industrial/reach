@@ -22,7 +22,7 @@ namespace reach {
 namespace core {
 
 std::vector<reach_msgs::msg::ReachRecord> getNeighbors(
-    const reach_msgs::msg::ReachRecord &rec, const ReachDatabasePtr db,
+    const reach_msgs::msg::ReachRecord& rec, const ReachDatabasePtr db,
     const double radius) {
   const float x = rec.goal.position.x;
   const float y = rec.goal.position.y;
@@ -50,7 +50,7 @@ std::vector<reach_msgs::msg::ReachRecord> getNeighbors(
 }
 
 std::vector<reach_msgs::msg::ReachRecord> getNeighborsFLANN(
-    const reach_msgs::msg::ReachRecord &rec, const ReachDatabasePtr db,
+    const reach_msgs::msg::ReachRecord& rec, const ReachDatabasePtr db,
     const double radius, SearchTreePtr search_tree) {
   flann::Matrix<double> query(new double[3], 1, 3);
   query[0][0] = (double)rec.goal.position.x;
@@ -78,7 +78,7 @@ std::vector<reach_msgs::msg::ReachRecord> getNeighborsFLANN(
 }
 
 NeighborReachResult reachNeighborsDirect(
-    ReachDatabasePtr db, const reach_msgs::msg::ReachRecord &rec,
+    ReachDatabasePtr db, const reach_msgs::msg::ReachRecord& rec,
     reach::plugins::IKSolverBasePtr solver, const double radius,
     SearchTreePtr search_tree) {
   // Initialize return array of string IDs of msgs that have been updated
@@ -100,7 +100,7 @@ NeighborReachResult reachNeighborsDirect(
                                 rec.goal_state.position[i]);
     }
 
-    const std::vector<double> &current_pose = rec.goal_state.position;
+    const std::vector<double>& current_pose = rec.goal_state.position;
 
     for (std::size_t i = 0; i < neighbors.size(); ++i) {
       // Initialize new target pose and new empty robot goal state
@@ -148,7 +148,7 @@ NeighborReachResult reachNeighborsDirect(
 }
 
 void reachNeighborsRecursive(ReachDatabasePtr db,
-                             const reach_msgs::msg::ReachRecord &rec,
+                             const reach_msgs::msg::ReachRecord& rec,
                              reach::plugins::IKSolverBasePtr solver,
                              const double radius, NeighborReachResult result,
                              SearchTreePtr search_tree) {
@@ -167,7 +167,7 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
   // Solve IK for points that lie within sphere
   if (neighbors.size() > 0) {
     for (std::size_t i = 0; i < neighbors.size(); ++i) {
-      const std::vector<double> &current_pose = rec.goal_state.position;
+      const std::vector<double>& current_pose = rec.goal_state.position;
 
       std::map<std::string, double> current_pose_map;
       for (std::size_t i = 0; i < current_pose.size(); ++i) {

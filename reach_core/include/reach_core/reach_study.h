@@ -63,7 +63,7 @@ class ReachStudy {
    * @param sp
    * @return
    */
-  bool run(const StudyParameters &sp);
+  bool run(const StudyParameters& sp);
 
   std::shared_ptr<rclcpp::Node> get_node() {
     if (!node_.get()) {
@@ -73,7 +73,7 @@ class ReachStudy {
   }
 
  private:
-  bool initializeStudy(const StudyParameters &sp);
+  bool initializeStudy(const StudyParameters& sp);
 
   bool getReachObjectPointCloud();
 

@@ -53,7 +53,7 @@ class DisplayBase {
   }
 
   virtual bool initialize(
-      std::string &name, rclcpp::Node::SharedPtr node,
+      std::string& name, rclcpp::Node::SharedPtr node,
       const std::shared_ptr<const moveit::core::RobotModel> model) {
     node_ = node;
     server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(
@@ -73,18 +73,18 @@ class DisplayBase {
 
   virtual void showEnvironment() = 0;
 
-  virtual void showEnvironment(const std::vector<std::string> &names,
-                               const std::vector<double> &positions) = 0;
+  virtual void showEnvironment(const std::vector<std::string>& names,
+                               const std::vector<double>& positions) = 0;
 
-  virtual void updateRobotPose(const std::map<std::string, double> &pose) = 0;
+  virtual void updateRobotPose(const std::map<std::string, double>& pose) = 0;
 
   virtual void updateRobotTrajectory(
-      const std::vector<std::map<std::string, double>> &trajectory) = 0;
+      const std::vector<std::map<std::string, double>>& trajectory) = 0;
 
   void addInteractiveMarkerData(
-      const reach_msgs::msg::ReachDatabase &database) {
+      const reach_msgs::msg::ReachDatabase& database) {
     server_->clear();
-    for (const reach_msgs::msg::ReachRecord &rec : database.records) {
+    for (const reach_msgs::msg::ReachRecord& rec : database.records) {
       auto marker =
           utils::makeInteractiveMarker(node_, rec, fixed_frame_, marker_scale_);
       server_->insert(std::move(marker));
@@ -94,12 +94,12 @@ class DisplayBase {
   }
 
   void createMenuFunction(
-      const std::string &menu_entry,
-      const interactive_markers::MenuHandler::FeedbackCallback &callback) {
+      const std::string& menu_entry,
+      const interactive_markers::MenuHandler::FeedbackCallback& callback) {
     menu_handler_.insert(menu_entry, callback);
   }
 
-  void updateInteractiveMarker(const reach_msgs::msg::ReachRecord &rec) {
+  void updateInteractiveMarker(const reach_msgs::msg::ReachRecord& rec) {
     if (server_->erase(rec.id)) {
       auto marker =
           utils::makeInteractiveMarker(node_, rec, fixed_frame_, marker_scale_);
@@ -113,11 +113,11 @@ class DisplayBase {
     }
   }
 
-  void publishMarkerArray(const std::vector<std::string> &ids) {
+  void publishMarkerArray(const std::vector<std::string>& ids) {
     if (!ids.empty()) {
       std::vector<geometry_msgs::msg::Point> pt_array;
 
-      for (const std::string &id : ids) {
+      for (const std::string& id : ids) {
         visualization_msgs::msg::InteractiveMarker marker;
         if (!server_->get(id, marker)) {
           RCLCPP_ERROR_STREAM(LOGGER, "Failed to get interactive marker '"
@@ -138,7 +138,7 @@ class DisplayBase {
   }
 
   void compareDatabases(
-      const std::map<std::string, reach_msgs::msg::ReachDatabase> &data) {
+      const std::map<std::string, reach_msgs::msg::ReachDatabase>& data) {
     const std::size_t n_perm = pow(2, data.size());
     const std::size_t n_records = data.begin()->second.records.size();
 
@@ -208,7 +208,7 @@ class DisplayBase {
   }
 
   void visualizeDatabases(
-      const std::map<std::string, reach_msgs::msg::ReachDatabase> &data) {
+      const std::map<std::string, reach_msgs::msg::ReachDatabase>& data) {
     const std::size_t n_records = data.begin()->second.records.size();
 
     // Check that all databases are the same size

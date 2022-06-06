@@ -32,10 +32,10 @@ namespace utils {
  * @return
  */
 visualization_msgs::msg::Marker makeVisual(
-    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale,
-    const std::string &ns = "reach",
-    const boost::optional<std::vector<float>> &color = {});
+    const rclcpp::Node::SharedPtr& node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale,
+    const std::string& ns = "reach",
+    const boost::optional<std::vector<float>>& color = {});
 
 /**
  * @brief makeInteractiveMarker
@@ -45,10 +45,10 @@ visualization_msgs::msg::Marker makeVisual(
  * @return
  */
 visualization_msgs::msg::Marker makeVisualTraj(
-    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale,
-    const std::string &ns = "reach",
-    const boost::optional<std::vector<float>> &color = {});
+    const rclcpp::Node::SharedPtr& node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale,
+    const std::string& ns = "reach",
+    const boost::optional<std::vector<float>>& color = {});
 
 /**
  * @brief makeInteractiveMarker
@@ -58,8 +58,8 @@ visualization_msgs::msg::Marker makeVisualTraj(
  * @return
  */
 visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
-    const rclcpp::Node::SharedPtr &node, const reach_msgs::msg::ReachRecord &r,
-    const std::string &frame, const double scale);
+    const rclcpp::Node::SharedPtr& node, const reach_msgs::msg::ReachRecord& r,
+    const std::string& frame, const double scale);
 
 /**
  * @brief makeMarker
@@ -70,9 +70,9 @@ visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(
  * @return
  */
 visualization_msgs::msg::Marker makeMarker(
-    const rclcpp::Node::SharedPtr &node,
-    const std::vector<geometry_msgs::msg::Point> &pts, const std::string &frame,
-    const double scale, const std::string &ns = "");
+    const rclcpp::Node::SharedPtr& node,
+    const std::vector<geometry_msgs::msg::Point>& pts, const std::string& frame,
+    const double scale, const std::string& ns = "");
 
 /**
  * @brief getMajorLength

@@ -33,8 +33,8 @@ typedef std::unordered_map<std::string, std::vector<coordinate_config>>
     coordinate_config_map_of_vecotors;
 
 bool get_all(
-    const std::filesystem::path &root, const std::string &ext,
-    std::vector<std::pair<std::filesystem::path, std::filesystem::path>> &ret) {
+    const std::filesystem::path& root, const std::string& ext,
+    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>& ret) {
   if (!std::filesystem::exists(root) || !std::filesystem::is_directory(root))
     return false;
 
@@ -57,8 +57,8 @@ bool get_all(
 
   std::sort(
       ret.begin(), ret.end(),
-      [&](const std::pair<std::filesystem::path, std::filesystem::path> &first,
-          std::pair<std::filesystem::path, std::filesystem::path> &second) {
+      [&](const std::pair<std::filesystem::path, std::filesystem::path>& first,
+          std::pair<std::filesystem::path, std::filesystem::path>& second) {
         reach::core::ReachDatabase db;
         // first
         db.load(first.second);
@@ -74,7 +74,7 @@ bool get_all(
   return true;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // Initialize ROS
   rclcpp::init(argc, argv);
   rclcpp::NodeOptions options(

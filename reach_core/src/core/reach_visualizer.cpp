@@ -70,13 +70,13 @@ void ReachVisualizer::update() {
 }
 
 void ReachVisualizer::reSolveIKCB(
-    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-        &fb) {
+    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+        fb) {
   std::optional<reach_msgs::msg::ReachRecord> lookup =
       db_->get(fb->marker_name);
   if (lookup) {
-    const std::vector<double> &seed_pose = lookup->seed_state.position;
-    const std::vector<std::string> &joint_names = lookup->seed_state.name;
+    const std::vector<double>& seed_pose = lookup->seed_state.position;
+    const std::vector<std::string>& joint_names = lookup->seed_state.name;
     std::map<std::string, double> seed_map;
     for (std::size_t i = 0; i < joint_names.size(); ++i) {
       seed_map.emplace(joint_names[i], seed_pose[i]);
@@ -124,8 +124,8 @@ void ReachVisualizer::reSolveIKCB(
 }
 
 void ReachVisualizer::showResultCB(
-    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-        &fb) {
+    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+        fb) {
   auto lookup = db_->get(fb->marker_name);
   if (lookup) {
     display_->updateRobotPose(jointStateMsgToMap(lookup->goal_state));
@@ -139,8 +139,8 @@ void ReachVisualizer::showResultCB(
 }
 
 void ReachVisualizer::showSeedCB(
-    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-        &fb) {
+    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+        fb) {
   auto lookup = db_->get(fb->marker_name);
   if (lookup) {
     display_->updateRobotPose(jointStateMsgToMap(lookup->seed_state));
@@ -152,8 +152,8 @@ void ReachVisualizer::showSeedCB(
 }
 
 void ReachVisualizer::reachNeighborsDirectCB(
-    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-        &fb) {
+    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+        fb) {
   auto lookup = db_->get(fb->marker_name);
   if (lookup) {
     NeighborReachResult result = reachNeighborsDirect(
@@ -173,8 +173,8 @@ void ReachVisualizer::reachNeighborsDirectCB(
 }
 
 void ReachVisualizer::reachNeighborsRecursiveCB(
-    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr
-        &fb) {
+    const visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr&
+        fb) {
   auto lookup = db_->get(fb->marker_name);
   if (lookup) {
     NeighborReachResult result;

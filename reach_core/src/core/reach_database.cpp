@@ -21,8 +21,8 @@
 namespace {
 
 reach_msgs::msg::ReachDatabase toReachDatabase(
-    const std::unordered_map<std::string, reach_msgs::msg::ReachRecord> &map,
-    const reach::core::StudyResults &results) {
+    const std::unordered_map<std::string, reach_msgs::msg::ReachRecord>& map,
+    const reach::core::StudyResults& results) {
   reach_msgs::msg::ReachDatabase msg;
   for (auto it = map.begin(); it != map.end(); ++it) {
     msg.records.push_back(it->second);
@@ -46,12 +46,12 @@ const rclcpp::Logger LOGGER = rclcpp::get_logger("reach_core.reach_database");
 }
 
 reach_msgs::msg::ReachRecord makeRecord(
-    const std::string &id, const bool reached,
-    const geometry_msgs::msg::Pose &goal,
-    const sensor_msgs::msg::JointState &seed_state,
-    const sensor_msgs::msg::JointState &goal_state, const double score,
-    const std::string &ik_solver_name, const std::vector<double> &waypoints,
-    const std::vector<double> &trajectory, double retrieved_fraction) {
+    const std::string& id, const bool reached,
+    const geometry_msgs::msg::Pose& goal,
+    const sensor_msgs::msg::JointState& seed_state,
+    const sensor_msgs::msg::JointState& goal_state, const double score,
+    const std::string& ik_solver_name, const std::vector<double>& waypoints,
+    const std::vector<double>& trajectory, double retrieved_fraction) {
   reach_msgs::msg::ReachRecord r;
   r.id = id;
   r.goal = goal;
@@ -67,7 +67,7 @@ reach_msgs::msg::ReachRecord makeRecord(
 }
 
 std::map<std::string, double> jointStateMsgToMap(
-    const sensor_msgs::msg::JointState &state) {
+    const sensor_msgs::msg::JointState& state) {
   std::map<std::string, double> out;
   for (std::size_t i = 0; i < state.name.size(); ++i) {
     out.emplace(state.name[i], state.position[i]);
@@ -76,8 +76,8 @@ std::map<std::string, double> jointStateMsgToMap(
 }
 
 std::vector<std::map<std::string, double>> jointStateArrayToArrayOfMaps(
-    const std::vector<double> &trajectory,
-    const std::vector<std::string> &names) {
+    const std::vector<double>& trajectory,
+    const std::vector<std::string>& names) {
   std::vector<std::map<std::string, double>> out;
   if (trajectory.size() % names.size() != 0) {
     RCLCPP_ERROR(LOGGER, "Can't convert trajectory!");
@@ -95,7 +95,7 @@ std::vector<std::map<std::string, double>> jointStateArrayToArrayOfMaps(
   return out;
 }
 
-void ReachDatabase::save(const std::string &filename) const {
+void ReachDatabase::save(const std::string& filename) const {
   std::lock_guard<std::mutex> lock{mutex_};
   reach_msgs::msg::ReachDatabase msg = toReachDatabase(map_, results_);
 
@@ -104,7 +104,7 @@ void ReachDatabase::save(const std::string &filename) const {
   }
 }
 
-bool ReachDatabase::load(const std::string &filename) {
+bool ReachDatabase::load(const std::string& filename) {
   reach_msgs::msg::ReachDatabase msg;
   if (!reach::utils::fromFile(filename, msg)) {
     RCLCPP_ERROR(LOGGER, "Unable to serialize from file '%s'!",
@@ -113,7 +113,7 @@ bool ReachDatabase::load(const std::string &filename) {
   }
   std::lock_guard<std::mutex> lock{mutex_};
 
-  for (const auto &r : msg.records) {
+  for (const auto& r : msg.records) {
     putHelper(r);
     results_.reach_percentage = msg.reach_percentage;
     results_.total_pose_score = msg.total_pose_score;
@@ -125,7 +125,7 @@ bool ReachDatabase::load(const std::string &filename) {
 }
 
 std::optional<reach_msgs::msg::ReachRecord> ReachDatabase::get(
-    const std::string &id) const {
+    const std::string& id) const {
   std::lock_guard<std::mutex> lock{mutex_};
   auto it = map_.find(id);
   if (it != map_.end()) {
@@ -135,12 +135,12 @@ std::optional<reach_msgs::msg::ReachRecord> ReachDatabase::get(
   }
 }
 
-void ReachDatabase::put(const reach_msgs::msg::ReachRecord &record) {
+void ReachDatabase::put(const reach_msgs::msg::ReachRecord& record) {
   std::lock_guard<std::mutex> lock{mutex_};
   return putHelper(record);
 }
 
-void ReachDatabase::putHelper(const reach_msgs::msg::ReachRecord &record) {
+void ReachDatabase::putHelper(const reach_msgs::msg::ReachRecord& record) {
   map_[record.id] = record;
 }
 
