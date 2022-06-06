@@ -44,6 +44,7 @@ namespace ik {
 
 class PlannerBasedIKSolver : public MoveItIKSolver {
  public:
+  // https://github.com/ros-planning/moveit_task_constructor/blob/60229db010ea305296bc1c90d04faa3e4dacd976/core/include/moveit/task_constructor/solvers/pipeline_planner.h#L58-L64
   struct PlanningSpecs {
     moveit::core::RobotModelConstPtr _robot_model;
     std::string _namespace{"ompl"};
@@ -72,6 +73,7 @@ class PlannerBasedIKSolver : public MoveItIKSolver {
       double& fraction) override;
 
  protected:
+  // https://github.com/ros-planning/moveit_task_constructor/blob/60229db010ea305296bc1c90d04faa3e4dacd976/core/include/moveit/task_constructor/solvers/pipeline_planner.h#L66-L72
   static planning_pipeline::PlanningPipelinePtr create(
       const rclcpp::Node::SharedPtr& node,
       const moveit::core::RobotModelConstPtr& model) {
@@ -82,11 +84,25 @@ class PlannerBasedIKSolver : public MoveItIKSolver {
 
   static planning_pipeline::PlanningPipelinePtr create(
       const rclcpp::Node::SharedPtr& node, const PlanningSpecs& spec);
+
   // distance to retrieve from ik solution in [m]
   double retrieval_path_length_;
   double jump_threshold_;
   double max_eef_step_;
   std::string tool_frame_;
+
+  bool display_motion_plans_;
+  bool publish_planning_requests_;
+  uint num_planning_attempts_;
+  double max_velocity_scaling_factor_;
+  double max_acceleration_scaling_factor_;
+  moveit_msgs::msg::WorkspaceParameters workspace_parameter_;
+  // planner id
+  std::string planner_id_;
+  double goal_joint_tolerance_;
+  double goal_position_tolerance_;
+  double goal_orientation_tolerance_;
+  double allowed_planning_time_;
 
   std::string pipeline_name_;
   planning_pipeline::PlanningPipelinePtr planner_;

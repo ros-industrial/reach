@@ -123,9 +123,9 @@ bool ReachStudy::initializeStudy(const StudyParameters &sp) {
     std::filesystem::path path(char_dir);
     std::filesystem::create_directory(path);
   }
-  if (sp_.keep_running){
-        // sleep to visualize collision object
-      std::this_thread::sleep_for(std::chrono::seconds(5));
+  if (sp_.keep_running) {
+    // sleep to visualize collision object
+    std::this_thread::sleep_for(std::chrono::seconds(5));
   }
   display_->showEnvironment();
 
@@ -352,11 +352,11 @@ void ReachStudy::runInitialReachStudy() {
     // Get the seed position
     sensor_msgs::msg::JointState seed_state;
     seed_state.name = ik_solver_->getJointNames();
-    //    if (seed_state.name.size() != sp_.initial_seed_state.size()) {
-    seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
-    //    } else {
-    //      seed_state.position = sp_.initial_seed_state;
-    //    }
+    if (seed_state.name.size() != sp_.initial_seed_state.size()) {
+      seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
+    } else {
+      seed_state.position = sp_.initial_seed_state;
+    }
 
     // Solve IK
     std::vector<double> solution;
