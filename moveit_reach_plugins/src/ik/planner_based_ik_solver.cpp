@@ -145,10 +145,10 @@ bool PlannerBasedIKSolver::initialize(
 
     // TODO(livanov93) see if this can go to get_parameter_or with default blank
     // string
-    if (!node->get_parameter("ik_solver_config.planner", planner_id_)) {
+    if (!node->get_parameter("ik_solver_config.planner_id", planner_id_)) {
       RCLCPP_ERROR(LOGGER,
                    "No parameter defined by the name "
-                   "'ik_solver_config.planner' ");
+                   "'ik_solver_config.planner_id' ");
       return false;
     }
     if (!node->get_parameter("ik_solver_config.allowed_planning_time",
