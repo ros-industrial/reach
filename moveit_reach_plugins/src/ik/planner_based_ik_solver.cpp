@@ -44,8 +44,7 @@ bool PlannerBasedIKSolver::initialize(
     const std::shared_ptr<const moveit::core::RobotModel> model) {
   // initialize base class
   if (!MoveItIKSolver::initialize(name, node, model)) {
-    RCLCPP_ERROR(LOGGER,
-                 "Failed to initialize PlannerBasedIKSolver plugin");
+    RCLCPP_ERROR(LOGGER, "Failed to initialize PlannerBasedIKSolver plugin");
     return false;
   }
 
@@ -87,8 +86,7 @@ bool PlannerBasedIKSolver::initialize(
   }
 
   // output message about successful initialization
-  RCLCPP_INFO(LOGGER,
-              "Successfully initialized PlannerBasedIKSolver plugin");
+  RCLCPP_INFO(LOGGER, "Successfully initialized PlannerBasedIKSolver plugin");
   return true;
 }
 

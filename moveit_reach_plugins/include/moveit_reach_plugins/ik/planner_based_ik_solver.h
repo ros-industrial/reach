@@ -29,10 +29,9 @@
 #include <moveit_msgs/msg/planning_scene.hpp>
 
 // cartesian interpolator include
-#include <moveit/robot_state/cartesian_interpolator.h>
-
-#include <moveit_msgs/msg/constraints.hpp>
 #include <moveit/planning_pipeline/planning_pipeline.h>
+#include <moveit/robot_state/cartesian_interpolator.h>
+#include <moveit_msgs/msg/constraints.hpp>
 
 namespace planning_scene {
 class PlanningScene;
@@ -45,14 +44,14 @@ namespace ik {
 
 class PlannerBasedIKSolver : public MoveItIKSolver {
  public:
+  struct PlanningSpecs {
+    moveit::core::RobotModelConstPtr _robot_model;
+    std::string _namespace{"ompl"};
+    std::string _planning_pipeline{"ompl"};
+    std::string _planning_adapter_param{"request_adapters"};
+  };
 
-    struct PlanningSpecs{ moveit::core::RobotModelConstPtr _robot_model;
-        std::string _namespace{ "ompl" };
-        std::string _planning_pipeline{ "ompl" };
-        std::string _planning_adapter_param{ "request_adapters" };
-    };
-
-    PlannerBasedIKSolver();
+  PlannerBasedIKSolver();
 
   ~PlannerBasedIKSolver() {
     eval_.reset();
@@ -73,23 +72,24 @@ class PlannerBasedIKSolver : public MoveItIKSolver {
       double& fraction) override;
 
  protected:
+  static planning_pipeline::PlanningPipelinePtr create(
+      const rclcpp::Node::SharedPtr& node,
+      const moveit::core::RobotModelConstPtr& model) {
+    PlanningSpecs spec;
+    spec._robot_model = model;
+    return create(node, spec);
+  }
 
-    static planning_pipeline::PlanningPipelinePtr create(const rclcpp::Node::SharedPtr& node,
-                                                         const moveit::core::RobotModelConstPtr& model) {
-        PlanningSpecs spec;
-        spec._robot_model = model;
-        return create(node, spec);
-    }
-
-    static planning_pipeline::PlanningPipelinePtr create(const rclcpp::Node::SharedPtr& node, const PlanningSpecs& spec);
+  static planning_pipeline::PlanningPipelinePtr create(
+      const rclcpp::Node::SharedPtr& node, const PlanningSpecs& spec);
   // distance to retrieve from ik solution in [m]
   double retrieval_path_length_;
   double jump_threshold_;
   double max_eef_step_;
   std::string tool_frame_;
 
-    std::string pipeline_name_;
-    planning_pipeline::PlanningPipelinePtr planner_;
+  std::string pipeline_name_;
+  planning_pipeline::PlanningPipelinePtr planner_;
 };
 
 }  // namespace ik
