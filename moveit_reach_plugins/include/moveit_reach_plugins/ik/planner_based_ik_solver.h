@@ -26,8 +26,8 @@
 #include <reach_core/plugins/evaluation_base.h>
 
 // PlanningScene
+#include <moveit_msgs/msg/display_robot_state.hpp>
 #include <moveit_msgs/msg/planning_scene.hpp>
-
 // cartesian interpolator include
 #include <moveit/planning_pipeline/planning_pipeline.h>
 #include <moveit/robot_state/cartesian_interpolator.h>
@@ -103,11 +103,16 @@ class PlannerBasedIKSolver : public MoveItIKSolver {
   double goal_position_tolerance_;
   double goal_orientation_tolerance_;
   double allowed_planning_time_;
+  std::string poses_frame_id_;
 
   std::string pipeline_name_;
   planning_pipeline::PlanningPipelinePtr planner_;
 
   planning_scene::PlanningScenePtr planning_scene_;
+
+ protected:
+  rclcpp::Publisher<moveit_msgs::msg::DisplayRobotState>::SharedPtr
+      robot_start_state_pub_;
 };
 
 }  // namespace ik

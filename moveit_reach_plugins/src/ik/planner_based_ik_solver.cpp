@@ -25,6 +25,7 @@
 #include <algorithm>
 
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/robot_state/conversions.h>
 #include <reach_core/utils/general_utils.h>
 
 namespace {
@@ -48,28 +49,6 @@ bool PlannerBasedIKSolver::initialize(
   if (!MoveItIKSolver::initialize(name, node, model)) {
     RCLCPP_ERROR(LOGGER, "Failed to initialize PlannerBasedIKSolver plugin");
     return false;
-  }
-
-  planning_scene_ = std::make_shared<planning_scene::PlanningScene>(model_);
-
-  // Check that the input collision mesh frame exists
-  if (!planning_scene_->knowsFrameTransform(collision_mesh_frame_)) {
-    RCLCPP_ERROR_STREAM(LOGGER, "Specified collision mesh frame '"
-                                    << collision_mesh_frame_
-                                    << "' does not exist");
-    return false;
-  }
-
-  // Add the collision object to the planning scene
-  const std::string object_name = "reach_object";
-  moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(
-      collision_mesh_package_, collision_mesh_frame_, object_name);
-  if (!planning_scene_->processCollisionObjectMsg(obj)) {
-    RCLCPP_ERROR(LOGGER, "Failed to add collision mesh to planning scene");
-    return false;
-  } else {
-    planning_scene_->getAllowedCollisionMatrixNonConst().setEntry(
-        object_name, touch_links_, true);
   }
 
   // get parameters for cartesian path computation
@@ -180,6 +159,13 @@ bool PlannerBasedIKSolver::initialize(
                    "'ik_solver_config.allowed_planning_time' ");
       return false;
     }
+    if (!node->get_parameter("ik_solver_config.poses_frame_id",
+                             poses_frame_id_)) {
+      RCLCPP_ERROR(LOGGER,
+                   "No parameter defined by the name "
+                   "'ik_solver_config.poses_frame_id' ");
+      return false;
+    }
 
     node->get_parameter_or("ik_solver_config.goal_joint_tolerance",
                            goal_joint_tolerance_, 1e-4);
@@ -190,10 +176,37 @@ bool PlannerBasedIKSolver::initialize(
 
     workspace_parameter_ = moveit_msgs::msg::WorkspaceParameters();
 
+    // additional planning scene for planner
+    planning_scene_ = std::make_shared<planning_scene::PlanningScene>(model_);
+
+    // Check that the input collision mesh frame exists
+    if (!planning_scene_->knowsFrameTransform(collision_mesh_frame_)) {
+      RCLCPP_ERROR_STREAM(LOGGER, "Specified collision mesh frame '"
+                                      << collision_mesh_frame_
+                                      << "' does not exist");
+      return false;
+    }
+
+    // Add the collision object to the planning scene
+    const std::string object_name = "reach_object";
+    moveit_msgs::msg::CollisionObject obj = utils::createCollisionObject(
+        collision_mesh_package_, collision_mesh_frame_, object_name);
+    if (!planning_scene_->processCollisionObjectMsg(obj)) {
+      RCLCPP_ERROR(LOGGER, "Failed to add collision mesh to planning scene");
+      return false;
+    } else {
+      planning_scene_->getAllowedCollisionMatrixNonConst().setEntry(
+          object_name, touch_links_, true);
+    }
+
   } catch (const std::exception& ex) {
     RCLCPP_ERROR_STREAM(LOGGER, ex.what());
     return false;
   }
+
+  robot_start_state_pub_ =
+      node->create_publisher<moveit_msgs::msg::DisplayRobotState>(
+          "planner_based_ik_solver_start_state", 1);
 
   // output message about successful initialization
   RCLCPP_INFO(LOGGER, "Successfully initialized PlannerBasedIKSolver plugin");
@@ -295,27 +308,30 @@ std::optional<double> PlannerBasedIKSolver::solveIKFromSeed(
   req.group_name = jmg_->getName();
   req.planner_id = planner_id_;
   req.allowed_planning_time = allowed_planning_time_;
-  req.start_state.is_diff = true;  // we don't specify an extra start state
+
+  moveit::core::robotStateToRobotStateMsg(seed_state, req.start_state);
+
+  // publish robot start state
+  moveit_msgs::msg::DisplayRobotState robot_start_state_msg;
+  robot_start_state_msg.state = req.start_state;
+  robot_start_state_pub_->publish(robot_start_state_msg);
+
   req.num_planning_attempts = num_planning_attempts_;
   req.max_velocity_scaling_factor = max_velocity_scaling_factor_;
   req.max_acceleration_scaling_factor = max_acceleration_scaling_factor_;
   req.workspace_parameters = workspace_parameter_;
 
   req.goal_constraints.resize(1);
-  //  req.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
-  //      state, jmg_, goal_joint_tolerance_);
-
   geometry_msgs::msg::PoseStamped pose_to_plan;
-  pose_to_plan.header.frame_id = "harvester_base_link";
+  pose_to_plan.header.frame_id = poses_frame_id_;
   pose_to_plan.pose = tf2::toMsg(target);
   req.goal_constraints[0] = kinematic_constraints::constructGoalConstraints(
       tool_frame_, pose_to_plan, goal_position_tolerance_,
       goal_orientation_tolerance_);
 
-  //      req.path_constraints = path_constraints;
-  // make sure start state is the same as seed state
-  planning_scene_->setCurrentState(seed_state);
+  moveit_msgs::msg::PlanningScene ps;
   ::planning_interface::MotionPlanResponse res;
+
   bool success = planner_->generatePlan(planning_scene_, req, res);
 
   if (success) {

@@ -177,7 +177,9 @@ bool ReachStudy::run(const StudyParameters& sp) {
       db_->printResults();
       visualizer_->update();
       // check if we don't have to optimize
-      if (sp.run_initial_study_only) {
+      if (sp.run_initial_study_only ||
+          (sp.ik_solver_config_name ==
+           "moveit_reach_plugins/ik/PlannerBasedIKSolver")) {
         done_pub_->publish(std_msgs::msg::Empty());
         while (rclcpp::ok() && sp_.keep_running) {
           // keep it running
@@ -197,7 +199,14 @@ bool ReachStudy::run(const StudyParameters& sp) {
       visualizer_->update();
 
       // check if we don't have to optimize
-      if (sp.run_initial_study_only) {
+      // TODO(livanov93): don't optimize if planner based solver is used because
+      //  it then changes start state of planning which is not the idea, ideally
+      //  when new type of plugin is created motion generation will be option
+      //  that is doable on existing databases created by other ik solvers and
+      //  optimization procedures - ugly but...
+      if (sp.run_initial_study_only ||
+          (sp.ik_solver_config_name ==
+           "moveit_reach_plugins/ik/PlannerBasedIKSolver")) {
         done_pub_->publish(std_msgs::msg::Empty());
         while (rclcpp::ok() && sp_.keep_running) {
           // keep it running
@@ -229,6 +238,9 @@ bool ReachStudy::run(const StudyParameters& sp) {
     RCLCPP_INFO(LOGGER, "--------------------------------------------------");
     RCLCPP_INFO(LOGGER, "Optimized reach study database successfully loaded");
     RCLCPP_INFO(LOGGER, "--------------------------------------------------");
+
+    // TODO(livanov93): add here run of planning based plugin - add new type of
+    //  plugin
 
     db_->printResults();
     visualizer_->update();
@@ -340,62 +352,126 @@ void ReachStudy::runInitialReachStudy() {
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-  //#pragma omp parallel for
-  for (int i = 0; i < cloud_size; ++i) {
-    // Get pose from point cloud array
-    const pcl::PointNormal& pt = cloud_->points[i];
-    Eigen::Isometry3d tgt_frame;
-    tgt_frame =
-        utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
-    tgt_frame = tgt_frame * tool_z_rot;
+  if (sp_.ik_solver_config_name !=
+      "moveit_reach_plugins/ik/PlannerBasedIKSolver") {
+#pragma omp parallel for
+    for (int i = 0; i < cloud_size; ++i) {
+      // Get pose from point cloud array
+      const pcl::PointNormal& pt = cloud_->points[i];
+      Eigen::Isometry3d tgt_frame;
+      tgt_frame =
+          utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
+      tgt_frame = tgt_frame * tool_z_rot;
 
-    // Get the seed position
-    sensor_msgs::msg::JointState seed_state;
-    seed_state.name = ik_solver_->getJointNames();
-    if (seed_state.name.size() != sp_.initial_seed_state.size()) {
-      seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
-    } else {
-      seed_state.position = sp_.initial_seed_state;
+      // Get the seed position
+      sensor_msgs::msg::JointState seed_state;
+      seed_state.name = ik_solver_->getJointNames();
+      if (seed_state.name.size() != sp_.initial_seed_state.size()) {
+        seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
+      } else {
+        seed_state.position = sp_.initial_seed_state;
+      }
+
+      // Solve IK
+      std::vector<double> solution;
+      std::vector<double> cartesian_space_waypoints;
+      std::vector<double> joint_space_trajectory;
+      double fraction;
+      std::optional<double> score = ik_solver_->solveIKFromSeed(
+          tgt_frame, jointStateMsgToMap(seed_state), solution,
+          joint_space_trajectory, cartesian_space_waypoints, fraction);
+
+      // Create objects to save in the reach record
+      geometry_msgs::msg::Pose tgt_pose;
+      tgt_pose = tf2::toMsg(tgt_frame);
+
+      sensor_msgs::msg::JointState goal_state(seed_state);
+
+      if (score) {
+        geometry_msgs::msg::PoseStamped tgt_pose_stamped;
+        tgt_pose_stamped.pose = tgt_pose;
+        tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
+
+        // fill the goal state
+        goal_state.position = solution;
+
+        auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
+                              goal_state, *score, sp_.ik_solver_config_name,
+                              cartesian_space_waypoints, joint_space_trajectory,
+                              fraction);
+        db_->put(msg);
+      } else {
+        auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,
+                              goal_state, 0.0, sp_.ik_solver_config_name, {},
+                              {}, fraction);
+        db_->put(msg);
+      }
+
+      // Print function progress
+      current_counter++;
+      utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
     }
+  } else {
+    // if planner based ik solver is used don't use omp
+    // TODO(livanov93): this is ugly - find other way, potentially create
+    //  another type of plugin which will do motion generation on existing
+    //  databases created by other ik solvers
+    for (int i = 0; i < cloud_size; ++i) {
+      // Get pose from point cloud array
+      const pcl::PointNormal& pt = cloud_->points[i];
+      Eigen::Isometry3d tgt_frame;
+      tgt_frame =
+          utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
+      tgt_frame = tgt_frame * tool_z_rot;
 
-    // Solve IK
-    std::vector<double> solution;
-    std::vector<double> cartesian_space_waypoints;
-    std::vector<double> joint_space_trajectory;
-    double fraction;
-    std::optional<double> score = ik_solver_->solveIKFromSeed(
-        tgt_frame, jointStateMsgToMap(seed_state), solution,
-        joint_space_trajectory, cartesian_space_waypoints, fraction);
+      // Get the seed position
+      sensor_msgs::msg::JointState seed_state;
+      seed_state.name = ik_solver_->getJointNames();
+      if (seed_state.name.size() != sp_.initial_seed_state.size()) {
+        seed_state.position = std::vector<double>(seed_state.name.size(), 0.0);
+      } else {
+        seed_state.position = sp_.initial_seed_state;
+      }
 
-    // Create objects to save in the reach record
-    geometry_msgs::msg::Pose tgt_pose;
-    tgt_pose = tf2::toMsg(tgt_frame);
+      // Solve IK
+      std::vector<double> solution;
+      std::vector<double> cartesian_space_waypoints;
+      std::vector<double> joint_space_trajectory;
+      double fraction;
+      std::optional<double> score = ik_solver_->solveIKFromSeed(
+          tgt_frame, jointStateMsgToMap(seed_state), solution,
+          joint_space_trajectory, cartesian_space_waypoints, fraction);
 
-    sensor_msgs::msg::JointState goal_state(seed_state);
+      // Create objects to save in the reach record
+      geometry_msgs::msg::Pose tgt_pose;
+      tgt_pose = tf2::toMsg(tgt_frame);
 
-    if (score) {
-      geometry_msgs::msg::PoseStamped tgt_pose_stamped;
-      tgt_pose_stamped.pose = tgt_pose;
-      tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
+      sensor_msgs::msg::JointState goal_state(seed_state);
 
-      // fill the goal state
-      goal_state.position = solution;
+      if (score) {
+        geometry_msgs::msg::PoseStamped tgt_pose_stamped;
+        tgt_pose_stamped.pose = tgt_pose;
+        tgt_pose_stamped.header.frame_id = cloud_msg_.header.frame_id;
 
-      auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
-                            goal_state, *score, sp_.ik_solver_config_name,
-                            cartesian_space_waypoints, joint_space_trajectory,
-                            fraction);
-      db_->put(msg);
-    } else {
-      auto msg =
-          makeRecord(std::to_string(i), false, tgt_pose, seed_state, goal_state,
-                     0.0, sp_.ik_solver_config_name, {}, {}, fraction);
-      db_->put(msg);
+        // fill the goal state
+        goal_state.position = solution;
+
+        auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
+                              goal_state, *score, sp_.ik_solver_config_name,
+                              cartesian_space_waypoints, joint_space_trajectory,
+                              fraction);
+        db_->put(msg);
+      } else {
+        auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,
+                              goal_state, 0.0, sp_.ik_solver_config_name, {},
+                              {}, fraction);
+        db_->put(msg);
+      }
+
+      // Print function progress
+      current_counter++;
+      utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
     }
-
-    // Print function progress
-    current_counter++;
-    utils::integerProgressPrinter(current_counter, previous_pct, cloud_size);
   }
 
   // Save the results of the reach study to a database that we can query later
