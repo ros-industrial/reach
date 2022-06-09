@@ -1,0 +1,27 @@
+name: Focal Noetic
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: '0 5 * * *'
+
+jobs:
+  focal_noetic:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: 'ros-industrial/industrial_ci@master'
+        env:
+          CI_NAME: focal
+          OS_NAME: ubuntu
+          OS_CODE_NAME: focal
+          ROS_DISTRO: noetic
+          ROS_REPO: main
+          DOCKER_IMAGE: ros:noetic

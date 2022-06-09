@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,12 +24,8 @@ namespace reach
 {
 namespace utils
 {
-
-visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r,
-                                      const std::string& frame,
-                                      const double scale,
-                                      const std::string& ns,
-                                      const boost::optional<std::vector<float>>& color)
+visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const std::string& frame, const double scale,
+                                      const std::string& ns, const boost::optional<std::vector<float>>& color)
 {
   static int idx = 0;
 
@@ -46,8 +42,8 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r,
 
   // Transform arrow such that arrow x-axis points along goal pose z-axis (Rviz convention)
   // convert msg parameter goal to Eigen matrix
-  Eigen::AngleAxisd rot_flip_normal (M_PI, Eigen::Vector3d::UnitX());
-  Eigen::AngleAxisd rot_x_to_z (-M_PI / 2, Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd rot_flip_normal(M_PI, Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd rot_x_to_z(-M_PI / 2, Eigen::Vector3d::UnitY());
 
   // Transform
   goal_eigen = goal_eigen * rot_flip_normal * rot_x_to_z;
@@ -61,7 +57,7 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r,
   marker.scale.y = scale / ARROW_SCALE_RATIO;
   marker.scale.z = scale / ARROW_SCALE_RATIO;
 
-  if(color)
+  if (color)
   {
     std::vector<float> color_vec = *color;
     marker.color.r = color_vec[0];
@@ -71,7 +67,7 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r,
   }
   else
   {
-    marker.color.a = 1.0; // Don't forget to set the alpha!
+    marker.color.a = 1.0;  // Don't forget to set the alpha!
 
     if (r.reached)
     {
@@ -90,8 +86,7 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r,
   return marker;
 }
 
-visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::ReachRecord& r,
-                                                            const std::string& frame,
+visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::ReachRecord& r, const std::string& frame,
                                                             const double scale)
 {
   visualization_msgs::InteractiveMarker m;
@@ -111,10 +106,8 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::Re
   return m;
 }
 
-visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts,
-                                      const std::string& frame,
-                                      const double scale,
-                                      const std::string& ns)
+visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts, const std::string& frame,
+                                      const double scale, const std::string& ns)
 {
   visualization_msgs::Marker marker;
   marker.header.frame_id = frame;
@@ -125,12 +118,12 @@ visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& p
 
   marker.scale.x = marker.scale.y = marker.scale.z = scale / NEIGHBOR_MARKER_SCALE_RATIO;
 
-  marker.color.a = 1.0; // Don't forget to set the alpha!
+  marker.color.a = 1.0;  // Don't forget to set the alpha!
   marker.color.r = 0;
   marker.color.g = 1.0;
   marker.color.b = 0;
 
-  for(std::size_t i = 0; i < pts.size(); ++i)
+  for (std::size_t i = 0; i < pts.size(); ++i)
   {
     marker.points.push_back(pts[i]);
   }
@@ -156,6 +149,5 @@ double getMajorLength(pcl::PointCloud<pcl::PointNormal>::Ptr cloud)
   return *(std::max_element(lengths.begin(), lengths.end()));
 }
 
-} // namespace utils
-} // namespace reach
-
+}  // namespace utils
+}  // namespace reach

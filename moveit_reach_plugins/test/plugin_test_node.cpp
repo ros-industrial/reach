@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,17 +19,15 @@
 #include <reach_core/plugins/ik_solver_base.h>
 #include <xmlrpcpp/XmlRpcException.h>
 
-template<typename T>
-bool loadPlugin(XmlRpc::XmlRpcValue& config,
-                pluginlib::ClassLoader<T>& loader,
-                boost::shared_ptr<T>& plugin)
+template <typename T>
+bool loadPlugin(XmlRpc::XmlRpcValue& config, pluginlib::ClassLoader<T>& loader, boost::shared_ptr<T>& plugin)
 {
   std::string plugin_name;
   try
   {
     plugin_name = std::string(config["name"]);
   }
-  catch(const XmlRpc::XmlRpcException& ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
     ROS_ERROR_STREAM(ex.getMessage());
     return false;
@@ -39,13 +37,13 @@ bool loadPlugin(XmlRpc::XmlRpcValue& config,
   {
     plugin = loader.createInstance(plugin_name);
   }
-  catch(const pluginlib::ClassLoaderException& ex)
+  catch (const pluginlib::ClassLoaderException& ex)
   {
     ROS_ERROR_STREAM(ex.what());
     return false;
   }
 
-  if(!plugin->initialize(config))
+  if (!plugin->initialize(config))
   {
     ROS_ERROR_STREAM("Failed to initialize plugin");
     return false;
@@ -54,21 +52,21 @@ bool loadPlugin(XmlRpc::XmlRpcValue& config,
   return true;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "plugin_test_node");
   ros::NodeHandle pnh("~");
 
   XmlRpc::XmlRpcValue display_config;
-  if(!pnh.getParam("reach_display", display_config))
+  if (!pnh.getParam("reach_display", display_config))
   {
     ROS_ERROR_STREAM("Failed to get 'display_config' parameter");
     return -1;
   }
 
   reach::plugins::DisplayBasePtr display_plugin;
-  pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader ("reach_core", "reach::plugins::DisplayBase");
-  if(!loadPlugin<reach::plugins::DisplayBase>(display_config, display_loader, display_plugin))
+  pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader("reach_core", "reach::plugins::DisplayBase");
+  if (!loadPlugin<reach::plugins::DisplayBase>(display_config, display_loader, display_plugin))
   {
     ROS_ERROR("Failed to load reach display plugin");
     return -1;
@@ -76,15 +74,15 @@ int main(int argc, char **argv)
   display_plugin->showEnvironment();
 
   XmlRpc::XmlRpcValue ik_solver_config;
-  if(!pnh.getParam("ik_solver", ik_solver_config))
+  if (!pnh.getParam("ik_solver", ik_solver_config))
   {
     ROS_ERROR_STREAM("Failed to get 'ik_solver' parameter");
     return -1;
   }
 
   reach::plugins::IKSolverBasePtr ik_solver_plugin;
-  pluginlib::ClassLoader<reach::plugins::IKSolverBase> ik_solver_loader ("reach_core", "reach::plugins::IKSolverBase");
-  if(!loadPlugin<reach::plugins::IKSolverBase>(ik_solver_config, ik_solver_loader, ik_solver_plugin))
+  pluginlib::ClassLoader<reach::plugins::IKSolverBase> ik_solver_loader("reach_core", "reach::plugins::IKSolverBase");
+  if (!loadPlugin<reach::plugins::IKSolverBase>(ik_solver_config, ik_solver_loader, ik_solver_plugin))
   {
     ROS_ERROR("Failed to load IK solver plugin");
     return -1;

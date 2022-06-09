@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,10 +26,8 @@ namespace reach
 {
 namespace utils
 {
-
 template <class T>
-bool toFile(const std::string& path,
-            const T& msg)
+bool toFile(const std::string& path, const T& msg)
 {
   namespace ser = ros::serialization;
   uint32_t serialize_size = ser::serializationLength(msg);
@@ -51,8 +49,7 @@ bool toFile(const std::string& path,
 }
 
 template <class T>
-bool fromFile(const std::string& path,
-              T& msg)
+bool fromFile(const std::string& path, T& msg)
 {
   namespace ser = ros::serialization;
 
@@ -76,7 +73,7 @@ bool fromFile(const std::string& path,
   return true;
 }
 
-} // namespace utils
-} // namespace reach
+}  // namespace utils
+}  // namespace reach
 
-#endif // REACH_UTILS_DATABASE_UTILS_H
+#endif  // REACH_UTILS_DATABASE_UTILS_H

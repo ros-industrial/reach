@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,6 @@ namespace reach
 {
 namespace core
 {
-
 /**
  * @brief makeRecord
  * @param id
@@ -37,11 +36,8 @@ namespace core
  * @param score
  * @return
  */
-reach_msgs::ReachRecord makeRecord(const std::string &id,
-                                   const bool reached,
-                                   const geometry_msgs::Pose &goal,
-                                   const sensor_msgs::JointState& seed_state,
-                                   const sensor_msgs::JointState& goal_state,
+reach_msgs::ReachRecord makeRecord(const std::string& id, const bool reached, const geometry_msgs::Pose& goal,
+                                   const sensor_msgs::JointState& seed_state, const sensor_msgs::JointState& goal_state,
                                    const double score);
 
 /**
@@ -52,22 +48,22 @@ reach_msgs::ReachRecord makeRecord(const std::string &id,
 std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState& state);
 
 /**
- * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database also saves
- * several key meta-results of the reach study:
+ * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database
+ * also saves several key meta-results of the reach study:
  *  - reach_percentage: the percentage of all attempted poses that were reachable
- *  - avg_score: the average pose score for all reachable points (only significant relative to the score of a different reach study)
+ *  - avg_score: the average pose score for all reachable points (only significant relative to the score of a different
+ * reach study)
  *  - norm_avg_score: average pose score divided by the reach percentage
- *  - avg_neighbors: average number of reachable neighbors from any given reachable pose (correlated with the size of the robot's work
- *    area from a given pose, assuming the poses on the reach object are evenly distributed)
- *  - avg_joint_distance: average joint distance required to travel to all of any given pose's reachable neighbors (indicative of the
- *    robot's ease of movement or "efficiency" moving from one pose to a neighboring pose
+ *  - avg_neighbors: average number of reachable neighbors from any given reachable pose (correlated with the size of
+ * the robot's work area from a given pose, assuming the poses on the reach object are evenly distributed)
+ *  - avg_joint_distance: average joint distance required to travel to all of any given pose's reachable neighbors
+ * (indicative of the robot's ease of movement or "efficiency" moving from one pose to a neighboring pose
  */
 class ReachDatabase
 {
   using iterator = std::unordered_map<std::string, reach_msgs::ReachRecord>::iterator;
 
 public:
-
   /**
     @brief Default class constructor
    */
@@ -128,13 +124,19 @@ public:
    * @brief setAverageNeighborsCount
    * @param n
    */
-  void setAverageNeighborsCount(const float n) {results_.avg_num_neighbors = n;}
+  void setAverageNeighborsCount(const float n)
+  {
+    results_.avg_num_neighbors = n;
+  }
 
   /**
    * @brief setAverageJointDistance
    * @param n
    */
-  void setAverageJointDistance(const float n) {results_.avg_joint_distance = n;}
+  void setAverageJointDistance(const float n)
+  {
+    results_.avg_joint_distance = n;
+  }
 
   // For loops
   iterator begin()
@@ -150,7 +152,6 @@ public:
   reach_msgs::ReachDatabase toReachDatabaseMsg();
 
 private:
-
   void putHelper(const reach_msgs::ReachRecord& record);
 
   std::unordered_map<std::string, reach_msgs::ReachRecord> map_;
@@ -161,7 +162,7 @@ private:
 };
 typedef std::shared_ptr<ReachDatabase> ReachDatabasePtr;
 
-} // namespace core
-} // namespace reach
+}  // namespace core
+}  // namespace reach
 
-#endif // REACH_CORE_REACH_DATABASE_H
+#endif  // REACH_CORE_REACH_DATABASE_H

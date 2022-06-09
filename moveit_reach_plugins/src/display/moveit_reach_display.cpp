@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,20 +26,15 @@ namespace moveit_reach_plugins
 {
 namespace display
 {
-
-MoveItReachDisplay::MoveItReachDisplay()
-  : reach::plugins::DisplayBase()
+MoveItReachDisplay::MoveItReachDisplay() : reach::plugins::DisplayBase()
 {
-
 }
 
 bool MoveItReachDisplay::initialize(XmlRpc::XmlRpcValue& config)
 {
-  if(!config.hasMember("planning_group") ||
-     !config.hasMember("collision_mesh_filename") ||
-     !config.hasMember("collision_mesh_frame") ||
-     !config.hasMember("fixed_frame") ||
-     !config.hasMember("marker_scale"))
+  if (!config.hasMember("planning_group") || !config.hasMember("collision_mesh_filename") ||
+      !config.hasMember("collision_mesh_frame") || !config.hasMember("fixed_frame") ||
+      !config.hasMember("marker_scale"))
   {
     ROS_ERROR("MoveIt IK Solver Plugin is missing one or more configuration parameters");
     return false;
@@ -54,30 +49,30 @@ bool MoveItReachDisplay::initialize(XmlRpc::XmlRpcValue& config)
     fixed_frame_ = std::string(config["fixed_frame"]);
     marker_scale_ = double(config["marker_scale"]);
   }
-  catch(const XmlRpc::XmlRpcException& ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
     ROS_ERROR_STREAM(ex.getMessage());
     return false;
   }
 
   model_ = moveit::planning_interface::getSharedRobotModel("robot_description");
-  if(!model_)
+  if (!model_)
   {
     ROS_ERROR("Failed to initialize robot model pointer");
     return false;
   }
 
   jmg_ = model_->getJointModelGroup(planning_group);
-  if(!jmg_)
+  if (!jmg_)
   {
     ROS_ERROR_STREAM("Failed to get joint model group for '" << planning_group << "'");
     return false;
   }
 
-  scene_.reset(new planning_scene::PlanningScene (model_));
+  scene_.reset(new planning_scene::PlanningScene(model_));
 
   // Check that the input collision mesh frame exists
-  if(!scene_->knowsFrameTransform(collision_mesh_frame_))
+  if (!scene_->knowsFrameTransform(collision_mesh_frame_))
   {
     ROS_ERROR_STREAM("Specified collision mesh frame '" << collision_mesh_frame_ << "' does not exist");
     return false;
@@ -85,8 +80,9 @@ bool MoveItReachDisplay::initialize(XmlRpc::XmlRpcValue& config)
 
   // Add the collision object to the planning scene
   const std::string object_name = "reach_object";
-  moveit_msgs::CollisionObject obj = utils::createCollisionObject(collision_mesh_filename_, collision_mesh_frame_, object_name);
-  if(!scene_->processCollisionObjectMsg(obj))
+  moveit_msgs::CollisionObject obj =
+      utils::createCollisionObject(collision_mesh_filename_, collision_mesh_frame_, object_name);
+  if (!scene_->processCollisionObjectMsg(obj))
   {
     ROS_ERROR("Failed to add collision mesh to planning scene");
     return false;
@@ -109,7 +105,7 @@ void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& po
 {
   std::vector<std::string> joint_names = jmg_->getActiveJointModelNames();
   std::vector<double> joints;
-  if(utils::transcribeInputMap(pose, joint_names, joints))
+  if (utils::transcribeInputMap(pose, joint_names, joints))
   {
     moveit_msgs::PlanningScene scene_msg;
     scene_msg.is_diff = true;
@@ -124,8 +120,8 @@ void MoveItReachDisplay::updateRobotPose(const std::map<std::string, double>& po
   }
 }
 
-} // namespace display
-} // namespace moveit_reach_plugins
+}  // namespace display
+}  // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::display::MoveItReachDisplay, reach::plugins::DisplayBase)

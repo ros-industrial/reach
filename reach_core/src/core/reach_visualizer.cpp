@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,17 +22,10 @@ namespace reach
 {
 namespace core
 {
-
-ReachVisualizer::ReachVisualizer(ReachDatabasePtr db,
-                                 reach::plugins::IKSolverBasePtr solver,
-                                 reach::plugins::DisplayBasePtr display,
-                                 const double neighbor_radius,
+ReachVisualizer::ReachVisualizer(ReachDatabasePtr db, reach::plugins::IKSolverBasePtr solver,
+                                 reach::plugins::DisplayBasePtr display, const double neighbor_radius,
                                  SearchTreePtr search_tree)
-  : db_(db)
-  , solver_(solver)
-  , display_(display)
-  , search_tree_(search_tree)
-  , neighbor_radius_(neighbor_radius)
+  : db_(db), solver_(solver), display_(display), search_tree_(search_tree), neighbor_radius_(neighbor_radius)
 {
   // Create menu functions for the display and tie them to members of this class
   using CBType = interactive_markers::MenuHandler::FeedbackCallback;
@@ -59,15 +52,15 @@ void ReachVisualizer::update()
   display_->addInteractiveMarkerData(db_->toReachDatabaseMsg());
 }
 
-void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb)
 {
   boost::optional<reach_msgs::ReachRecord> lookup = db_->get(fb->marker_name);
-  if(lookup)
+  if (lookup)
   {
     const std::vector<double>& seed_pose = lookup->seed_state.position;
     const std::vector<std::string>& joint_names = lookup->seed_state.name;
     std::map<std::string, double> seed_map;
-    for(std::size_t i = 0; i < joint_names.size(); ++i)
+    for (std::size_t i = 0; i < joint_names.size(); ++i)
     {
       seed_map.emplace(joint_names[i], seed_pose[i]);
     }
@@ -80,7 +73,7 @@ void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFee
     boost::optional<double> score = solver_->solveIKFromSeed(target, seed_map, goal_pose);
 
     // Update the database if the IK solution was valid
-    if(score)
+    if (score)
     {
       ROS_INFO("Solution found for point");
 
@@ -106,7 +99,7 @@ void ReachVisualizer::reSolveIKCB(const visualization_msgs::InteractiveMarkerFee
   }
 }
 
-void ReachVisualizer::showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -119,7 +112,7 @@ void ReachVisualizer::showResultCB(const visualization_msgs::InteractiveMarkerFe
   }
 }
 
-void ReachVisualizer::showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb)
 {
   auto lookup = db_->get(fb->marker_name);
   if (lookup)
@@ -132,10 +125,10 @@ void ReachVisualizer::showSeedCB(const visualization_msgs::InteractiveMarkerFeed
   }
 }
 
-void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb)
 {
   auto lookup = db_->get(fb->marker_name);
-  if(lookup)
+  if (lookup)
   {
     NeighborReachResult result = reachNeighborsDirect(db_, *lookup, solver_, neighbor_radius_, search_tree_);
 
@@ -151,10 +144,10 @@ void ReachVisualizer::reachNeighborsDirectCB(const visualization_msgs::Interacti
   }
 }
 
-void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &fb)
+void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb)
 {
   auto lookup = db_->get(fb->marker_name);
-  if(lookup)
+  if (lookup)
   {
     NeighborReachResult result;
     reachNeighborsRecursive(db_, *lookup, solver_, neighbor_radius_, result, search_tree_);
@@ -171,5 +164,5 @@ void ReachVisualizer::reachNeighborsRecursiveCB(const visualization_msgs::Intera
   }
 }
 
-} // namespace core
-} // namespace reach
+}  // namespace core
+}  // namespace reach
