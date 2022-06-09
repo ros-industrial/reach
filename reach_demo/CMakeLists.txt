@@ -5,16 +5,20 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
-#############
-## Testing ##
-#############
+# ######################################################################################################################
+# Testing ##
+# ######################################################################################################################
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   add_rostest(test/demo.test)
 endif()
 
-#############
-## Install ##
-#############
-install(DIRECTORY config launch model results
+# ######################################################################################################################
+# Install ##
+# ######################################################################################################################
+install(
+  DIRECTORY config
+            launch
+            model
+            results
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
