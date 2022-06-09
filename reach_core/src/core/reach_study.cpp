@@ -376,10 +376,12 @@ void ReachStudy::runInitialReachStudy() {
       std::vector<double> solution;
       std::vector<double> cartesian_space_waypoints;
       std::vector<double> joint_space_trajectory;
+      moveit_msgs::msg::RobotTrajectory moveit_trajectory;
       double fraction;
       std::optional<double> score = ik_solver_->solveIKFromSeed(
           tgt_frame, jointStateMsgToMap(seed_state), solution,
-          joint_space_trajectory, cartesian_space_waypoints, fraction);
+          joint_space_trajectory, cartesian_space_waypoints, fraction,
+          moveit_trajectory);
 
       // Create objects to save in the reach record
       geometry_msgs::msg::Pose tgt_pose;
@@ -398,12 +400,12 @@ void ReachStudy::runInitialReachStudy() {
         auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
                               goal_state, *score, sp_.ik_solver_config_name,
                               cartesian_space_waypoints, joint_space_trajectory,
-                              fraction);
+                              fraction, moveit_trajectory);
         db_->put(msg);
       } else {
         auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,
                               goal_state, 0.0, sp_.ik_solver_config_name, {},
-                              {}, fraction);
+                              {}, fraction, moveit_trajectory);
         db_->put(msg);
       }
 
@@ -438,9 +440,11 @@ void ReachStudy::runInitialReachStudy() {
       std::vector<double> cartesian_space_waypoints;
       std::vector<double> joint_space_trajectory;
       double fraction;
+      moveit_msgs::msg::RobotTrajectory moveit_trajectory;
       std::optional<double> score = ik_solver_->solveIKFromSeed(
           tgt_frame, jointStateMsgToMap(seed_state), solution,
-          joint_space_trajectory, cartesian_space_waypoints, fraction);
+          joint_space_trajectory, cartesian_space_waypoints, fraction,
+          moveit_trajectory);
 
       // Create objects to save in the reach record
       geometry_msgs::msg::Pose tgt_pose;
@@ -459,12 +463,12 @@ void ReachStudy::runInitialReachStudy() {
         auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state,
                               goal_state, *score, sp_.ik_solver_config_name,
                               cartesian_space_waypoints, joint_space_trajectory,
-                              fraction);
+                              fraction, moveit_trajectory);
         db_->put(msg);
       } else {
         auto msg = makeRecord(std::to_string(i), false, tgt_pose, seed_state,
                               goal_state, 0.0, sp_.ik_solver_config_name, {},
-                              {}, fraction);
+                              {}, fraction, moveit_trajectory);
         db_->put(msg);
       }
 

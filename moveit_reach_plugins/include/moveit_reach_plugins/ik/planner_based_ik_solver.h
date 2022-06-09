@@ -69,8 +69,8 @@ class PlannerBasedIKSolver : public MoveItIKSolver {
       const Eigen::Isometry3d& target,
       const std::map<std::string, double>& seed, std::vector<double>& solution,
       std::vector<double>& joint_space_trajectory,
-      std::vector<double>& cartesian_space_waypoints,
-      double& fraction) override;
+      std::vector<double>& cartesian_space_waypoints, double& fraction,
+      moveit_msgs::msg::RobotTrajectory& moveit_trajectory) override;
 
  protected:
   // https://github.com/ros-planning/moveit_task_constructor/blob/60229db010ea305296bc1c90d04faa3e4dacd976/core/include/moveit/task_constructor/solvers/pipeline_planner.h#L66-L72

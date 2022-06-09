@@ -26,6 +26,7 @@
 
 // cartesian interpolator include
 #include <moveit/robot_state/cartesian_interpolator.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
 
 namespace planning_scene {
 class PlanningScene;
@@ -55,8 +56,8 @@ class CartesianRetrievalIKSolver : public MoveItIKSolver {
       const Eigen::Isometry3d& target,
       const std::map<std::string, double>& seed, std::vector<double>& solution,
       std::vector<double>& joint_space_trajectory,
-      std::vector<double>& cartesian_space_waypoints,
-      double& fraction) override;
+      std::vector<double>& cartesian_space_waypoints, double& fraction,
+      moveit_msgs::msg::RobotTrajectory& moveit_trajectory) override;
 
  protected:
   // distance to retrieve from ik solution in [m]
@@ -64,6 +65,8 @@ class CartesianRetrievalIKSolver : public MoveItIKSolver {
   double jump_threshold_;
   double max_eef_step_;
   std::string tool_frame_;
+  double max_velocity_scaling_factor_;
+  double max_acceleration_scaling_factor_;
 };
 
 }  // namespace ik

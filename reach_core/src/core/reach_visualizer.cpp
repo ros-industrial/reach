@@ -90,9 +90,10 @@ void ReachVisualizer::reSolveIKCB(
     std::vector<double> cartesian_space_waypoints;
     std::vector<double> joint_space_trajectory;
     double fraction;
+    moveit_msgs::msg::RobotTrajectory moveit_trajectory;
     std::optional<double> score = solver_->solveIKFromSeed(
         target, seed_map, goal_pose, joint_space_trajectory,
-        cartesian_space_waypoints, fraction);
+        cartesian_space_waypoints, fraction, moveit_trajectory);
 
     // Update the database if the IK solution was valid
     if (score) {

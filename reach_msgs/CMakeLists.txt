@@ -20,6 +20,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rosidl_default_generators
   rosidl_default_runtime
     sensor_msgs
+    moveit_msgs
 )
 
 find_package(ament_cmake REQUIRED)
@@ -62,6 +63,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     std_msgs
     geometry_msgs
     sensor_msgs
+    moveit_msgs
 )
 
 

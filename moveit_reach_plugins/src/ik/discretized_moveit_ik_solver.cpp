@@ -65,7 +65,8 @@ bool DiscretizedMoveItIKSolver::initialize(
 std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
-    std::vector<double>& cartesian_space_waypoints, double& fraction) {
+    std::vector<double>& cartesian_space_waypoints, double& fraction,
+    moveit_msgs::msg::RobotTrajectory& moveit_trajectory) {
   // Calculate the number of discretizations necessary to achieve discretization
   // angle
   const static int n_discretizations = int((2.0 * M_PI) / dt_);
@@ -80,7 +81,7 @@ std::optional<double> DiscretizedMoveItIKSolver::solveIKFromSeed(
     std::vector<double> tmp_solution;
     std::optional<double> score = MoveItIKSolver::solveIKFromSeed(
         discretized_target, seed, tmp_solution, joint_space_trajectory,
-        cartesian_space_waypoints, fraction);
+        cartesian_space_waypoints, fraction, moveit_trajectory);
     if (score.has_value() && (score.value() > best_score)) {
       best_score = score.value();
       best_solution = std::move(tmp_solution);

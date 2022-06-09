@@ -112,9 +112,10 @@ NeighborReachResult reachNeighborsDirect(
       std::vector<double> new_cartesian_space_waypoints;
       std::vector<double> new_joint_space_trajectory;
       double new_fraction = 0.0;
+      moveit_msgs::msg::RobotTrajectory new_moveit_trajectory;
       std::optional<double> score = solver->solveIKFromSeed(
           target, previous_solution, new_solution, new_joint_space_trajectory,
-          new_cartesian_space_waypoints, new_fraction);
+          new_cartesian_space_waypoints, new_fraction, new_moveit_trajectory);
 
       if (score) {
         // Calculate the joint distance between the seed and new goal states
@@ -136,6 +137,7 @@ NeighborReachResult reachNeighborsDirect(
           msg.joint_space_trajectory = new_joint_space_trajectory;
           msg.waypoints = new_cartesian_space_waypoints;
           msg.retrieved_fraction = new_fraction;
+          msg.moveit_trajectory = new_moveit_trajectory;
           db->put(msg);
         }
 
@@ -185,10 +187,11 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
         std::vector<double> cartesian_space_waypoints;
         std::vector<double> joint_space_trajectory;
         double fraction;
+        moveit_msgs::msg::RobotTrajectory moveit_trajectory;
         // Use current point's IK solution as seed
         std::optional<double> score = solver->solveIKFromSeed(
             target, current_pose_map, new_pose, joint_space_trajectory,
-            cartesian_space_waypoints, fraction);
+            cartesian_space_waypoints, fraction, moveit_trajectory);
         if (score) {
           // Calculate the joint distance between the seed and new goal states
           for (std::size_t j = 0; j < current_pose.size(); ++j) {
@@ -201,6 +204,7 @@ void reachNeighborsRecursive(ReachDatabasePtr db,
           new_rec.goal_state.position = new_pose;
           new_rec.reached = true;
           new_rec.score = *score;
+          new_rec.moveit_trajectory = moveit_trajectory;
 
           // Recursively enter this function at the new neighboring location
           reachNeighborsRecursive(db, new_rec, solver, radius, result,

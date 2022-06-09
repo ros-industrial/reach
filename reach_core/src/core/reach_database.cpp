@@ -51,7 +51,8 @@ reach_msgs::msg::ReachRecord makeRecord(
     const sensor_msgs::msg::JointState& seed_state,
     const sensor_msgs::msg::JointState& goal_state, const double score,
     const std::string& ik_solver_name, const std::vector<double>& waypoints,
-    const std::vector<double>& trajectory, double retrieved_fraction) {
+    const std::vector<double>& trajectory, double retrieved_fraction,
+    const moveit_msgs::msg::RobotTrajectory& moveit_trajectory) {
   reach_msgs::msg::ReachRecord r;
   r.id = id;
   r.goal = goal;
@@ -63,6 +64,7 @@ reach_msgs::msg::ReachRecord makeRecord(
   r.ik_solver = ik_solver_name;
   r.joint_space_trajectory = trajectory;
   r.waypoints = waypoints;
+  r.moveit_trajectory = moveit_trajectory;
   return r;
 }
 

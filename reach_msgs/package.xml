@@ -19,6 +19,7 @@
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>moveit_msgs</depend>
 
   <exec_depend>rosidl_default_runtime</exec_depend>
 

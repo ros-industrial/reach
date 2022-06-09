@@ -13,3 +13,4 @@ float64[] joint_space_trajectory
 float64[] waypoints
 # ik solver name
 string ik_solver
+moveit_msgs/RobotTrajectory moveit_trajectory

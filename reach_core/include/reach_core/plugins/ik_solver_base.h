@@ -25,6 +25,7 @@
 
 #include <geometry_msgs/msg/pose.hpp>
 #include <moveit/robot_model/robot_model.h>
+#include <moveit_msgs/msg/robot_trajectory.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 
 namespace reach {
@@ -62,7 +63,8 @@ class IKSolverBase {
       const Eigen::Isometry3d& target,
       const std::map<std::string, double>& seed, std::vector<double>& solution,
       std::vector<double>& joint_space_trajectory,
-      std::vector<double>& cartesian_space_waypoints, double& fraction) = 0;
+      std::vector<double>& cartesian_space_waypoints, double& fraction,
+      moveit_msgs::msg::RobotTrajectory& moveit_trajectory) = 0;
 
   /**
    * @brief getJointNames

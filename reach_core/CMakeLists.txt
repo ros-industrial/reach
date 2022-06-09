@@ -20,6 +20,7 @@ find_package(tf2_eigen REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(moveit_msgs REQUIRED)
 
 
 find_package(OpenMP)
@@ -42,6 +43,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   tf2_ros
   visualization_msgs
   moveit_ros_planning_interface
+  moveit_msgs
 )
 
 ###########

@@ -287,7 +287,8 @@ planning_pipeline::PlanningPipelinePtr PlannerBasedIKSolver::create(
 std::optional<double> PlannerBasedIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
-    std::vector<double>& cartesian_space_waypoints, double& fraction) {
+    std::vector<double>& cartesian_space_waypoints, double& fraction,
+    moveit_msgs::msg::RobotTrajectory& moveit_trajectory) {
   moveit::core::RobotState seed_state(model_);
 
   const std::vector<std::string>& joint_names =
@@ -335,6 +336,7 @@ std::optional<double> PlannerBasedIKSolver::solveIKFromSeed(
   bool success = planner_->generatePlan(planning_scene_, req, res);
 
   if (success) {
+    res.trajectory_->getRobotTrajectoryMsg(moveit_trajectory);
     moveit::core::RobotState state(res.trajectory_->getLastWayPoint());
     solution.clear();
     state.copyJointGroupPositions(jmg_, solution);

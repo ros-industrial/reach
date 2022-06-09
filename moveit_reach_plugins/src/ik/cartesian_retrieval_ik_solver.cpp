@@ -20,6 +20,7 @@
 
 #include <algorithm>
 
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 #include <reach_core/utils/general_utils.h>
 
 namespace {
@@ -74,6 +75,21 @@ bool CartesianRetrievalIKSolver::initialize(
                    "'ik_solver_config.jump_threshold' ");
       return false;
     }
+    if (!node->get_parameter("ik_solver_config.max_velocity_scaling_factor",
+                             max_velocity_scaling_factor_)) {
+      RCLCPP_ERROR(LOGGER,
+                   "No parameter defined by the name "
+                   "'ik_solver_config.max_velocity_scaling_factor' ");
+      return false;
+    }
+
+    if (!node->get_parameter("ik_solver_config.max_acceleration_scaling_factor",
+                             max_acceleration_scaling_factor_)) {
+      RCLCPP_ERROR(LOGGER,
+                   "No parameter defined by the name "
+                   "'ik_solver_config.max_acceleration_scaling_factor' ");
+      return false;
+    }
     // make sure it is positive to follow solvers logic
     retrieval_path_length_ = std::abs(double(retrieval_path_length_));
     max_eef_step_ = std::abs(double(max_eef_step_));
@@ -92,7 +108,8 @@ bool CartesianRetrievalIKSolver::initialize(
 std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     const Eigen::Isometry3d& target, const std::map<std::string, double>& seed,
     std::vector<double>& solution, std::vector<double>& joint_space_trajectory,
-    std::vector<double>& cartesian_space_waypoints, double& fraction) {
+    std::vector<double>& cartesian_space_waypoints, double& fraction,
+    moveit_msgs::msg::RobotTrajectory& moveit_trajectory) {
   moveit::core::RobotState state(model_);
 
   const std::vector<std::string>& joint_names =
@@ -140,6 +157,16 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
     fraction = f;
 
     if (f != 0.0) {
+      // moveit trajectory
+      auto result =
+          std::make_shared<robot_trajectory::RobotTrajectory>(model_, jmg_);
+      for (const auto& waypoint : traj)
+        result->addSuffixWayPoint(waypoint, 0.0);
+      trajectory_processing::IterativeParabolicTimeParameterization timing;
+      timing.computeTimeStamps(*result, max_velocity_scaling_factor_,
+                               max_acceleration_scaling_factor_);
+      result->getRobotTrajectoryMsg(moveit_trajectory);
+
       const size_t trajectory_size = traj.size();
       const size_t joints_size = joint_names.size();
       size_t joint_space_idx = 0;
@@ -179,7 +206,7 @@ std::optional<double> CartesianRetrievalIKSolver::solveIKFromSeed(
             pose_tmp.orientation.w;
         cartesian_space_idx += 7;
       }
-
+      result.reset();
       return fraction * eval_->calculateScore(solution_map);
     } else {
       // make sure trajectory is empty on exit
