@@ -9,13 +9,11 @@ const static std::string EVAL_PLUGIN_BASE = "reach::plugins::EvaluationBase";
 const static std::string IK_PLUGIN_BASE = "reach::plugins::IKSolverBase";
 const static std::string DISPLAY_PLUGIN_BASE = "reach::plugins::DisplayBase";
 
-template<typename PluginT>
+template <typename PluginT>
 class PluginTest : public ::testing::Test
 {
-  public:
-  PluginTest()
-    : ::testing::Test()
-    , loader("reach_core", base_class_name)
+public:
+  PluginTest() : ::testing::Test(), loader("reach_core", base_class_name)
   {
   }
 
@@ -25,29 +23,29 @@ class PluginTest : public ::testing::Test
 };
 
 // Evaluation plugins - 1 in reach_core, 3 in moveit_reach_plugins
-template<>
+template <>
 const std::string PluginTest<reach::plugins::EvaluationBase>::base_class_name = EVAL_PLUGIN_BASE;
 
-template<>
+template <>
 const unsigned PluginTest<reach::plugins::EvaluationBase>::expected_count = 4;
 
 // IK Solver plugins - 0 in reach_core, 2 in moveit_reach_plugins
-template<>
+template <>
 const std::string PluginTest<reach::plugins::IKSolverBase>::base_class_name = IK_PLUGIN_BASE;
 
-template<>
+template <>
 const unsigned PluginTest<reach::plugins::IKSolverBase>::expected_count = 2;
 
 // Display Plugins - 0 in reach_core, 1 in moveit_reach_plugins
-template<>
+template <>
 const std::string PluginTest<reach::plugins::DisplayBase>::base_class_name = DISPLAY_PLUGIN_BASE;
 
-template<>
+template <>
 const unsigned PluginTest<reach::plugins::DisplayBase>::expected_count = 1;
 
 // Test Implementations
-using Implementations = ::testing::
-  Types<reach::plugins::EvaluationBase, reach::plugins::IKSolverBase, reach::plugins::DisplayBase>;
+using Implementations =
+    ::testing::Types<reach::plugins::EvaluationBase, reach::plugins::IKSolverBase, reach::plugins::DisplayBase>;
 
 TYPED_TEST_CASE(PluginTest, Implementations);
 
@@ -59,7 +57,7 @@ TYPED_TEST(PluginTest, LoadPlugins)
   EXPECT_EQ(declared_classes.size(), this->expected_count);
 
   // Loop over the available classes and attempt to load them
-  for (const std::string &cls : declared_classes)
+  for (const std::string& cls : declared_classes)
   {
     std::cout << "Attempting to load '" << cls << "' class" << std::endl;
     boost::shared_ptr<TypeParam> plugin;
@@ -68,7 +66,7 @@ TYPED_TEST(PluginTest, LoadPlugins)
   }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "plugin_utest");

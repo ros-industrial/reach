@@ -36,19 +36,17 @@ namespace reach
 {
 namespace core
 {
-
 static const std::string PACKAGE = "reach_core";
 static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
 static const std::string DISPLAY_BASE_CLASS = "reach::plugins::DisplayBase";
 
 ReachStudy::ReachStudy(const ros::NodeHandle& nh)
   : nh_(nh)
-  , cloud_(new pcl::PointCloud<pcl::PointNormal> ())
-  , db_(new ReachDatabase ())
+  , cloud_(new pcl::PointCloud<pcl::PointNormal>())
+  , db_(new ReachDatabase())
   , solver_loader_(PACKAGE, IK_BASE_CLASS)
   , display_loader_(PACKAGE, DISPLAY_BASE_CLASS)
 {
-
 }
 
 bool ReachStudy::initializeStudy()
@@ -61,20 +59,19 @@ bool ReachStudy::initializeStudy()
     ik_solver_ = solver_loader_.createInstance(sp_.ik_solver_config["name"]);
     display_ = display_loader_.createInstance(sp_.display_config["name"]);
   }
-  catch(const XmlRpc::XmlRpcException& ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
     ROS_ERROR_STREAM(ex.getMessage());
     return false;
   }
-  catch(const pluginlib::PluginlibException& ex)
+  catch (const pluginlib::PluginlibException& ex)
   {
     ROS_ERROR_STREAM(ex.what());
     return false;
   }
 
   // Initialize the IK solver plugin and display plugin
-  if(!ik_solver_->initialize(sp_.ik_solver_config) ||
-     !display_->initialize(sp_.display_config))
+  if (!ik_solver_->initialize(sp_.ik_solver_config) || !display_->initialize(sp_.display_config))
   {
     return false;
   }
@@ -82,7 +79,7 @@ bool ReachStudy::initializeStudy()
   display_->showEnvironment();
 
   // Create a directory to store results of study
-  if(!sp_.results_directory.empty() && boost::filesystem::exists(sp_.results_directory.c_str()))
+  if (!sp_.results_directory.empty() && boost::filesystem::exists(sp_.results_directory.c_str()))
   {
     dir_ = sp_.results_directory + "/";
   }
@@ -91,10 +88,10 @@ bool ReachStudy::initializeStudy()
     dir_ = ros::package::getPath("reach_core") + "/results/";
     ROS_WARN("Using default results file directory: %s", dir_.c_str());
   }
-  results_dir_ =  dir_ + sp_.config_name + "/";
+  results_dir_ = dir_ + sp_.config_name + "/";
   const char* char_dir = results_dir_.c_str();
 
-  if(!boost::filesystem::exists(char_dir))
+  if (!boost::filesystem::exists(char_dir))
   {
     boost::filesystem::path path(char_dir);
     boost::filesystem::create_directory(path);
@@ -109,21 +106,21 @@ bool ReachStudy::run(const StudyParameters& sp)
   sp_ = sp;
 
   // Initialize the study
-  if(!initializeStudy())
+  if (!initializeStudy())
   {
     ROS_ERROR("Failed to initialize the reach study");
     return false;
   }
 
   // Get the reach object point cloud
-  if(!getReachObjectPointCloud())
+  if (!getReachObjectPointCloud())
   {
     ROS_ERROR("Unable to obtain reach object point cloud");
     return false;
   }
 
   // Show the reach object collision object and reach object point cloud
-  if(sp_.visualize_results)
+  if (sp_.visualize_results)
   {
     ros::Publisher pub = nh_.advertise<sensor_msgs::PointCloud2>(INPUT_CLOUD_TOPIC, 1, true);
     pub.publish(cloud_msg_);
@@ -133,10 +130,10 @@ bool ReachStudy::run(const StudyParameters& sp)
   visualizer_.reset(new ReachVisualizer(db_, ik_solver_, display_, sp_.optimization.radius));
 
   // Attempt to load previously saved optimized reach_study database
-  if(!db_->load(results_dir_ + OPT_SAVED_DB_NAME))
+  if (!db_->load(results_dir_ + OPT_SAVED_DB_NAME))
   {
     // Attempt to load previously saved initial reach study database
-    if(!db_->load(results_dir_ + SAVED_DB_NAME))
+    if (!db_->load(results_dir_ + SAVED_DB_NAME))
     {
       ROS_INFO("------------------------------");
       ROS_INFO("No reach study database loaded");
@@ -160,8 +157,8 @@ bool ReachStudy::run(const StudyParameters& sp)
     // Create an efficient search tree for doing nearest neighbors search
     search_tree_.reset(new SearchTree(flann::KDTreeSingleIndexParams(1, true)));
 
-    flann::Matrix<double> dataset (new double[db_->size() * 3], db_->size(), 3);
-    for(std::size_t i = 0; i < db_->size(); ++i)
+    flann::Matrix<double> dataset(new double[db_->size() * 3], db_->size(), 3);
+    for (std::size_t i = 0; i < db_->size(); ++i)
     {
       auto it = db_->begin();
       std::advance(it, i);
@@ -188,22 +185,22 @@ bool ReachStudy::run(const StudyParameters& sp)
   }
 
   // Find the average number of neighboring points can be reached by the robot from any given point
-  if(sp_.get_neighbors)
+  if (sp_.get_neighbors)
   {
     // Perform the calculation if it hasn't already been done
-    if(db_->getStudyResults().avg_num_neighbors == 0.0f)
+    if (db_->getStudyResults().avg_num_neighbors == 0.0f)
     {
       getAverageNeighborsCount();
     }
   }
 
   // Visualize the results of the reach study
-  if(sp_.visualize_results)
+  if (sp_.visualize_results)
   {
     // Compare database results
-    if(!sp_.compare_dbs.empty())
+    if (!sp_.compare_dbs.empty())
     {
-      if(!compareDatabases())
+      if (!compareDatabases())
       {
         ROS_ERROR("Unable to compare the current reach study database with the other specified databases");
       }
@@ -223,13 +220,13 @@ bool ReachStudy::getReachObjectPointCloud()
   srv.request.fixed_frame = sp_.fixed_frame;
   srv.request.object_frame = sp_.object_frame;
 
-  client.waitForExistence(ros::Duration (SRV_TIMEOUT));
-  if(!client.call(srv))
+  client.waitForExistence(ros::Duration(SRV_TIMEOUT));
+  if (!client.call(srv))
   {
     ROS_ERROR_STREAM("Failed to call point cloud loading service '" << client.getService() << "'");
     return false;
   }
-  else if(!srv.response.success)
+  else if (!srv.response.success)
   {
     ROS_ERROR_STREAM(srv.response.message);
     return false;
@@ -254,8 +251,8 @@ void ReachStudy::runInitialReachStudy()
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-  #pragma omp parallel for
-  for(int i = 0; i < cloud_size; ++i)
+#pragma omp parallel for
+  for (int i = 0; i < cloud_size; ++i)
   {
     // Get pose from point cloud array
     const pcl::PointNormal& pt = cloud_->points[i];
@@ -276,9 +273,9 @@ void ReachStudy::runInitialReachStudy()
     geometry_msgs::Pose tgt_pose;
     tf::poseEigenToMsg(tgt_frame, tgt_pose);
 
-    sensor_msgs::JointState goal_state (seed_state);
+    sensor_msgs::JointState goal_state(seed_state);
 
-    if(score)
+    if (score)
     {
       goal_state.position = solution;
       auto msg = makeRecord(std::to_string(i), true, tgt_pose, seed_state, goal_state, *score);
@@ -306,7 +303,7 @@ void ReachStudy::optimizeReachStudyResults()
   ROS_INFO("Beginning optimization");
 
   // Create sequential vector to be randomized
-  std::vector<std::size_t> rand_vec (db_->size());
+  std::vector<std::size_t> rand_vec(db_->size());
   std::iota(rand_vec.begin(), rand_vec.end(), 0);
 
   // Iterate
@@ -316,7 +313,7 @@ void ReachStudy::optimizeReachStudyResults()
   float previous_score = 0.0;
   float pct_improve = 1.0;
 
-  while(pct_improve > sp_.optimization.step_improvement_threshold && n_opt < sp_.optimization.max_steps)
+  while (pct_improve > sp_.optimization.step_improvement_threshold && n_opt < sp_.optimization.max_steps)
   {
     ROS_INFO("Entering optimization loop %d", n_opt);
     previous_score = db_->getStudyResults().norm_total_pose_score;
@@ -326,15 +323,16 @@ void ReachStudy::optimizeReachStudyResults()
     // Randomize
     std::random_shuffle(rand_vec.begin(), rand_vec.end());
 
-    #pragma parallel for
-    for(std::size_t i = 0; i < rand_vec.size(); ++i)
+#pragma parallel for
+    for (std::size_t i = 0; i < rand_vec.size(); ++i)
     {
       auto it = db_->begin();
       std::advance(it, rand_vec[i]);
       reach_msgs::ReachRecord msg = it->second;
-      if(msg.reached)
+      if (msg.reached)
       {
-        NeighborReachResult result = reachNeighborsDirect(db_, msg, ik_solver_, sp_.optimization.radius); //, search_tree_);
+        NeighborReachResult result =
+            reachNeighborsDirect(db_, msg, ik_solver_, sp_.optimization.radius);  //, search_tree_);
       }
 
       // Print function progress
@@ -345,8 +343,8 @@ void ReachStudy::optimizeReachStudyResults()
     // Recalculate optimized reach study results
     db_->calculateResults();
     db_->printResults();
-    pct_improve = std::abs((db_->getStudyResults().norm_total_pose_score - previous_score)/previous_score);
-    ++ n_opt;
+    pct_improve = std::abs((db_->getStudyResults().norm_total_pose_score - previous_score) / previous_score);
+    ++n_opt;
   }
 
   // Save the optimized reach database
@@ -367,27 +365,28 @@ void ReachStudy::getAverageNeighborsCount()
   std::atomic<double> total_joint_distance;
   const int total = db_->size();
 
-  // Iterate
-  #pragma parallel for
-  for(auto it = db_->begin(); it != db_->end(); ++it)
+// Iterate
+#pragma parallel for
+  for (auto it = db_->begin(); it != db_->end(); ++it)
   {
     reach_msgs::ReachRecord msg = it->second;
-    if(msg.reached)
+    if (msg.reached)
     {
       NeighborReachResult result;
-      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result); //, search_tree_);
+      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result);  //, search_tree_);
 
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;
     }
 
     // Print function progress
-    ++ current_counter;
+    ++current_counter;
     utils::integerProgressPrinter(current_counter, previous_pct, total);
   }
 
   float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->size());
-  float avg_joint_distance = static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
+  float avg_joint_distance =
+      static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
 
   ROS_INFO_STREAM("Average number of neighbors reached: " << avg_neighbor_count);
   ROS_INFO_STREAM("Average joint distance: " << avg_joint_distance);
@@ -401,24 +400,24 @@ void ReachStudy::getAverageNeighborsCount()
 bool ReachStudy::compareDatabases()
 {
   // Add the newly created database to the list if it isn't already there
-  if(std::find(sp_.compare_dbs.begin(), sp_.compare_dbs.end(), sp_.config_name) == sp_.compare_dbs.end())
+  if (std::find(sp_.compare_dbs.begin(), sp_.compare_dbs.end(), sp_.config_name) == sp_.compare_dbs.end())
   {
     sp_.compare_dbs.push_back(sp_.config_name);
   }
 
   // Create list of optimized database file names from the results folder
   std::vector<std::string> db_filenames;
-  for(auto it = sp_.compare_dbs.begin(); it != sp_.compare_dbs.end(); ++it)
+  for (auto it = sp_.compare_dbs.begin(); it != sp_.compare_dbs.end(); ++it)
   {
     db_filenames.push_back(dir_ + *it + "/" + OPT_SAVED_DB_NAME);
   }
 
   // Load databases to be compared
   std::map<std::string, reach_msgs::ReachDatabase> data;
-  for(size_t i = 0; i < db_filenames.size(); ++i)
+  for (size_t i = 0; i < db_filenames.size(); ++i)
   {
     ReachDatabase db;
-    if(!db.load(db_filenames[i]))
+    if (!db.load(db_filenames[i]))
     {
       ROS_ERROR("Cannot load database at:\n %s", db_filenames[i].c_str());
       continue;
@@ -426,7 +425,7 @@ bool ReachStudy::compareDatabases()
     data.emplace(sp_.compare_dbs[i], db.toReachDatabaseMsg());
   }
 
-  if(data.size() < 2)
+  if (data.size() < 2)
   {
     ROS_ERROR("Only %lu database(s) loaded; cannot compare fewer than 2 databases", data.size());
     return false;
@@ -437,5 +436,5 @@ bool ReachStudy::compareDatabases()
   return true;
 }
 
-} // namespace core
-} // namespace reach
+}  // namespace core
+}  // namespace reach

@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,22 +20,18 @@ namespace reach
 {
 namespace utils
 {
-
-void integerProgressPrinter(std::atomic<int>& current_counter,
-                            std::atomic<int>& previous_pct,
-                            const int total_size)
+void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>& previous_pct, const int total_size)
 {
   const float current_pct_float = (static_cast<float>(current_counter.load()) / static_cast<float>(total_size)) * 100.0;
   const int current_pct = static_cast<int>(current_pct_float);
-  if(current_pct > previous_pct.load())
+  if (current_pct > previous_pct.load())
   {
     ROS_INFO("[%d%%]", current_pct);
   }
   previous_pct = current_pct;
 }
 
-Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt,
-                            const Eigen::Vector3f& norm)
+Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt, const Eigen::Vector3f& norm)
 {
   // Initialize coordinate frame and set XYZ location
   Eigen::Isometry3f p = Eigen::Isometry3f::Identity();
@@ -44,7 +40,7 @@ Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt,
   p.matrix()(2, 3) = pt(2);
 
   // Create plane from point normal
-  Eigen::Hyperplane<float, 3> plane (norm, Eigen::Vector3f(0, 0, 0));
+  Eigen::Hyperplane<float, 3> plane(norm, Eigen::Vector3f(0, 0, 0));
 
   // If the normal and global x-axis are not closely aligned
   if (std::abs(norm.dot(Eigen::Vector3f::UnitX())) < 0.90)
@@ -67,6 +63,5 @@ Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt,
   return p.cast<double>();
 }
 
-} // namespace core
-} // namespace reach
-
+}  // namespace utils
+}  // namespace reach

@@ -1,12 +1,12 @@
-/* 
+/*
  * Copyright 2019 Southwest Research Institute
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,14 +31,10 @@ namespace reach
 {
 namespace plugins
 {
-
 class DisplayBase
 {
-
 public:
-
-  DisplayBase()
-    : server_(INTERACTIVE_MARKER_TOPIC)
+  DisplayBase() : server_(INTERACTIVE_MARKER_TOPIC)
   {
     diff_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(REACH_DIFF_TOPIC, 1, true);
     marker_pub_ = nh_.advertise<visualization_msgs::Marker>(MARKER_TOPIC, 1, true);
@@ -46,7 +42,6 @@ public:
 
   virtual ~DisplayBase()
   {
-
   }
 
   virtual bool initialize(XmlRpc::XmlRpcValue& config) = 0;
@@ -58,7 +53,7 @@ public:
   void addInteractiveMarkerData(const reach_msgs::ReachDatabase& database)
   {
     server_.clear();
-    for(const reach_msgs::ReachRecord& rec : database.records)
+    for (const reach_msgs::ReachRecord& rec : database.records)
     {
       auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
       server_.insert(std::move(marker));
@@ -75,7 +70,7 @@ public:
 
   void updateInteractiveMarker(const reach_msgs::ReachRecord& rec)
   {
-    if(server_.erase(rec.id))
+    if (server_.erase(rec.id))
     {
       auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
       server_.insert(marker);
@@ -90,14 +85,14 @@ public:
 
   void publishMarkerArray(const std::vector<std::string>& ids)
   {
-    if(!ids.empty())
+    if (!ids.empty())
     {
       std::vector<geometry_msgs::Point> pt_array;
 
       for (const std::string& id : ids)
       {
         visualization_msgs::InteractiveMarker marker;
-        if(!server_.get(id, marker))
+        if (!server_.get(id, marker))
         {
           ROS_ERROR_STREAM("Failed to get interactive marker '" << id << "' from server");
           return;
@@ -119,9 +114,9 @@ public:
     const std::size_t n_records = data.begin()->second.records.size();
 
     // Check that all databases are the same size
-    for(auto it = std::next(data.begin()); it != data.end(); ++it)
+    for (auto it = std::next(data.begin()); it != data.end(); ++it)
     {
-      if(it->second.records.size() != n_records)
+      if (it->second.records.size() != n_records)
       {
         ROS_FATAL("Mismatched database sizes");
       }
@@ -132,14 +127,14 @@ public:
     ns_vec[0] = "not_all";
     ns_vec[n_perm - 1] = "all";
 
-    for(char perm_ind = 1; perm_ind < static_cast<char>(n_perm - 1); ++perm_ind)
+    for (char perm_ind = 1; perm_ind < static_cast<char>(n_perm - 1); ++perm_ind)
     {
       std::string ns_name = "";
-      for(auto it = data.begin(); it != data.end(); ++it)
+      for (auto it = data.begin(); it != data.end(); ++it)
       {
-        if(((perm_ind >> std::distance(data.begin(), it)) & 1) == 1)
+        if (((perm_ind >> std::distance(data.begin(), it)) & 1) == 1)
         {
-          if(ns_name == "")
+          if (ns_name == "")
           {
             ns_name += it->first;
           }
@@ -164,23 +159,24 @@ public:
     visualization_msgs::MarkerArray marker_array;
 
     // Iterate over all records in the databases and compare whether or not they were reached in that database
-    for(std::size_t i = 0; i < n_records; ++i)
+    for (std::size_t i = 0; i < n_records; ++i)
     {
       // Create a binary code based on whether the point was reached
       // code LSB is msg.reach boolean of 1st database
       // code << n is is msg.reach boolean of (n+1)th database
       char code = 0;
 
-      for(auto it = data.begin(); it != data.end(); ++it)
+      for (auto it = data.begin(); it != data.end(); ++it)
       {
         code += static_cast<char>(it->second.records[i].reached) << std::distance(data.begin(), it);
       }
 
       // Create Rviz marker unless the point was reached by all or none of the robot configurations
-      if(code != 0 && code != n_perm - 1)
+      if (code != 0 && code != n_perm - 1)
       {
-        std::string ns = {ns_vec[static_cast<std::size_t>(code)]};
-        visualization_msgs::Marker arrow_marker = utils::makeVisual(data.begin()->second.records[i], fixed_frame_, marker_scale_, ns, {arrow_color});
+        std::string ns = { ns_vec[static_cast<std::size_t>(code)] };
+        visualization_msgs::Marker arrow_marker =
+            utils::makeVisual(data.begin()->second.records[i], fixed_frame_, marker_scale_, ns, { arrow_color });
         marker_array.markers.push_back(arrow_marker);
       }
     }
@@ -189,13 +185,11 @@ public:
   }
 
 protected:
-
   std::string fixed_frame_ = "base_frame";
 
   double marker_scale_ = 1.0;
 
 private:
-
   interactive_markers::InteractiveMarkerServer server_;
 
   interactive_markers::MenuHandler menu_handler_;
@@ -208,7 +202,7 @@ private:
 };
 typedef boost::shared_ptr<DisplayBase> DisplayBasePtr;
 
-} // namespace plugins
-} // namespace reach
+}  // namespace plugins
+}  // namespace reach
 
-#endif // REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
+#endif  // REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
