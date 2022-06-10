@@ -12,6 +12,7 @@ robot_reach_study_node:
     visualize_results: true
     planning_group: "manipulator"
     run_initial_study_only: true
+    keep_running: true
 
     optimization:
       radius: 0.2
@@ -20,6 +21,8 @@ robot_reach_study_node:
 
     ik_solver_config:
       name: "moveit_reach_plugins/ik/CartesianRetrievalIKSolver"
+      max_velocity_scaling_factor: 0.5
+      max_acceleration_scaling_factor: 0.5
 #      name: "moveit_reach_plugins/ik/MoveItIKSolver"
       retrieval_distance: 0.2
       tool_frame: "tcp"

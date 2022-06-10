@@ -346,6 +346,7 @@ bool ReachStudy::getReachObjectPointCloud() {
 void ReachStudy::runInitialReachStudy() {
   // Rotation to flip the Z axis of the surface normal point
   const Eigen::AngleAxisd tool_z_rot(M_PI, Eigen::Vector3d::UnitY());
+  const Eigen::AngleAxisd tool_z_rot_align(M_PI, Eigen::Vector3d::UnitZ());
 
   // Loop through all points in point cloud and get IK solution
   std::atomic<int> current_counter, previous_pct;
@@ -361,7 +362,7 @@ void ReachStudy::runInitialReachStudy() {
       Eigen::Isometry3d tgt_frame;
       tgt_frame =
           utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
-      tgt_frame = tgt_frame * tool_z_rot;
+      tgt_frame = tgt_frame * tool_z_rot * tool_z_rot_align;
 
       // Get the seed position
       sensor_msgs::msg::JointState seed_state;
@@ -424,7 +425,7 @@ void ReachStudy::runInitialReachStudy() {
       Eigen::Isometry3d tgt_frame;
       tgt_frame =
           utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
-      tgt_frame = tgt_frame * tool_z_rot;
+      tgt_frame = tgt_frame * tool_z_rot * tool_z_rot_align;
 
       // Get the seed position
       sensor_msgs::msg::JointState seed_state;

@@ -195,12 +195,16 @@ def generate_launch_description():
         ],
     )
 
+    rviz_config_file = PathJoinSubstitution(
+        [FindPackageShare("reach_core"), "rviz", "reach_study_config.rviz"]
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
         name="rviz2_moveit",
         output="log",
-        # arguments=["-d", rviz_config_file],
+        arguments=["-d", rviz_config_file],
         parameters=[
             robot_description,
             robot_description_semantic,
