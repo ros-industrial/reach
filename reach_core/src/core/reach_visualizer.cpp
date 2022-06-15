@@ -105,6 +105,7 @@ void ReachVisualizer::reSolveIKCB(
       lookup->joint_space_trajectory = joint_space_trajectory;
       lookup->waypoints = cartesian_space_waypoints;
       lookup->retrieved_fraction = fraction;
+      lookup->moveit_trajectory = moveit_trajectory;
 
       // Update the interactive marker server
       display_->updateInteractiveMarker(*lookup);
