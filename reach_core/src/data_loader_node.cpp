@@ -34,7 +34,8 @@ typedef std::unordered_map<std::string, std::vector<coordinate_config>>
 
 bool get_all(
     const std::filesystem::path& root, const std::string& ext,
-    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>& ret) {
+    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>& ret,
+    const std::string& db_name) {
   if (!std::filesystem::exists(root) || !std::filesystem::is_directory(root))
     return false;
 
@@ -45,7 +46,7 @@ bool get_all(
     if (std::filesystem::is_regular_file(*it) &&
         it->path().extension() == ext) {
       // Capture only the optimized reach databases
-      if (it->path().filename() == OPT_DB_NAME) {
+      if (it->path().filename() == db_name) {
         std::pair<std::filesystem::path, std::filesystem::path> tmp;
         tmp.first = it->path().parent_path().filename();
         tmp.second = it->path();
@@ -86,6 +87,7 @@ int main(int argc, char** argv) {
 
   std::string pkg_name;
   std::string dir_name;
+  std::string db_name;
   bool chk_all_sub_dirs;
   bool avg_neighbor_count;
   bool print_result_total = false;
@@ -93,6 +95,8 @@ int main(int argc, char** argv) {
   node->get_parameter_or<std::string>("package_name", pkg_name, "reach_core");
   node->get_parameter_or<std::string>("directory_name", dir_name,
                                       RESULTS_FOLDER_NAME);
+  node->get_parameter_or<std::string>("db_name", db_name, OPT_DB_NAME);
+
   node->get_parameter_or<bool>("check_all_subdirectories", chk_all_sub_dirs,
                                false);
   node->get_parameter_or<bool>("avg_neighbor_count", avg_neighbor_count, false);
@@ -110,7 +114,7 @@ int main(int argc, char** argv) {
   std::filesystem::path root(root_path);
   std::vector<std::pair<std::filesystem::path, std::filesystem::path>> files;
 
-  if (!get_all(root, ".db", files)) {
+  if (!get_all(root, ".db", files, db_name)) {
     std::cout << "Specified directory does not exist";
     return 0;
   }
