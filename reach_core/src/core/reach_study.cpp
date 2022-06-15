@@ -185,6 +185,8 @@ bool ReachStudy::run(const StudyParameters& sp) {
           // keep it running
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
+        db_->calculateResults();
+        db_->save(results_dir_ + SAVED_DB_NAME);
         return true;
       }
     } else {
@@ -212,6 +214,8 @@ bool ReachStudy::run(const StudyParameters& sp) {
           // keep it running
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
+        db_->calculateResults();
+        db_->save(results_dir_ + SAVED_DB_NAME);
         return true;
       }
     }
