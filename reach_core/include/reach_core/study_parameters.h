@@ -65,6 +65,7 @@ struct StudyParameters {
   bool run_initial_study_only;
   std::vector<double> initial_seed_state;
   bool keep_running;
+  bool invert_z_tool_rotation;
 };
 
 }  // namespace core

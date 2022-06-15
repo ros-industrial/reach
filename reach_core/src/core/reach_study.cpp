@@ -362,7 +362,11 @@ void ReachStudy::runInitialReachStudy() {
       Eigen::Isometry3d tgt_frame;
       tgt_frame =
           utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
-      tgt_frame = tgt_frame * tool_z_rot * tool_z_rot_align;
+      if (sp_.invert_z_tool_rotation) {
+        tgt_frame = tgt_frame * tool_z_rot * tool_z_rot_align;
+      } else {
+        tgt_frame = tgt_frame * tool_z_rot;
+      }
 
       // Get the seed position
       sensor_msgs::msg::JointState seed_state;
@@ -425,7 +429,11 @@ void ReachStudy::runInitialReachStudy() {
       Eigen::Isometry3d tgt_frame;
       tgt_frame =
           utils::createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
-      tgt_frame = tgt_frame * tool_z_rot * tool_z_rot_align;
+      if (sp_.invert_z_tool_rotation) {
+        tgt_frame = tgt_frame * tool_z_rot * tool_z_rot_align;
+      } else {
+        tgt_frame = tgt_frame * tool_z_rot;
+      }
 
       // Get the seed position
       sensor_msgs::msg::JointState seed_state;
