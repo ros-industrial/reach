@@ -30,19 +30,15 @@ namespace plugins
 class EvaluationBase
 {
 public:
-  EvaluationBase()
-  {
-  }
-
-  virtual ~EvaluationBase()
-  {
-  }
+  using Ptr = boost::shared_ptr<EvaluationBase>;
+  EvaluationBase() = default;
+  virtual ~EvaluationBase() = default;
 
   /**
    * @brief initialize
    * @param config
    */
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) = 0;
+  virtual void initialize(XmlRpc::XmlRpcValue& config) = 0;
 
   /**
    * @brief calculateScore
@@ -51,7 +47,6 @@ public:
    */
   virtual double calculateScore(const std::map<std::string, double>& pose) = 0;
 };
-typedef boost::shared_ptr<EvaluationBase> EvaluationBasePtr;
 
 }  // namespace plugins
 }  // namespace reach

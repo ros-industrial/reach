@@ -3,17 +3,12 @@ project(reach_core)
 
 add_compile_options(-std=c++14)
 
-find_package(
-  catkin REQUIRED
-  COMPONENTS eigen_conversions
-             geometry_msgs
-             interactive_markers
-             pcl_ros
-             pluginlib
-             reach_msgs
-             tf2_ros
-             tf2_eigen
-             visualization_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp pluginlib)
+
+find_package(Boost REQUIRED COMPONENTS serialization)
+find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED COMPONENTS io search)
+#find_package(FLANN REQUIRED)
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -24,59 +19,52 @@ endif()
 
 catkin_package(
   INCLUDE_DIRS
-  include
+    include
   LIBRARIES
-  ${PROJECT_NAME}
-  ${PROJECT_NAME}_plugins
+    ${PROJECT_NAME}
+    ${PROJECT_NAME}_plugins
   CATKIN_DEPENDS
-  eigen_conversions
-  geometry_msgs
-  interactive_markers
-  pcl_ros
-  pluginlib
-  reach_msgs
-  tf2_ros
-  tf2_eigen
-  visualization_msgs)
+    roscpp
+    pluginlib)
 
 # ######################################################################################################################
 # BUILD ##
 # ######################################################################################################################
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include
+  ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+#  ${FLANN_INCLUDE_DIRS}
+)
 
 # Reach Study Library
 add_library(
   ${PROJECT_NAME}
   # Utilities
   src/utils/general_utils.cpp
-  src/utils/visualization_utils.cpp
+  src/plugins/ik_solver_base.cpp
+#  src/utils/visualization_utils.cpp
   # Tools
   src/core/reach_database.cpp
   src/core/ik_helper.cpp
   src/core/reach_visualizer.cpp
   # Reach Study
   src/core/reach_study.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen Boost::serialization ${PCL_LIBRARIES})
 
 # Plugins Library
-add_library(${PROJECT_NAME}_plugins src/plugins/impl/multiplicative_factory.cpp)
-target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME}_plugins
+  src/plugins/impl/multiplicative_factory.cpp
+  src/plugins/impl/point_cloud_target_pose_generator.cpp)
+target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} Eigen3::Eigen ${PCL_LIBRARIES})
 
 # Reach Study Node
 add_executable(robot_reach_study_node src/robot_reach_study_node.cpp)
 target_link_libraries(robot_reach_study_node ${catkin_LIBRARIES} ${PROJECT_NAME})
-add_dependencies(robot_reach_study_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
-# Load Point Cloud Server Node
-add_executable(load_point_cloud_server_node src/load_point_cloud_server_node.cpp)
-target_link_libraries(load_point_cloud_server_node ${catkin_LIBRARIES})
-add_dependencies(load_point_cloud_server_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # Data Loader Node
 add_executable(data_loader src/data_loader_node.cpp)
 target_link_libraries(data_loader ${catkin_LIBRARIES} ${PROJECT_NAME})
-add_dependencies(data_loader ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # ######################################################################################################################
 # TEST ##
@@ -96,7 +84,6 @@ install(
   TARGETS ${PROJECT_NAME}
           ${PROJECT_NAME}_plugins
           robot_reach_study_node
-          load_point_cloud_server_node
           data_loader
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

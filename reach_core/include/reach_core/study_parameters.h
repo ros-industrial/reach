@@ -16,6 +16,8 @@
 #ifndef REACH_CORE_PARAMETERS_H
 #define REACH_CORE_PARAMETERS_H
 
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/nvp.hpp>
 #include <string>
 #include <vector>
 #include <xmlrpcpp/XmlRpcValue.h>
@@ -27,13 +29,27 @@ namespace core
 /**
  * @brief The StudyResults struct
  */
-struct StudyResults
+class StudyResults
 {
+public:
   float total_pose_score = 0.0f;
   float norm_total_pose_score = 0.0f;
   float reach_percentage = 0.0f;
   float avg_num_neighbors = 0.0f;
   float avg_joint_distance = 0.0f;
+
+private:
+  friend class boost::serialization::access;
+
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned /*version*/)
+  {
+    ar & BOOST_SERIALIZATION_NVP(total_pose_score);
+    ar & BOOST_SERIALIZATION_NVP(norm_total_pose_score);
+    ar & BOOST_SERIALIZATION_NVP(reach_percentage);
+    ar & BOOST_SERIALIZATION_NVP(avg_num_neighbors);
+    ar & BOOST_SERIALIZATION_NVP(avg_joint_distance);
+  }
 };
 
 struct StudyOptimization
@@ -50,15 +66,13 @@ struct StudyParameters
 {
   XmlRpc::XmlRpcValue ik_solver_config;
   XmlRpc::XmlRpcValue display_config;
+  XmlRpc::XmlRpcValue target_pose_generator_config;
   StudyOptimization optimization;
   std::string config_name;
   std::string results_directory;
-  std::string pcd_filename;
   bool visualize_results;
   bool get_neighbors;
   std::vector<std::string> compare_dbs;
-  std::string fixed_frame;
-  std::string object_frame;
 };
 
 }  // namespace core

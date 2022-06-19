@@ -28,12 +28,12 @@ class MultiplicativeFactory : public EvaluationBase
 public:
   MultiplicativeFactory();
 
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
+  virtual void initialize(XmlRpc::XmlRpcValue& config) override;
 
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 
 private:
-  std::vector<EvaluationBasePtr> eval_plugins_;
+  std::vector<EvaluationBase::Ptr> eval_plugins_;
 
   pluginlib::ClassLoader<EvaluationBase> class_loader_;
 };

@@ -16,36 +16,87 @@
 #ifndef REACH_CORE_REACH_DATABASE_H
 #define REACH_CORE_REACH_DATABASE_H
 
-#include "reach_core/study_parameters.h"
-#include <reach_msgs/ReachDatabase.h>
-#include <boost/optional.hpp>
+#include <reach_core/study_parameters.h>
+
+//#include <boost/multi_index_container.hpp>
+//#include <boost/multi_index/sequenced_index.hpp>
+//#include <boost/multi_index/ordered_index.hpp>
+//#include <boost/multi_index/indexed_by.hpp>
+//#include <boost/multi_index/member.hpp>
+
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/string.hpp>
+#include <boost/serialization/vector.hpp>
+#include <Eigen/Dense>
 #include <mutex>
-#include <unordered_map>
+
+namespace boost
+{
+namespace serialization
+{
+template <class Archive>
+void serialize(Archive& ar, Eigen::Isometry3d& pose, const unsigned int version)
+{
+  std::vector<double> position(3);
+  Eigen::Map<Eigen::Vector3d> position_map(position.data());
+  position_map = pose.translation();
+
+  std::vector<double> quaternion(4);
+  Eigen::Map<Eigen::Quaterniond> q_map(quaternion.data());
+  q_map = Eigen::Quaterniond(pose.linear());
+
+  ar& BOOST_SERIALIZATION_NVP(position);
+  ar& BOOST_SERIALIZATION_NVP(quaternion);
+}
+
+} // namespace serialization
+} // namespace boost
 
 namespace reach
 {
 namespace core
 {
-/**
- * @brief makeRecord
- * @param id
- * @param reached
- * @param goal
- * @param seed_state
- * @param goal_state
- * @param score
- * @return
- */
-reach_msgs::ReachRecord makeRecord(const std::string& id, const bool reached, const geometry_msgs::Pose& goal,
-                                   const sensor_msgs::JointState& seed_state, const sensor_msgs::JointState& goal_state,
-                                   const double score);
+//namespace bmi = boost::multi_index;
 
-/**
- * @brief toMap
- * @param state
- * @return
- */
-std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState& state);
+//typedef std::pair<std::string, double> Joint;
+//typedef bmi::multi_index_container<
+//    Joint, bmi::indexed_by<bmi::sequenced<>, bmi::ordered_unique<bmi::member<Joint, std::string, &Joint::first>>>>
+//    JointState;
+///** @brief Typedef for accessing the joint container as a sequenced list */
+//typedef bmi::nth_index<JointState, 0>::type JointStateList;
+///** @brief Typedef for accessing the joint container as a map-style structure */
+//typedef bmi::nth_index<JointState, 1>::type JointStateMap;
+
+class ReachRecord
+{
+public:
+  ReachRecord() = default;
+  ReachRecord(const std::string id, const bool reached, const Eigen::Isometry3d& goal,
+              const std::map<std::string, double> seed_state, const std::map<std::string, double> goal_state,
+              const double score);
+
+  std::string id;
+  bool reached;
+  Eigen::Isometry3d goal;
+  std::map<std::string, double> seed_state;
+  std::map<std::string, double> goal_state;
+  double score;
+
+private:
+  friend class boost::serialization::access;
+
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar& BOOST_SERIALIZATION_NVP(id);
+    ar& BOOST_SERIALIZATION_NVP(reached);
+    ar& BOOST_SERIALIZATION_NVP(goal);
+    ar& BOOST_SERIALIZATION_NVP(seed_state);
+    ar& BOOST_SERIALIZATION_NVP(goal_state);
+    ar& BOOST_SERIALIZATION_NVP(score);
+  }
+};
 
 /**
  * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database
@@ -61,39 +112,27 @@ std::map<std::string, double> jointStateMsgToMap(const sensor_msgs::JointState& 
  */
 class ReachDatabase
 {
-  using iterator = std::unordered_map<std::string, reach_msgs::ReachRecord>::iterator;
+  using iterator = std::map<std::string, ReachRecord>::iterator;
 
 public:
-  /**
-    @brief Default class constructor
-   */
+  using Ptr = std::shared_ptr<ReachDatabase>;
+
   ReachDatabase() = default;
-
-  /**
-   * @brief save saves the reach study database to a file at the input location
-   * @param filename
-   */
-  void save(const std::string& filename) const;
-
-  /**
-   * @brief load loads a saved reach study database from the input location
-   * @param filename
-   * @return true on success, false on failure
-   */
-  bool load(const std::string& filename);
+  ReachDatabase(const ReachDatabase&);
+  ReachDatabase& operator=(const ReachDatabase&);
 
   /**
    * @brief get returns a ReachRecord message from the database
    * @param id
    * @return
    */
-  boost::optional<reach_msgs::ReachRecord> get(const std::string& id) const;
+  ReachRecord get(const std::string& id) const;
 
   /**
    * @brief put adds a ReachRecord message to the database
    * @param record
    */
-  void put(const reach_msgs::ReachRecord& record);
+  void put(const ReachRecord& record);
 
   /**
    * @brief count counts the number of entries in the database
@@ -109,7 +148,7 @@ public:
   /**
    * @brief printResults prints the calculated results of the reach study to the terminal
    */
-  void printResults();
+  std::string printResults();
 
   /**
    * @brief getStudyResults
@@ -149,18 +188,25 @@ public:
     return map_.end();
   }
 
-  reach_msgs::ReachDatabase toReachDatabaseMsg();
-
 private:
-  void putHelper(const reach_msgs::ReachRecord& record);
-
-  std::unordered_map<std::string, reach_msgs::ReachRecord> map_;
+  std::map<std::string, ReachRecord> map_;
 
   mutable std::mutex mutex_;
 
   StudyResults results_;
+
+  friend class boost::serialization::access;
+  template <class Archive>
+  void serialize(Archive& ar, const unsigned int version)
+  {
+    ar & BOOST_SERIALIZATION_NVP(map_);
+    ar & BOOST_SERIALIZATION_NVP(results_);
+  }
 };
-typedef std::shared_ptr<ReachDatabase> ReachDatabasePtr;
+
+void save(const reach::core::ReachDatabase& db, const std::string& filename);
+
+reach::core::ReachDatabase load(const std::string& filename);
 
 }  // namespace core
 }  // namespace reach

@@ -16,10 +16,13 @@
 #ifndef REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 #define REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 
-#include <boost/optional.hpp>
+#include <reach_core/plugins/evaluation_base.h>
+
+#include <boost/shared_ptr.hpp>
+#include <Eigen/Dense>
+#include <pluginlib/class_loader.h>
 #include <vector>
 #include <xmlrpcpp/XmlRpcValue.h>
-#include <Eigen/Dense>
 
 namespace reach
 {
@@ -31,20 +34,17 @@ namespace plugins
 class IKSolverBase
 {
 public:
-  IKSolverBase()
-  {
-  }
+  using Ptr = boost::shared_ptr<IKSolverBase>;
 
-  virtual ~IKSolverBase()
-  {
-  }
+  IKSolverBase();
+  virtual ~IKSolverBase() = default;
 
   /**
    * @brief initialize
    * @param config
    * @return
    */
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) = 0;
+  void initialize(XmlRpc::XmlRpcValue& config);
 
   /**
    * @brief solveIKFromSeed attempts to find a valid IK solution for the given target pose starting from the input seed
@@ -54,17 +54,24 @@ public:
    * @param solution
    * @return a boost optional type indicating the success of the IK solution and containing the score of the solution
    */
-  virtual boost::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
-                                                  const std::map<std::string, double>& seed,
-                                                  std::vector<double>& solution) = 0;
+  std::tuple<std::vector<double>, double> solveIKFromSeed(const Eigen::Isometry3d& target,
+                                                          const std::map<std::string, double>& seed) const;
 
   /**
    * @brief getJointNames
    * @return
    */
   virtual std::vector<std::string> getJointNames() const = 0;
+
+protected:
+  virtual void initializeImpl(const XmlRpc::XmlRpcValue& config) = 0;
+  virtual std::vector<std::vector<double>> solveIKFromSeedImpl(const Eigen::Isometry3d& target,
+                                                               const std::map<std::string, double>& seed) const = 0;
+
+private:
+  pluginlib::ClassLoader<EvaluationBase> loader_;
+  EvaluationBase::Ptr eval_;
 };
-typedef boost::shared_ptr<IKSolverBase> IKSolverBasePtr;
 
 }  // namespace plugins
 }  // namespace reach

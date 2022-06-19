@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach_core/reach_database.h"
-#include <ros/ros.h>
-#include <ros/package.h>
+#include <reach_core/reach_database.h>
+
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <ros/package.h>
+#include <ros/ros.h>
 
 const static std::string RESULTS_FOLDER_NAME = "results";
 const static std::string OPT_DB_NAME = "optimized_reach.db";
@@ -80,15 +81,19 @@ int main(int argc, char** argv)
 
   for (size_t i = 0; i < files.size(); ++i)
   {
-    const std::string config = files[i].first.string();
-    const std::string path = files[i].second.string();
-
-    reach::core::ReachDatabase db;
-    if (db.load(path))
+    try
     {
+      const std::string config = files[i].first.string();
+      const std::string path = files[i].second.string();
+
+      reach::core::ReachDatabase db = reach::core::load(path);
       reach::core::StudyResults res = db.getStudyResults();
       std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n") % config.c_str() % res.reach_percentage %
                        res.norm_total_pose_score % res.avg_num_neighbors % res.avg_joint_distance;
+    }
+    catch (const std::exception& ex)
+    {
+      std::cout << ex.what() << std::endl;
     }
   }
 

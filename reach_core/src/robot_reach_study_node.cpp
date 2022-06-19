@@ -15,6 +15,7 @@
  */
 #include "reach_core/reach_study.h"
 #include "reach_core/study_parameters.h"
+#include <ros/ros.h>
 
 template <typename T>
 bool get(const ros::NodeHandle& nh, const std::string& key, T& val)
@@ -29,14 +30,14 @@ bool get(const ros::NodeHandle& nh, const std::string& key, T& val)
 
 bool getStudyParameters(ros::NodeHandle& nh, reach::core::StudyParameters& sp)
 {
-  if (!get(nh, "config_name", sp.config_name) || !get(nh, "fixed_frame", sp.fixed_frame) ||
-      !get(nh, "results_directory", sp.results_directory) || !get(nh, "object_frame", sp.object_frame) ||
-      !get(nh, "pcd_filename", sp.pcd_filename) || !get(nh, "optimization/radius", sp.optimization.radius) ||
+  if (!get(nh, "config_name", sp.config_name) || !get(nh, "results_directory", sp.results_directory) ||
+      !get(nh, "optimization/radius", sp.optimization.radius) ||
       !get(nh, "optimization/max_steps", sp.optimization.max_steps) ||
       !get(nh, "optimization/step_improvement_threshold", sp.optimization.step_improvement_threshold) ||
       !get(nh, "get_avg_neighbor_count", sp.get_neighbors) || !get(nh, "compare_dbs", sp.compare_dbs) ||
       !get(nh, "visualize_results", sp.visualize_results) || !get(nh, "ik_solver_config", sp.ik_solver_config) ||
-      !get(nh, "display_config", sp.display_config))
+      !get(nh, "display_config", sp.display_config) ||
+      !get(nh, "target_pose_generator_config", sp.target_pose_generator_config))
   {
     return false;
   }
@@ -60,14 +61,10 @@ int main(int argc, char** argv)
   }
 
   // Initialize the reach study
-  reach::core::ReachStudy rs(nh);
+  reach::core::ReachStudy rs;
 
   // Run the reach study
-  if (!rs.run(sp))
-  {
-    ROS_ERROR("Unable to perform the reach study");
-    return -1;
-  }
+//  rs.run(sp);
 
   ros::waitForShutdown();
 

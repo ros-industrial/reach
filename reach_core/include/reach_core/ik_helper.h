@@ -35,12 +35,12 @@ struct NeighborReachResult
 
 using SearchTreePtr = pcl::search::KdTree<pcl::PointXYZ>::Ptr;
 
-NeighborReachResult reachNeighborsDirect(std::shared_ptr<ReachDatabase> db, const reach_msgs::ReachRecord& rec,
-                                         reach::plugins::IKSolverBasePtr solver, const double radius,
+NeighborReachResult reachNeighborsDirect(std::shared_ptr<ReachDatabase> db, const reach::core::ReachRecord& rec,
+                                         reach::plugins::IKSolverBase::Ptr solver, const double radius,
                                          SearchTreePtr search_tree = nullptr);
 
-void reachNeighborsRecursive(std::shared_ptr<ReachDatabase> db, const reach_msgs::ReachRecord& msg,
-                             reach::plugins::IKSolverBasePtr solver, const double radius, NeighborReachResult result,
+void reachNeighborsRecursive(std::shared_ptr<ReachDatabase> db, const reach::core::ReachRecord& msg,
+                             reach::plugins::IKSolverBase::Ptr solver, const double radius, NeighborReachResult result,
                              SearchTreePtr search_tree = nullptr);
 
 }  // namespace core

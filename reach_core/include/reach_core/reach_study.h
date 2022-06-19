@@ -20,9 +20,9 @@
 #include <reach_core/ik_helper.h>
 #include <reach_core/reach_visualizer.h>
 #include <reach_core/plugins/ik_solver_base.h>
-#include <pcl_ros/point_cloud.h>
+#include <reach_core/plugins/target_pose_generator_base.h>
+
 #include <pluginlib/class_loader.h>
-#include <sensor_msgs/PointCloud2.h>
 
 namespace reach
 {
@@ -38,19 +38,17 @@ public:
    * @brief ReachStudy
    * @param nh
    */
-  ReachStudy(const ros::NodeHandle& nh);
+  ReachStudy();
 
   /**
    * @brief run
    * @param sp
    * @return
    */
-  bool run(const StudyParameters& sp);
+  void run(const StudyParameters& sp);
 
 private:
-  bool initializeStudy();
-
-  bool getReachObjectPointCloud();
+  void initializeStudy();
 
   void runInitialReachStudy();
 
@@ -60,29 +58,21 @@ private:
 
   bool compareDatabases();
 
-  ros::NodeHandle nh_;
-
   StudyParameters sp_;
-
-  pcl::PointCloud<pcl::PointNormal>::Ptr cloud_;
-
-  ReachDatabasePtr db_;
+  ReachDatabase::Ptr db_;
 
   // Plugins
   pluginlib::ClassLoader<reach::plugins::IKSolverBase> solver_loader_;
   pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader_;
-  reach::plugins::IKSolverBasePtr ik_solver_;
-  reach::plugins::DisplayBasePtr display_;
+  pluginlib::ClassLoader<reach::plugins::TargetPoseGeneratorBase> target_pose_generator_loader_;
+  plugins::IKSolverBase::Ptr ik_solver_;
+  plugins::DisplayBase::Ptr display_;
+  plugins::VectorIsometry3d target_poses_;
 
-  ReachVisualizerPtr visualizer_;
-
+  ReachVisualizer::Ptr visualizer_;
   SearchTreePtr search_tree_;
-
   std::string dir_;
-
   std::string results_dir_;
-
-  sensor_msgs::PointCloud2 cloud_msg_;
 };
 
 }  // namespace core

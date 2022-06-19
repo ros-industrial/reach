@@ -17,6 +17,8 @@
 #define REACH_UTILS_GENERAL_UTILS_H
 
 #include <atomic>
+#include <map>
+#include <vector>
 #include <Eigen/Dense>
 
 namespace reach
@@ -31,13 +33,16 @@ namespace utils
  */
 void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>& previous_pct, const int total_size);
 
-/**
- * @brief createFrame
- * @param pt
- * @param norm
- * @return
- */
-Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt, const Eigen::Vector3f& norm);
+template <typename T>
+static std::map<std::string, T> zip(const std::vector<std::string>& keys, const std::vector<T>& values)
+{
+  std::map<std::string, T> map;
+  for (std::size_t i = 0; i < keys.size(); ++i)
+  {
+    map[keys[i]] = values.at(i);
+  }
+  return map;
+}
 
 }  // namespace utils
 }  // namespace reach

@@ -32,6 +32,8 @@ namespace core
 class ReachVisualizer
 {
 public:
+  using Ptr = boost::shared_ptr<ReachVisualizer>;
+
   /**
    * @brief ReachVisualizer
    * @param db
@@ -40,33 +42,32 @@ public:
    * @param neighbor_radius
    * @param search_tree
    */
-  ReachVisualizer(ReachDatabasePtr db, reach::plugins::IKSolverBasePtr solver, reach::plugins::DisplayBasePtr display,
+  ReachVisualizer(ReachDatabase::Ptr db, reach::plugins::IKSolverBase::Ptr solver, reach::plugins::DisplayBase::Ptr display,
                   const double neighbor_radius, SearchTreePtr search_tree = nullptr);
 
   void update();
 
 private:
-  void reSolveIKCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb);
+  void reSolveIKCB(const std::string& fb);
 
-  void showResultCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb);
+  void showResultCB(const std::string& fb);
 
-  void showSeedCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb);
+  void showSeedCB(const std::string& fb);
 
-  void reachNeighborsDirectCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb);
+  void reachNeighborsDirectCB(const std::string& fb);
 
-  void reachNeighborsRecursiveCB(const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb);
+  void reachNeighborsRecursiveCB(const std::string& fb);
 
-  ReachDatabasePtr db_;
+  ReachDatabase::Ptr db_;
 
-  reach::plugins::IKSolverBasePtr solver_;
+  reach::plugins::IKSolverBase::Ptr solver_;
 
-  reach::plugins::DisplayBasePtr display_;
+  reach::plugins::DisplayBase::Ptr display_;
 
   SearchTreePtr search_tree_;
 
   double neighbor_radius_;
 };
-typedef std::shared_ptr<ReachVisualizer> ReachVisualizerPtr;
 
 }  // namespace core
 }  // namespace reach
