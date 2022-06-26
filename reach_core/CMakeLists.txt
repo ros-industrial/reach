@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS roscpp pluginlib)
 find_package(Boost REQUIRED COMPONENTS serialization)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS io search)
-#find_package(FLANN REQUIRED)
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -34,7 +33,6 @@ catkin_package(
 include_directories(include
   ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-#  ${FLANN_INCLUDE_DIRS}
 )
 
 # Reach Study Library
@@ -49,7 +47,8 @@ add_library(
   src/core/ik_helper.cpp
   src/core/reach_visualizer.cpp
   # Reach Study
-  src/core/reach_study.cpp)
+  src/core/reach_study.cpp
+  src/core/reach_study_comparison.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen Boost::serialization ${PCL_LIBRARIES})
 
 # Plugins Library

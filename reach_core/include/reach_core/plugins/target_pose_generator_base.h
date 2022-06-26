@@ -13,6 +13,8 @@ using VectorIsometry3d = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator
 struct TargetPoseGeneratorBase
 {
   using Ptr = boost::shared_ptr<TargetPoseGeneratorBase>;
+  using ConstPtr = boost::shared_ptr<const TargetPoseGeneratorBase>;
+
   virtual VectorIsometry3d generate() const = 0;
 
   virtual void initialize(const XmlRpc::XmlRpcValue& config) = 0;

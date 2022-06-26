@@ -47,7 +47,7 @@ void MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue& config)
     throw std::runtime_error("No valid plugins remain");
 }
 
-double MultiplicativeFactory::calculateScore(const std::map<std::string, double>& pose)
+double MultiplicativeFactory::calculateScore(const std::map<std::string, double>& pose) const
 {
   double score = 1.0;
   for (const EvaluationBase::Ptr& plugin : eval_plugins_)

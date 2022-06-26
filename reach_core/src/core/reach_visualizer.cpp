@@ -20,37 +20,16 @@ namespace reach
 {
 namespace core
 {
-ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, reach::plugins::IKSolverBase::Ptr solver,
-                                 reach::plugins::DisplayBase::Ptr display, const double neighbor_radius,
-                                 SearchTreePtr search_tree)
-  : db_(db), solver_(solver), display_(display), search_tree_(search_tree), neighbor_radius_(neighbor_radius)
+ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, reach::plugins::IKSolverBase::ConstPtr solver,
+                                 reach::plugins::DisplayBase::ConstPtr display, const double neighbor_radius)
+  : db_(db), solver_(solver), display_(display), neighbor_radius_(neighbor_radius)
 {
-//  // Create menu functions for the display and tie them to members of this class
-//  using CBType = interactive_markers::MenuHandler::FeedbackCallback;
-//  using FBType = visualization_msgs::InteractiveMarkerFeedbackConstPtr;
+  display_->showEnvironment();
 
-//  CBType show_result_cb = boost::bind(&ReachVisualizer::showResultCB, this, _1);
-//  CBType show_seed_cb = boost::bind(&ReachVisualizer::showSeedCB, this, _1);
-//  CBType re_solve_ik_cb = boost::bind(&ReachVisualizer::reSolveIKCB, this, _1);
-//  CBType neighbors_direct_cb = boost::bind(&ReachVisualizer::reachNeighborsDirectCB, this, _1);
-//  CBType neighbors_recursive_cb = boost::bind(&ReachVisualizer::reachNeighborsRecursiveCB, this, _1);
-
-//  display_->createMenuFunction("Show Result", show_result_cb);
-//  display_->createMenuFunction("Show Seed Position", show_seed_cb);
-//  display_->createMenuFunction("Re-solve IK", re_solve_ik_cb);
-//  display_->createMenuFunction("Show Reach to Neighbors (Direct)", neighbors_direct_cb);
-//  display_->createMenuFunction("Show Reach to Neighbors (Recursive)", neighbors_recursive_cb);
-
-//  // Add interactive markers to the display from the reach database
-//  display_->addInteractiveMarkerData(db_->toReachDatabaseMsg());
+  // TODO: Build the search tree
 }
 
-void ReachVisualizer::update()
-{
-//  display_->addInteractiveMarkerData(db_->toReachDatabaseMsg());
-}
-
-void ReachVisualizer::reSolveIKCB(const std::string& marker_name)
+void ReachVisualizer::reSolveIK(const std::string& marker_name)
 {
   ReachRecord lookup = db_->get(marker_name);
 
@@ -59,56 +38,49 @@ void ReachVisualizer::reSolveIKCB(const std::string& marker_name)
   double score;
   std::tie(goal_pose, score) = solver_->solveIKFromSeed(lookup.goal, lookup.seed_state);
 
-  // Update the database if the IK solution was valid
-  //    ROS_INFO("Solution found for point");
-
   lookup.reached = true;
   lookup.score = score;
   lookup.goal_state = utils::zip(solver_->getJointNames(), goal_pose);
 
   // Update the interactive marker server
-//    display_->updateInteractiveMarker(*lookup);
   display_->updateRobotPose(lookup.goal_state);
 
   // Update the database
   db_->put(lookup);
 }
 
-void ReachVisualizer::showResultCB(const std::string& marker_name)
+void ReachVisualizer::showResult(const std::string& marker_name) const
 {
   ReachRecord lookup = db_->get(marker_name);
   display_->updateRobotPose(lookup.goal_state);
 }
 
-void ReachVisualizer::showSeedCB(const std::string& marker_name)
+void ReachVisualizer::showSeed(const std::string& marker_name) const
 {
   ReachRecord lookup = db_->get(marker_name);
   display_->updateRobotPose(lookup.seed_state);
 }
 
-void ReachVisualizer::reachNeighborsDirectCB(const std::string& marker_name)
+void ReachVisualizer::reachNeighbors(const std::string& record_id, const bool recursive)
 {
-  ReachRecord lookup = db_->get(marker_name);
-  NeighborReachResult result = reachNeighborsDirect(db_, lookup, solver_, neighbor_radius_, search_tree_);
-
-  display_->updateRobotPose(lookup.goal_state);
-//  display_->publishMarkerArray(result.reached_pts);
-
-//  ROS_INFO("%lu points are reachable from this pose", result.reached_pts.size());
-  showResultCB(marker_name);
-}
-
-void ReachVisualizer::reachNeighborsRecursiveCB(const std::string& marker_name)
-{
-  ReachRecord lookup = db_->get(marker_name);
+  ReachRecord lookup = db_->get(record_id);
   NeighborReachResult result;
-  reachNeighborsRecursive(db_, lookup, solver_, neighbor_radius_, result, search_tree_);
+  if (recursive)
+  {
+    reach::core::reachNeighborsRecursive(db_, lookup, solver_, neighbor_radius_, result, search_tree_);
+  }
+  else
+  {
+    result = reach::core::reachNeighborsDirect(db_, lookup, solver_, neighbor_radius_, search_tree_);
+  }
 
   display_->updateRobotPose(lookup.goal_state);
-//  display_->publishMarkerArray(result.reached_pts);
-//  ROS_INFO("%lu points are reachable from this pose", result.reached_pts.size());
-//  ROS_INFO("Total joint distance to all neighbors: %f", result.joint_distance);
-  showResultCB(marker_name);
+  std::vector<ReachRecord> records;
+  records.reserve(result.reached_pts.size());
+  std::transform(result.reached_pts.begin(), result.reached_pts.end(), std::back_inserter(records),
+                 [this](const std::string& name) { return db_->get(name); });
+
+  display_->showReachNeighborhood(records);
 }
 
 }  // namespace core

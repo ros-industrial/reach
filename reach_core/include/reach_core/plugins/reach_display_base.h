@@ -17,6 +17,7 @@
 #define REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
 
 #include <reach_core/reach_database.h>
+
 #include <boost/shared_ptr.hpp>
 #include <xmlrpcpp/XmlRpcValue.h>
 #include <pcl/point_types_conversion.h>
@@ -28,16 +29,16 @@ namespace plugins
 struct DisplayBase
 {
   using Ptr = boost::shared_ptr<DisplayBase>;
+  using ConstPtr = boost::shared_ptr<const DisplayBase>;
+
   DisplayBase() = default;
   virtual ~DisplayBase() = default;
 
   virtual void initialize(XmlRpc::XmlRpcValue& config) = 0;
-
-  virtual void showEnvironment() = 0;
-
-  virtual void updateRobotPose(const std::map<std::string, double>& pose) = 0;
-
-  virtual void compareDatabases(const std::map<std::string, reach::core::ReachDatabase>& dbs) = 0;
+  virtual void showEnvironment() const = 0;
+  virtual void updateRobotPose(const std::map<std::string, double>& pose) const = 0;
+  virtual void showReachNeighborhood(const std::vector<core::ReachRecord>& neighborhood) const = 0;
+//  virtual void compareDatabases(const std::map<std::string, reach::core::ReachDatabase>& dbs) const = 0;
 };
 
 }  // namespace plugins

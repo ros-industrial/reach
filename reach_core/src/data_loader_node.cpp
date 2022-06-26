@@ -87,9 +87,8 @@ int main(int argc, char** argv)
       const std::string path = files[i].second.string();
 
       reach::core::ReachDatabase db = reach::core::load(path);
-      reach::core::StudyResults res = db.getStudyResults();
-      std::cout << boost::format("%-30s %=25.3f %=25.6f %=25.3f %=25.3f\n") % config.c_str() % res.reach_percentage %
-                       res.norm_total_pose_score % res.avg_num_neighbors % res.avg_joint_distance;
+      reach::core::StudyResults res = db.calculateResults();
+      std::cout << res.print() << std::endl;
     }
     catch (const std::exception& ex)
     {

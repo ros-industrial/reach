@@ -20,7 +20,7 @@ namespace reach
 {
 namespace core
 {
-std::vector<std::string> getNeighbors(const ReachRecord& rec, const ReachDatabase::Ptr db, const double radius)
+std::vector<std::string> getNeighbors(const ReachRecord& rec, const ReachDatabase::ConstPtr db, const double radius)
 {
   // Create vectors for storing poses and reach record messages that lie within radius of current point
   std::vector<std::string> reach_records;
@@ -39,8 +39,8 @@ std::vector<std::string> getNeighbors(const ReachRecord& rec, const ReachDatabas
   return reach_records;
 }
 
-std::vector<std::string> getNeighborsFLANN(const ReachRecord& rec, const ReachDatabase::Ptr db, const double radius,
-                                           SearchTreePtr search_tree)
+std::vector<std::string> getNeighborsFLANN(const ReachRecord& rec, const ReachDatabase::ConstPtr db,
+                                           const double radius, SearchTreePtr search_tree)
 {
   pcl::PointXYZ query(rec.goal.translation().x(), rec.goal.translation().y(), rec.goal.translation().z());
   std::vector<int> indices;
@@ -59,7 +59,7 @@ std::vector<std::string> getNeighborsFLANN(const ReachRecord& rec, const ReachDa
 }
 
 NeighborReachResult reachNeighborsDirect(ReachDatabase::Ptr db, const ReachRecord& rec,
-                                         reach::plugins::IKSolverBase::Ptr solver, const double radius,
+                                         reach::plugins::IKSolverBase::ConstPtr solver, const double radius,
                                          SearchTreePtr search_tree)
 {
   // Initialize return array of string IDs of msgs that have been updated
@@ -115,7 +115,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabase::Ptr db, const ReachRecor
 }
 
 void reachNeighborsRecursive(ReachDatabase::Ptr db, const ReachRecord& rec,
-                             reach::plugins::IKSolverBase::Ptr solver, const double radius, NeighborReachResult result,
+                             reach::plugins::IKSolverBase::ConstPtr solver, const double radius, NeighborReachResult result,
                              SearchTreePtr search_tree)
 {
   // Add the current point to the output list of msg IDs

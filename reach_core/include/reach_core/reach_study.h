@@ -16,13 +16,9 @@
 #ifndef REACH_CORE_REACH_STUDY_H
 #define REACH_CORE_REACH_STUDY_H
 
-#include <reach_core/study_parameters.h>
 #include <reach_core/ik_helper.h>
-#include <reach_core/reach_visualizer.h>
 #include <reach_core/plugins/ik_solver_base.h>
 #include <reach_core/plugins/target_pose_generator_base.h>
-
-#include <pluginlib/class_loader.h>
 
 namespace reach
 {
@@ -34,45 +30,35 @@ namespace core
 class ReachStudy
 {
 public:
-  /**
-   * @brief ReachStudy
-   * @param nh
-   */
-  ReachStudy();
+  struct Parameters
+  {
+    int max_steps;
+    float step_improvement_threshold;
+    float radius;
+  };
 
-  /**
-   * @brief run
-   * @param sp
-   * @return
-   */
-  void run(const StudyParameters& sp);
+  ReachStudy(plugins::IKSolverBase::ConstPtr ik_solver, plugins::TargetPoseGeneratorBase::ConstPtr pose_generator,
+             const Parameters params, const std::string& study_name);
+
+  void load(const std::string& filename);
+  void run();
+  void optimize();
+  void save(const std::string& filename) const;
+
+  StudyResults getResults() const;
+  ReachDatabase::ConstPtr getDatabase() const;
+
+  std::tuple<double, double> getAverageNeighborsCount() const;
 
 private:
-  void initializeStudy();
-
-  void runInitialReachStudy();
-
-  void optimizeReachStudyResults();
-
-  void getAverageNeighborsCount();
-
-  bool compareDatabases();
-
-  StudyParameters sp_;
+  Parameters params_;
   ReachDatabase::Ptr db_;
 
   // Plugins
-  pluginlib::ClassLoader<reach::plugins::IKSolverBase> solver_loader_;
-  pluginlib::ClassLoader<reach::plugins::DisplayBase> display_loader_;
-  pluginlib::ClassLoader<reach::plugins::TargetPoseGeneratorBase> target_pose_generator_loader_;
-  plugins::IKSolverBase::Ptr ik_solver_;
-  plugins::DisplayBase::Ptr display_;
-  plugins::VectorIsometry3d target_poses_;
+  plugins::IKSolverBase::ConstPtr ik_solver_;
+  const plugins::VectorIsometry3d target_poses_;
 
-  ReachVisualizer::Ptr visualizer_;
-  SearchTreePtr search_tree_;
-  std::string dir_;
-  std::string results_dir_;
+  SearchTreePtr search_tree_ = nullptr;
 };
 
 }  // namespace core

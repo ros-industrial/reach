@@ -13,60 +13,76 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach_core/reach_study.h"
-#include "reach_core/study_parameters.h"
+#include <reach_core/reach_study.h>
+
 #include <ros/ros.h>
+#include <pluginlib/class_loader.h>
+
+static const std::string PACKAGE = "reach_core";
+static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
+static const std::string DISPLAY_BASE_CLASS = "reach::plugins::DisplayBase";
+static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::plugins::WaypointGeneratorBase";
 
 template <typename T>
-bool get(const ros::NodeHandle& nh, const std::string& key, T& val)
+T get(const ros::NodeHandle& nh, const std::string& key)
 {
+  T val;
   if (!nh.getParam(key, val))
-  {
-    ROS_ERROR_STREAM("Failed to get '" << key << "' parameter");
-    return false;
-  }
-  return true;
-}
-
-bool getStudyParameters(ros::NodeHandle& nh, reach::core::StudyParameters& sp)
-{
-  if (!get(nh, "config_name", sp.config_name) || !get(nh, "results_directory", sp.results_directory) ||
-      !get(nh, "optimization/radius", sp.optimization.radius) ||
-      !get(nh, "optimization/max_steps", sp.optimization.max_steps) ||
-      !get(nh, "optimization/step_improvement_threshold", sp.optimization.step_improvement_threshold) ||
-      !get(nh, "get_avg_neighbor_count", sp.get_neighbors) || !get(nh, "compare_dbs", sp.compare_dbs) ||
-      !get(nh, "visualize_results", sp.visualize_results) || !get(nh, "ik_solver_config", sp.ik_solver_config) ||
-      !get(nh, "display_config", sp.display_config) ||
-      !get(nh, "target_pose_generator_config", sp.target_pose_generator_config))
-  {
-    return false;
-  }
-
-  return true;
+    throw std::runtime_error("Failed to get '" + key + "' parameter");
+  return val;
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "robot_reach_study_node");
-  ros::NodeHandle pnh("~"), nh;
-
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-
-  // Get the study parameters
-  reach::core::StudyParameters sp;
-  if (!getStudyParameters(pnh, sp))
+  try
   {
-    return -1;
+    ros::init(argc, argv, "robot_reach_study_node");
+    ros::NodeHandle pnh("~"), nh;
+
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+
+    // Get the study parameters
+    reach::core::ReachStudy::Parameters params;
+    params.radius = get<double>(nh, "optimization/radius");
+    params.max_steps = get<int>(nh, "optimization/max_steps");
+    params.step_improvement_threshold = get<double>(nh, "optimization/step_improvement_threshold");
+
+    // Load the IK Solver plugin
+    pluginlib::ClassLoader<reach::plugins::IKSolverBase> solver_loader(PACKAGE, IK_BASE_CLASS);
+    reach::plugins::IKSolverBase::Ptr ik_solver;
+    {
+      XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "ik_solver_config");
+      ik_solver = solver_loader.createInstance(config["name"]);
+      ik_solver->initialize(config);
+    }
+
+    // Load the target pose generator plugin
+    pluginlib::ClassLoader<reach::plugins::TargetPoseGeneratorBase> target_pose_generator_loader_(
+        PACKAGE, TARGET_POSE_GENERATOR_BASE_CLASS);
+    reach::plugins::TargetPoseGeneratorBase::Ptr target_pose_generator;
+    {
+      XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "target_pose_generator_config");
+      target_pose_generator = target_pose_generator_loader_.createInstance(config["name"]);
+      target_pose_generator->initialize(config);
+    }
+
+    const std::string config_name = get<std::string>(nh, config_name);
+    boost::filesystem::path results_dir(get<std::string>(nh, "results_directory"));
+
+    // Initialize the reach study
+    reach::core::ReachStudy rs(ik_solver, target_pose_generator, params, config_name);
+
+    // Run the reach study
+    rs.run();
+    rs.save((results_dir / "study.db").string());
+    rs.optimize();
+    rs.save((results_dir / "study_optimized.db").string());
   }
-
-  // Initialize the reach study
-  reach::core::ReachStudy rs;
-
-  // Run the reach study
-//  rs.run(sp);
-
-  ros::waitForShutdown();
+  catch (const std::exception& ex)
+  {
+    std::cerr << ex.what() << std::endl;
+  }
 
   return 0;
 }

@@ -35,6 +35,7 @@ class IKSolverBase
 {
 public:
   using Ptr = boost::shared_ptr<IKSolverBase>;
+  using ConstPtr = boost::shared_ptr<const IKSolverBase>;
 
   IKSolverBase();
   virtual ~IKSolverBase() = default;

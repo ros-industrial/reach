@@ -16,8 +16,6 @@
 #ifndef REACH_CORE_REACH_DATABASE_H
 #define REACH_CORE_REACH_DATABASE_H
 
-#include <reach_core/study_parameters.h>
-
 //#include <boost/multi_index_container.hpp>
 //#include <boost/multi_index/sequenced_index.hpp>
 //#include <boost/multi_index/ordered_index.hpp>
@@ -99,6 +97,28 @@ private:
 };
 
 /**
+ * @brief The StudyResults struct
+ */
+class StudyResults
+{
+public:
+  float total_pose_score = 0.0f;
+  float norm_total_pose_score = 0.0f;
+  float reach_percentage = 0.0f;
+
+  std::string print()
+  {
+    std::stringstream ss;
+    ss << "------------------------------------------------\n";
+    ss << "Percent Reached = " << reach_percentage << "\n";
+    ss << "Total points score = " << total_pose_score << "\n";
+    ss << "Normalized total points score = " << norm_total_pose_score << "\n";
+    ss << "------------------------------------------------\n";
+    return ss.str();
+  }
+};
+
+/**
  * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database
  * also saves several key meta-results of the reach study:
  *  - reach_percentage: the percentage of all attempted poses that were reachable
@@ -113,13 +133,17 @@ private:
 class ReachDatabase
 {
   using iterator = std::map<std::string, ReachRecord>::iterator;
+  using const_iterator = std::map<std::string, ReachRecord>::const_iterator;
 
 public:
   using Ptr = std::shared_ptr<ReachDatabase>;
+  using ConstPtr = std::shared_ptr<const ReachDatabase>;
 
-  ReachDatabase() = default;
+  ReachDatabase(const std::string name = "reach_study");
   ReachDatabase(const ReachDatabase&);
   ReachDatabase& operator=(const ReachDatabase&);
+
+  std::string getName() const;
 
   /**
    * @brief get returns a ReachRecord message from the database
@@ -143,64 +167,26 @@ public:
   /**
    * @brief calculateResults calculates the results of the reach study and saves them to internal class members
    */
-  void calculateResults();
-
-  /**
-   * @brief printResults prints the calculated results of the reach study to the terminal
-   */
-  std::string printResults();
-
-  /**
-   * @brief getStudyResults
-   * @return
-   */
-  StudyResults getStudyResults() const
-  {
-    return results_;
-  }
-
-  /**
-   * @brief setAverageNeighborsCount
-   * @param n
-   */
-  void setAverageNeighborsCount(const float n)
-  {
-    results_.avg_num_neighbors = n;
-  }
-
-  /**
-   * @brief setAverageJointDistance
-   * @param n
-   */
-  void setAverageJointDistance(const float n)
-  {
-    results_.avg_joint_distance = n;
-  }
+  StudyResults calculateResults();
 
   // For loops
-  iterator begin()
-  {
-    return map_.begin();
-  }
-
-  iterator end()
-  {
-    return map_.end();
-  }
+  iterator begin();
+  const_iterator begin() const;
+  iterator end();
+  const_iterator end() const;
 
 private:
+  std::string name_;
   std::map<std::string, ReachRecord> map_;
 
   mutable std::mutex mutex_;
-
-  StudyResults results_;
 
   friend class boost::serialization::access;
   template <class Archive>
   void serialize(Archive& ar, const unsigned int version)
   {
-    ar & BOOST_SERIALIZATION_NVP(map_);
-    ar & BOOST_SERIALIZATION_NVP(results_);
+    ar& BOOST_SERIALIZATION_NVP(name_);
+    ar& BOOST_SERIALIZATION_NVP(map_);
   }
 };
 

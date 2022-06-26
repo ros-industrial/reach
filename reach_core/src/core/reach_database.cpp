@@ -30,15 +30,24 @@ ReachRecord::ReachRecord(const std::string id_, const bool reached_, const Eigen
 {
 }
 
-ReachDatabase::ReachDatabase(const ReachDatabase& rhs) : map_(rhs.map_), results_(rhs.results_)
+ReachDatabase::ReachDatabase(const std::string name) : name_(std::move(name))
+{
+}
+
+ReachDatabase::ReachDatabase(const ReachDatabase& rhs) : name_(rhs.name_), map_(rhs.map_)
 {
 }
 
 ReachDatabase& ReachDatabase::operator=(const ReachDatabase& rhs)
 {
+  name_ = rhs.name_;
   map_ = rhs.map_;
-  results_ = rhs.results_;
   return *this;
+}
+
+std::string ReachDatabase::getName() const
+{
+  return name_;
 }
 
 ReachRecord ReachDatabase::get(const std::string& id) const
@@ -58,7 +67,27 @@ std::size_t ReachDatabase::size() const
   return map_.size();
 }
 
-void ReachDatabase::calculateResults()
+ReachDatabase::iterator ReachDatabase::begin()
+{
+  return map_.begin();
+}
+
+ReachDatabase::const_iterator ReachDatabase::begin() const
+{
+  return map_.cbegin();
+}
+
+ReachDatabase::iterator ReachDatabase::end()
+{
+  return map_.end();
+}
+
+ReachDatabase::const_iterator ReachDatabase::end() const
+{
+  return map_.cend();
+}
+
+StudyResults ReachDatabase::calculateResults()
 {
   unsigned int success = 0, total = 0;
   double score = 0.0;
@@ -76,22 +105,12 @@ void ReachDatabase::calculateResults()
   }
   const float pct_success = static_cast<float>(success) / static_cast<float>(total);
 
-  results_.reach_percentage = 100.0f * pct_success;
-  results_.total_pose_score = score;
-  results_.norm_total_pose_score = score / pct_success;
-}
+  StudyResults results;
+  results.reach_percentage = 100.0f * pct_success;
+  results.total_pose_score = score;
+  results.norm_total_pose_score = score / pct_success;
 
-std::string ReachDatabase::printResults()
-{
-  std::stringstream ss;
-  ss << "------------------------------------------------\n";
-  ss << "Percent Reached = " << results_.reach_percentage << "\n";
-  ss << "Total points score = " << results_.total_pose_score << "\n";
-  ss << "Normalized total points score = " << results_.norm_total_pose_score << "\n";
-  ss << "Average reachable neighbors = " << results_.avg_num_neighbors << "\n";
-  ss << "Average joint distance = " << results_.avg_joint_distance << "\n";
-  ss << "------------------------------------------------\n";
-  return ss.str();
+  return results;
 }
 
 void save(const reach::core::ReachDatabase& db, const std::string& filename)

@@ -31,6 +31,8 @@ class EvaluationBase
 {
 public:
   using Ptr = boost::shared_ptr<EvaluationBase>;
+  using ConstPtr = boost::shared_ptr<const EvaluationBase>;
+
   EvaluationBase() = default;
   virtual ~EvaluationBase() = default;
 
@@ -45,7 +47,7 @@ public:
    * @param pose
    * @return
    */
-  virtual double calculateScore(const std::map<std::string, double>& pose) = 0;
+  virtual double calculateScore(const std::map<std::string, double>& pose) const = 0;
 };
 
 }  // namespace plugins
