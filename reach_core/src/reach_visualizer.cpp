@@ -18,9 +18,9 @@
 
 namespace reach
 {
-ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, IKSolver::ConstPtr solver,
+ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                                  Display::ConstPtr display, const double neighbor_radius)
-  : db_(db), solver_(solver), display_(display), neighbor_radius_(neighbor_radius)
+  : db_(db), solver_(solver), evaluator_(evaluator), display_(display), neighbor_radius_(neighbor_radius)
 {
   display_->showEnvironment();
 
@@ -34,7 +34,7 @@ void ReachVisualizer::reSolveIK(const std::string& marker_name)
   // Re-solve IK at the selected marker
   std::vector<double> goal_pose;
   double score;
-  std::tie(goal_pose, score) = solver_->solveIKFromSeed(lookup.goal, lookup.seed_state);
+  std::tie(goal_pose, score) = evaluateIK(lookup.goal, lookup.seed_state, solver_, evaluator_);
 
   lookup.reached = true;
   lookup.score = score;
@@ -59,26 +59,25 @@ void ReachVisualizer::showSeed(const std::string& marker_name) const
   display_->updateRobotPose(lookup.seed_state);
 }
 
-void ReachVisualizer::reachNeighbors(const std::string& record_id, const bool recursive)
+void ReachVisualizer::reachNeighbors(const std::string& record_id, const bool recursive) const
 {
   ReachRecord lookup = db_->get(record_id);
-  NeighborReachResult result;
+  std::vector<ReachRecord> result;
   if (recursive)
   {
-    reachNeighborsRecursive(db_, lookup, solver_, neighbor_radius_, result, search_tree_);
+    NeighborReachResult neighbors;
+    reachNeighborsRecursive(db_, lookup, solver_, evaluator_, neighbor_radius_, neighbors, search_tree_);
+    result.reserve(neighbors.reached_pts.size());
+    std::transform(neighbors.reached_pts.begin(), neighbors.reached_pts.end(), std::back_inserter(result),
+                   [this](const std::string& name) { return db_->get(name); });
   }
   else
   {
-    result = reachNeighborsDirect(db_, lookup, solver_, neighbor_radius_, search_tree_);
+    result = reachNeighborsDirect(db_, lookup, solver_, evaluator_, neighbor_radius_, search_tree_);
   }
 
   display_->updateRobotPose(lookup.goal_state);
-  std::vector<ReachRecord> records;
-  records.reserve(result.reached_pts.size());
-  std::transform(result.reached_pts.begin(), result.reached_pts.end(), std::back_inserter(records),
-                 [this](const std::string& name) { return db_->get(name); });
-
-  display_->showReachNeighborhood(records);
+  display_->showReachNeighborhood(result);
 }
 
 }  // namespace reach
