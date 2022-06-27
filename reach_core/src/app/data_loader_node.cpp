@@ -76,9 +76,6 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  std::cout << boost::format("%-30s %=25s %=25s %=25s %=25s\n") % "Configuration Name" % "Reach Percentage" %
-                   "Normalized Total Pose Score" % "Average Reachable Neighbors" % "Average Joint Distance";
-
   for (size_t i = 0; i < files.size(); ++i)
   {
     try

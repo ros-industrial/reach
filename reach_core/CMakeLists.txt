@@ -52,12 +52,12 @@ add_library(${PROJECT_NAME}_plugins
 target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} Eigen3::Eigen ${PCL_LIBRARIES})
 
 # Reach Study Node
-add_executable(robot_reach_study_node src/robot_reach_study_node.cpp)
-target_link_libraries(robot_reach_study_node ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_executable(${PROJECT_NAME}_node src/app/reach_study_node.cpp)
+target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 # Data Loader Node
-add_executable(data_loader src/data_loader_node.cpp)
-target_link_libraries(data_loader ${catkin_LIBRARIES} ${PROJECT_NAME})
+add_executable(${PROJECT_NAME}_data_loader src/app/data_loader_node.cpp)
+target_link_libraries(${PROJECT_NAME}_data_loader ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 # ######################################################################################################################
 # TEST ##
@@ -76,8 +76,8 @@ endif()
 install(
   TARGETS ${PROJECT_NAME}
           ${PROJECT_NAME}_plugins
-          robot_reach_study_node
-          data_loader
+          ${PROJECT_NAME}_node
+          ${PROJECT_NAME}_data_loader
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
