@@ -38,23 +38,18 @@ include_directories(include
 # Reach Study Library
 add_library(
   ${PROJECT_NAME}
-  # Utilities
-  src/utils/general_utils.cpp
-  src/plugins/ik_solver_base.cpp
-#  src/utils/visualization_utils.cpp
-  # Tools
-  src/core/reach_database.cpp
-  src/core/ik_helper.cpp
-  src/core/reach_visualizer.cpp
-  # Reach Study
-  src/core/reach_study.cpp
-  src/core/reach_study_comparison.cpp)
+  src/utils.cpp
+  src/interfaces/ik_solver.cpp
+  src/reach_database.cpp
+  src/reach_visualizer.cpp
+  src/reach_study.cpp
+  src/reach_study_comparison.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen Boost::serialization ${PCL_LIBRARIES})
 
 # Plugins Library
 add_library(${PROJECT_NAME}_plugins
-  src/plugins/impl/multiplicative_factory.cpp
-  src/plugins/impl/point_cloud_target_pose_generator.cpp)
+  src/plugins/multiplicative_factory.cpp
+  src/plugins/point_cloud_target_pose_generator.cpp)
 target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} Eigen3::Eigen ${PCL_LIBRARIES})
 
 # Reach Study Node

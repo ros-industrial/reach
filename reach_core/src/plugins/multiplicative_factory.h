@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach_core/utils/general_utils.h>
+#ifndef REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H
+#define REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H
 
-#include <iostream>
+#include <reach_core/interfaces/evaluator.h>
+#include <pluginlib/class_loader.h>
 
 namespace reach
 {
-namespace utils
+class MultiplicativeFactory : public Evaluator
 {
-void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>& previous_pct, const int total_size)
-{
-  const float current_pct_float = (static_cast<float>(current_counter.load()) / static_cast<float>(total_size)) * 100.0;
-  const int current_pct = static_cast<int>(current_pct_float);
-  if (current_pct > previous_pct.load())
-  {
-    std::cout << "[" << current_pct << "%]" << std::endl;
-  }
-  previous_pct = current_pct;
-}
+public:
+  MultiplicativeFactory();
 
-}  // namespace utils
+  virtual void initialize(XmlRpc::XmlRpcValue& config) override;
+
+  virtual double calculateScore(const std::map<std::string, double>& pose) const override;
+
+private:
+  std::vector<Evaluator::Ptr> eval_plugins_;
+
+  pluginlib::ClassLoader<Evaluator> class_loader_;
+};
+
 }  // namespace reach
+
+#endif  // REACH_CORE_PLUGINS_IMPL_MULTIPLICATIVE_FACTORY_H

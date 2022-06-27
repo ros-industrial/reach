@@ -16,14 +16,26 @@
 #ifndef REACH_UTILS_GENERAL_UTILS_H
 #define REACH_UTILS_GENERAL_UTILS_H
 
+#include <reach_core/reach_database.h>
+#include <reach_core/interfaces/ik_solver.h>
+
 #include <atomic>
 #include <map>
+#include <memory>
 #include <vector>
 #include <Eigen/Dense>
 
-namespace reach
+// Forward declare flann classes
+namespace flann
 {
-namespace utils
+template <typename T>
+class KDTreeSingleIndex;
+
+template <typename T>
+class L2_3D;
+}
+
+namespace reach
 {
 /**
  * @brief integerProgressPrinter
@@ -44,7 +56,23 @@ static std::map<std::string, T> zip(const std::vector<std::string>& keys, const 
   return map;
 }
 
-}  // namespace utils
+struct NeighborReachResult
+{
+  std::vector<std::string> reached_pts;
+  double joint_distance = 0;
+};
+
+typedef flann::KDTreeSingleIndex<flann::L2_3D<double>> SearchTree;
+typedef std::shared_ptr<SearchTree> SearchTreePtr;
+
+NeighborReachResult reachNeighborsDirect(ReachDatabase::Ptr db, const ReachRecord& rec,
+                                         IKSolver::ConstPtr solver, const double radius,
+                                         SearchTreePtr search_tree = nullptr);
+
+void reachNeighborsRecursive(ReachDatabase::Ptr db, const ReachRecord& msg,
+                             IKSolver::ConstPtr solver, const double radius,
+                             NeighborReachResult result, SearchTreePtr search_tree = nullptr);
+
 }  // namespace reach
 
 #endif  // REACH_UTILS_GENERAL_UTILS_H

@@ -34,7 +34,7 @@ namespace boost
 namespace serialization
 {
 template <class Archive>
-void serialize(Archive& ar, Eigen::Isometry3d& pose, const unsigned int version)
+inline void serialize(Archive& ar, Eigen::Isometry3d& pose, const unsigned int version)
 {
   std::vector<double> position(3);
   Eigen::Map<Eigen::Vector3d> position_map(position.data());
@@ -52,8 +52,6 @@ void serialize(Archive& ar, Eigen::Isometry3d& pose, const unsigned int version)
 } // namespace boost
 
 namespace reach
-{
-namespace core
 {
 //namespace bmi = boost::multi_index;
 
@@ -85,7 +83,7 @@ private:
   friend class boost::serialization::access;
 
   template <class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  inline void serialize(Archive& ar, const unsigned int version)
   {
     ar& BOOST_SERIALIZATION_NVP(id);
     ar& BOOST_SERIALIZATION_NVP(reached);
@@ -106,7 +104,7 @@ public:
   float norm_total_pose_score = 0.0f;
   float reach_percentage = 0.0f;
 
-  std::string print()
+  inline std::string print()
   {
     std::stringstream ss;
     ss << "------------------------------------------------\n";
@@ -183,18 +181,17 @@ private:
 
   friend class boost::serialization::access;
   template <class Archive>
-  void serialize(Archive& ar, const unsigned int version)
+  inline void serialize(Archive& ar, const unsigned int version)
   {
     ar& BOOST_SERIALIZATION_NVP(name_);
     ar& BOOST_SERIALIZATION_NVP(map_);
   }
 };
 
-void save(const reach::core::ReachDatabase& db, const std::string& filename);
+void save(const ReachDatabase& db, const std::string& filename);
 
-reach::core::ReachDatabase load(const std::string& filename);
+ReachDatabase load(const std::string& filename);
 
-}  // namespace core
 }  // namespace reach
 
 #endif  // REACH_CORE_REACH_DATABASE_H

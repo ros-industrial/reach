@@ -22,19 +22,17 @@
 
 namespace reach
 {
-namespace plugins
-{
 /**
- * @brief The EvaluationBase class
+ * @brief The Evaluator class
  */
-class EvaluationBase
+class Evaluator
 {
 public:
-  using Ptr = boost::shared_ptr<EvaluationBase>;
-  using ConstPtr = boost::shared_ptr<const EvaluationBase>;
+  using Ptr = boost::shared_ptr<Evaluator>;
+  using ConstPtr = boost::shared_ptr<const Evaluator>;
 
-  EvaluationBase() = default;
-  virtual ~EvaluationBase() = default;
+  Evaluator() = default;
+  virtual ~Evaluator() = default;
 
   /**
    * @brief initialize
@@ -50,7 +48,6 @@ public:
   virtual double calculateScore(const std::map<std::string, double>& pose) const = 0;
 };
 
-}  // namespace plugins
 }  // namespace reach
 
 #endif  // REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE

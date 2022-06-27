@@ -3,8 +3,6 @@
 
 namespace reach
 {
-namespace core
-{
 static std::vector<std::string> getRecordIDs(const ReachDatabase& db)
 {
   std::vector<std::string> keys;
@@ -93,7 +91,7 @@ ComparisonResult compareDatabases(const std::vector<std::string>& db_filenames)
   std::map<std::string, ReachDatabase> dbs;
   for (const std::string& filename : db_filenames)
   {
-    ReachDatabase db = reach::core::load(filename);
+    ReachDatabase db = reach::load(filename);
     dbs.emplace(db.getName(), std::move(db));
   }
 
@@ -134,5 +132,4 @@ ComparisonResult compareDatabases(const std::vector<std::string>& db_filenames)
   return ComparisonResult(db_names, reachability_mask_map);
 }
 
-} // namespace core
 } // namespace reach

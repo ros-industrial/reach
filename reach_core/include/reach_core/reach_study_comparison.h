@@ -8,8 +8,6 @@
 
 namespace reach
 {
-namespace core
-{
 struct ComparisonResult
 {
   ComparisonResult(const std::set<std::string> db_names_, const std::map<std::string, std::size_t> reachability_mask_map_);
@@ -33,5 +31,4 @@ struct ComparisonResult
 
 ComparisonResult compareDatabases(const std::vector<std::string>& db_files);
 
-} // namespace core
 } // namespace reach

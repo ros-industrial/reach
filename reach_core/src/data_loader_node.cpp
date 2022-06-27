@@ -86,8 +86,8 @@ int main(int argc, char** argv)
       const std::string config = files[i].first.string();
       const std::string path = files[i].second.string();
 
-      reach::core::ReachDatabase db = reach::core::load(path);
-      reach::core::StudyResults res = db.calculateResults();
+      reach::ReachDatabase db = reach::load(path);
+      reach::StudyResults res = db.calculateResults();
       std::cout << res.print() << std::endl;
     }
     catch (const std::exception& ex)

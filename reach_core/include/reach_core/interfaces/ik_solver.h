@@ -16,7 +16,7 @@
 #ifndef REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 #define REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 
-#include <reach_core/plugins/evaluation_base.h>
+#include <reach_core/interfaces/evaluator.h>
 
 #include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
@@ -26,19 +26,17 @@
 
 namespace reach
 {
-namespace plugins
-{
 /**
  * @brief Base class solving IK at a given reach study location
  */
-class IKSolverBase
+class IKSolver
 {
 public:
-  using Ptr = boost::shared_ptr<IKSolverBase>;
-  using ConstPtr = boost::shared_ptr<const IKSolverBase>;
+  using Ptr = boost::shared_ptr<IKSolver>;
+  using ConstPtr = boost::shared_ptr<const IKSolver>;
 
-  IKSolverBase();
-  virtual ~IKSolverBase() = default;
+  IKSolver();
+  virtual ~IKSolver() = default;
 
   /**
    * @brief initialize
@@ -70,11 +68,10 @@ protected:
                                                                const std::map<std::string, double>& seed) const = 0;
 
 private:
-  pluginlib::ClassLoader<EvaluationBase> loader_;
-  EvaluationBase::Ptr eval_;
+  pluginlib::ClassLoader<Evaluator> loader_;
+  Evaluator::Ptr eval_;
 };
 
-}  // namespace plugins
 }  // namespace reach
 
 #endif  // REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H

@@ -6,19 +6,16 @@
 
 namespace reach
 {
-namespace plugins
-{
 using VectorIsometry3d = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>>;
 
-struct TargetPoseGeneratorBase
+struct TargetPoseGenerator
 {
-  using Ptr = boost::shared_ptr<TargetPoseGeneratorBase>;
-  using ConstPtr = boost::shared_ptr<const TargetPoseGeneratorBase>;
+  using Ptr = boost::shared_ptr<TargetPoseGenerator>;
+  using ConstPtr = boost::shared_ptr<const TargetPoseGenerator>;
 
   virtual VectorIsometry3d generate() const = 0;
 
   virtual void initialize(const XmlRpc::XmlRpcValue& config) = 0;
 };
 
-} // namespace core
 } // namepsace reach

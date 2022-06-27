@@ -24,24 +24,21 @@
 
 namespace reach
 {
-namespace plugins
+struct Display
 {
-struct DisplayBase
-{
-  using Ptr = boost::shared_ptr<DisplayBase>;
-  using ConstPtr = boost::shared_ptr<const DisplayBase>;
+  using Ptr = boost::shared_ptr<Display>;
+  using ConstPtr = boost::shared_ptr<const Display>;
 
-  DisplayBase() = default;
-  virtual ~DisplayBase() = default;
+  Display() = default;
+  virtual ~Display() = default;
 
   virtual void initialize(XmlRpc::XmlRpcValue& config) = 0;
   virtual void showEnvironment() const = 0;
   virtual void updateRobotPose(const std::map<std::string, double>& pose) const = 0;
-  virtual void showReachNeighborhood(const std::vector<core::ReachRecord>& neighborhood) const = 0;
-//  virtual void compareDatabases(const std::map<std::string, reach::core::ReachDatabase>& dbs) const = 0;
+  virtual void showReachNeighborhood(const std::vector<ReachRecord>& neighborhood) const = 0;
+//  virtual void compareDatabases(const std::map<std::string, ReachDatabase>& dbs) const = 0;
 };
 
-}  // namespace plugins
 }  // namespace reach
 
 #endif  // REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H

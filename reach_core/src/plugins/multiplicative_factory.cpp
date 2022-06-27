@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "reach_core/plugins/impl/multiplicative_factory.h"
+#include "multiplicative_factory.h"
 
 namespace reach
 {
-namespace plugins
-{
 const static std::string PACKAGE = "reach_core";
-const static std::string PLUGIN_BASE_NAME = "reach::plugins::EvaluationBase";
+const static std::string PLUGIN_BASE_NAME = "reach::Evaluator";
 
-MultiplicativeFactory::MultiplicativeFactory() : EvaluationBase(), class_loader_(PACKAGE, PLUGIN_BASE_NAME)
+MultiplicativeFactory::MultiplicativeFactory() : Evaluator(), class_loader_(PACKAGE, PLUGIN_BASE_NAME)
 {
 }
 
@@ -37,7 +35,7 @@ void MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue& config)
     XmlRpc::XmlRpcValue& plugin_config = plugin_configs[i];
     const std::string name = std::string(plugin_config["name"]);
 
-    EvaluationBase::Ptr plugin = class_loader_.createInstance(name);
+    Evaluator::Ptr plugin = class_loader_.createInstance(name);
     plugin->initialize(plugin_config);
 
     eval_plugins_.push_back(std::move(plugin));
@@ -50,15 +48,14 @@ void MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue& config)
 double MultiplicativeFactory::calculateScore(const std::map<std::string, double>& pose) const
 {
   double score = 1.0;
-  for (const EvaluationBase::Ptr& plugin : eval_plugins_)
+  for (const Evaluator::Ptr& plugin : eval_plugins_)
   {
     score *= plugin->calculateScore(pose);
   }
   return score;
 }
 
-}  // namespace plugins
 }  // namespace reach
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach::plugins::MultiplicativeFactory, reach::plugins::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(reach::MultiplicativeFactory, reach::Evaluator)

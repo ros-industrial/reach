@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach_core/ik_helper.h>
-#include <reach_core/utils/general_utils.h>
+#include <reach_core/utils.h>
+
+#include <iostream>
 
 namespace reach
 {
-namespace core
+void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>& previous_pct, const int total_size)
 {
+  const float current_pct_float = (static_cast<float>(current_counter.load()) / static_cast<float>(total_size)) * 100.0;
+  const int current_pct = static_cast<int>(current_pct_float);
+  if (current_pct > previous_pct.load())
+  {
+    std::cout << "[" << current_pct << "%]" << std::endl;
+  }
+  previous_pct = current_pct;
+}
+
 std::vector<std::string> getNeighbors(const ReachRecord& rec, const ReachDatabase::ConstPtr db, const double radius)
 {
   // Create vectors for storing poses and reach record messages that lie within radius of current point
@@ -59,7 +69,7 @@ std::vector<std::string> getNeighborsFLANN(const ReachRecord& rec, const ReachDa
 }
 
 NeighborReachResult reachNeighborsDirect(ReachDatabase::Ptr db, const ReachRecord& rec,
-                                         reach::plugins::IKSolverBase::ConstPtr solver, const double radius,
+                                         IKSolver::ConstPtr solver, const double radius,
                                          SearchTreePtr search_tree)
 {
   // Initialize return array of string IDs of msgs that have been updated
@@ -97,7 +107,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabase::Ptr db, const ReachRecor
           // Overwrite Reach Record msg parameters with new results
           neighbor.reached = true;
           neighbor.seed_state = rec.goal_state;
-          neighbor.goal_state = utils::zip(solver->getJointNames(), new_solution);
+          neighbor.goal_state = zip(solver->getJointNames(), new_solution);
           neighbor.score = score;
           db->put(neighbor);
         }
@@ -115,7 +125,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabase::Ptr db, const ReachRecor
 }
 
 void reachNeighborsRecursive(ReachDatabase::Ptr db, const ReachRecord& rec,
-                             reach::plugins::IKSolverBase::ConstPtr solver, const double radius, NeighborReachResult result,
+                             IKSolver::ConstPtr solver, const double radius, NeighborReachResult result,
                              SearchTreePtr search_tree)
 {
   // Add the current point to the output list of msg IDs
@@ -152,7 +162,7 @@ void reachNeighborsRecursive(ReachDatabase::Ptr db, const ReachRecord& rec,
 
         // Store information in new reach record object
         neighbor.seed_state = rec.goal_state;
-        neighbor.goal_state = utils::zip(solver->getJointNames(), new_pose);
+        neighbor.goal_state = zip(solver->getJointNames(), new_pose);
         neighbor.reached = true;
         neighbor.score = score;
 
@@ -173,5 +183,4 @@ void reachNeighborsRecursive(ReachDatabase::Ptr db, const ReachRecord& rec,
   }
 }
 
-}  // namespace core
 }  // namespace reach

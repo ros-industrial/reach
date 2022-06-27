@@ -16,13 +16,11 @@
 #ifndef REACH_CORE_REACH_STUDY_H
 #define REACH_CORE_REACH_STUDY_H
 
-#include <reach_core/ik_helper.h>
-#include <reach_core/plugins/ik_solver_base.h>
-#include <reach_core/plugins/target_pose_generator_base.h>
+#include <reach_core/interfaces/ik_solver.h>
+#include <reach_core/interfaces/target_pose_generator.h>
+#include <reach_core/utils.h>
 
 namespace reach
-{
-namespace core
 {
 /**
  * @brief The ReachStudy class
@@ -37,7 +35,7 @@ public:
     float radius;
   };
 
-  ReachStudy(plugins::IKSolverBase::ConstPtr ik_solver, plugins::TargetPoseGeneratorBase::ConstPtr pose_generator,
+  ReachStudy(IKSolver::ConstPtr ik_solver, TargetPoseGenerator::ConstPtr pose_generator,
              const Parameters params, const std::string& study_name);
 
   void load(const std::string& filename);
@@ -55,13 +53,12 @@ private:
   ReachDatabase::Ptr db_;
 
   // Plugins
-  plugins::IKSolverBase::ConstPtr ik_solver_;
-  const plugins::VectorIsometry3d target_poses_;
+  IKSolver::ConstPtr ik_solver_;
+  const VectorIsometry3d target_poses_;
 
   SearchTreePtr search_tree_ = nullptr;
 };
 
-}  // namespace core
 }  // namespace reach
 
 #endif  // REACH_CORE_REACH_STUDY_H

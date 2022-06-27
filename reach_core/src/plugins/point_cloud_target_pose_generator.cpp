@@ -1,5 +1,5 @@
-#include <reach_core/plugins/impl/point_cloud_target_pose_generator.h>
-#include <reach_core/utils/general_utils.h>
+#include "point_cloud_target_pose_generator.h"
+#include <reach_core/utils.h>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/PCLPointField.h>
@@ -57,8 +57,6 @@ static Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt, const Eigen::Vec
 
 namespace reach
 {
-namespace plugins
-{
 VectorIsometry3d PointCloudTargetPoseGenerator::generate() const
 {
   // Check if file exists
@@ -90,5 +88,7 @@ void PointCloudTargetPoseGenerator::initialize(const XmlRpc::XmlRpcValue &config
   filename_ = static_cast<std::string>(config["pcd_file"]);
 }
 
-} // namespace plugins
 } // namespace reach
+
+#include <pluginlib/class_list_macros.h>
+PLUGINLIB_EXPORT_CLASS(reach::PointCloudTargetPoseGenerator, reach::TargetPoseGenerator)

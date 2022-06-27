@@ -19,9 +19,9 @@
 #include <pluginlib/class_loader.h>
 
 static const std::string PACKAGE = "reach_core";
-static const std::string IK_BASE_CLASS = "reach::plugins::IKSolverBase";
-static const std::string DISPLAY_BASE_CLASS = "reach::plugins::DisplayBase";
-static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::plugins::WaypointGeneratorBase";
+static const std::string IK_BASE_CLASS = "reach::IKSolverBase";
+static const std::string DISPLAY_BASE_CLASS = "reach::DisplayBase";
+static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::WaypointGeneratorBase";
 
 template <typename T>
 T get(const ros::NodeHandle& nh, const std::string& key)
@@ -43,14 +43,14 @@ int main(int argc, char** argv)
     spinner.start();
 
     // Get the study parameters
-    reach::core::ReachStudy::Parameters params;
+    reach::ReachStudy::Parameters params;
     params.radius = get<double>(nh, "optimization/radius");
     params.max_steps = get<int>(nh, "optimization/max_steps");
     params.step_improvement_threshold = get<double>(nh, "optimization/step_improvement_threshold");
 
     // Load the IK Solver plugin
-    pluginlib::ClassLoader<reach::plugins::IKSolverBase> solver_loader(PACKAGE, IK_BASE_CLASS);
-    reach::plugins::IKSolverBase::Ptr ik_solver;
+    pluginlib::ClassLoader<reach::IKSolver> solver_loader(PACKAGE, IK_BASE_CLASS);
+    reach::IKSolver::Ptr ik_solver;
     {
       XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "ik_solver_config");
       ik_solver = solver_loader.createInstance(config["name"]);
@@ -58,9 +58,9 @@ int main(int argc, char** argv)
     }
 
     // Load the target pose generator plugin
-    pluginlib::ClassLoader<reach::plugins::TargetPoseGeneratorBase> target_pose_generator_loader_(
+    pluginlib::ClassLoader<reach::TargetPoseGenerator> target_pose_generator_loader_(
         PACKAGE, TARGET_POSE_GENERATOR_BASE_CLASS);
-    reach::plugins::TargetPoseGeneratorBase::Ptr target_pose_generator;
+    reach::TargetPoseGenerator::Ptr target_pose_generator;
     {
       XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "target_pose_generator_config");
       target_pose_generator = target_pose_generator_loader_.createInstance(config["name"]);
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
     boost::filesystem::path results_dir(get<std::string>(nh, "results_directory"));
 
     // Initialize the reach study
-    reach::core::ReachStudy rs(ik_solver, target_pose_generator, params, config_name);
+    reach::ReachStudy rs(ik_solver, target_pose_generator, params, config_name);
 
     // Run the reach study
     rs.run();

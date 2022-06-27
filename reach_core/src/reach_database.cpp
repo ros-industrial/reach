@@ -21,8 +21,6 @@
 
 namespace reach
 {
-namespace core
-{
 ReachRecord::ReachRecord(const std::string id_, const bool reached_, const Eigen::Isometry3d& goal_,
                          const std::map<std::string, double> seed_state_,
                          const std::map<std::string, double> goal_state_, const double score_)
@@ -113,21 +111,20 @@ StudyResults ReachDatabase::calculateResults()
   return results;
 }
 
-void save(const reach::core::ReachDatabase& db, const std::string& filename)
+void save(const ReachDatabase& db, const std::string& filename)
 {
   std::ofstream ofs(filename);
   boost::archive::binary_oarchive oa(ofs);
   oa << db;
 }
 
-reach::core::ReachDatabase load(const std::string& filename)
+ReachDatabase load(const std::string& filename)
 {
   std::ifstream ifs(filename);
   boost::archive::binary_iarchive ia(ifs);
-  reach::core::ReachDatabase db;
+  ReachDatabase db;
   ia >> db;
   return db;
 }
 
-}  // namespace core
 }  // namespace reach

@@ -17,13 +17,11 @@
 #define REACH_CORE_STUDY_VISUALIZER_H
 
 #include <reach_core/reach_database.h>
-#include <reach_core/plugins/reach_display_base.h>
-#include <reach_core/plugins/ik_solver_base.h>
-#include <reach_core/ik_helper.h>
+#include <reach_core/interfaces/display.h>
+#include <reach_core/interfaces/ik_solver.h>
+#include <reach_core/utils.h>
 
 namespace reach
-{
-namespace core
 {
 /**
  * @brief The ReachVisualizer class displays the results of the reach study and provides an interface for visualizing
@@ -34,8 +32,8 @@ class ReachVisualizer
 public:
   using Ptr = boost::shared_ptr<ReachVisualizer>;
 
-  ReachVisualizer(ReachDatabase::Ptr db, reach::plugins::IKSolverBase::ConstPtr solver,
-                  reach::plugins::DisplayBase::ConstPtr display, const double neighbor_radius);
+  ReachVisualizer(ReachDatabase::Ptr db, IKSolver::ConstPtr solver,
+                  Display::ConstPtr display, const double neighbor_radius);
 
   void reSolveIK(const std::string& record_id);
   void showResult(const std::string& record_id) const;
@@ -44,13 +42,12 @@ public:
 
 protected:
   ReachDatabase::Ptr db_;
-  reach::plugins::IKSolverBase::ConstPtr solver_;
-  reach::plugins::DisplayBase::ConstPtr display_;
+  IKSolver::ConstPtr solver_;
+  Display::ConstPtr display_;
   SearchTreePtr search_tree_ = nullptr;
   double neighbor_radius_;
 };
 
-}  // namespace core
 }  // namespace reach
 
 #endif  // REACH_CORE_STUDY_VISUALIZER_H

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 #include <reach_core/reach_visualizer.h>
-#include <reach_core/utils/general_utils.h>
+#include <reach_core/utils.h>
 
 namespace reach
 {
-namespace core
-{
-ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, reach::plugins::IKSolverBase::ConstPtr solver,
-                                 reach::plugins::DisplayBase::ConstPtr display, const double neighbor_radius)
+ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, IKSolver::ConstPtr solver,
+                                 Display::ConstPtr display, const double neighbor_radius)
   : db_(db), solver_(solver), display_(display), neighbor_radius_(neighbor_radius)
 {
   display_->showEnvironment();
@@ -40,7 +38,7 @@ void ReachVisualizer::reSolveIK(const std::string& marker_name)
 
   lookup.reached = true;
   lookup.score = score;
-  lookup.goal_state = utils::zip(solver_->getJointNames(), goal_pose);
+  lookup.goal_state = zip(solver_->getJointNames(), goal_pose);
 
   // Update the interactive marker server
   display_->updateRobotPose(lookup.goal_state);
@@ -67,11 +65,11 @@ void ReachVisualizer::reachNeighbors(const std::string& record_id, const bool re
   NeighborReachResult result;
   if (recursive)
   {
-    reach::core::reachNeighborsRecursive(db_, lookup, solver_, neighbor_radius_, result, search_tree_);
+    reachNeighborsRecursive(db_, lookup, solver_, neighbor_radius_, result, search_tree_);
   }
   else
   {
-    result = reach::core::reachNeighborsDirect(db_, lookup, solver_, neighbor_radius_, search_tree_);
+    result = reachNeighborsDirect(db_, lookup, solver_, neighbor_radius_, search_tree_);
   }
 
   display_->updateRobotPose(lookup.goal_state);
@@ -83,5 +81,4 @@ void ReachVisualizer::reachNeighbors(const std::string& record_id, const bool re
   display_->showReachNeighborhood(records);
 }
 
-}  // namespace core
 }  // namespace reach

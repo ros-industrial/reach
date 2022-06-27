@@ -1,9 +1,14 @@
 <library path="lib/libreach_core_plugins">
   <!-- Multiplicative Factory -->
-  <class name="reach_core/plugins/MultiplicativeFactory" type="reach::plugins::MultiplicativeFactory" base_class_type="reach::plugins::EvaluationBase">
+  <class name="reach_core/MultiplicativeFactory" type="reach::MultiplicativeFactory" base_class_type="reach::EvaluationBase">
     <description>
       A pose evaluation plugin which loads other pose evaluation plugins and returns a score for an input pose that is the product of the scores of each individual plugin.
       This plugin allows for the use of any combination of other pose evaulation plugins.
+    </description>
+  </class>
+  <!-- Point Cloud Target Pose Generator Factory -->
+  <class name="reach_core/PointCloudTargetPoseGenerator" type="reach::PointCloudTargetPoseGenerator" base_class_type="reach::TargetPoseGenerator">
+    <description>
     </description>
   </class>
 </library>

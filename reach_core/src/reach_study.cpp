@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 #include <reach_core/reach_study.h>
-#include <reach_core/utils/general_utils.h>
+#include <reach_core/utils.h>
 
 #include <boost/filesystem.hpp>
 #include <numeric>
@@ -22,9 +22,7 @@
 
 namespace reach
 {
-namespace core
-{
-ReachStudy::ReachStudy(plugins::IKSolverBase::ConstPtr ik_solver, plugins::TargetPoseGeneratorBase::ConstPtr target_generator,
+ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, TargetPoseGenerator::ConstPtr target_generator,
                        const Parameters params, const std::string& name)
   : params_(std::move(params))
   , db_(new ReachDatabase(name))
@@ -35,12 +33,12 @@ ReachStudy::ReachStudy(plugins::IKSolverBase::ConstPtr ik_solver, plugins::Targe
 
 void ReachStudy::load(const std::string& filename)
 {
-  *db_ = reach::core::load(filename);
+  *db_ = reach::load(filename);
 }
 
 void ReachStudy::save(const std::string& filename) const
 {
-  reach::core::save(*db_, filename);
+  reach::save(*db_, filename);
 }
 
 ReachDatabase::ConstPtr ReachStudy::getDatabase() const
@@ -61,7 +59,7 @@ void ReachStudy::run()
 
     // Get the seed position
     const std::vector<std::string> joint_names = ik_solver_->getJointNames();
-    std::map<std::string, double> seed_state = utils::zip(joint_names, std::vector<double>(joint_names.size(), 0.0));
+    std::map<std::string, double> seed_state = zip(joint_names, std::vector<double>(joint_names.size(), 0.0));
 
     // Solve IK
     try
@@ -70,7 +68,7 @@ void ReachStudy::run()
       double score;
       std::tie(solution, score) = ik_solver_->solveIKFromSeed(tgt_frame, seed_state);
 
-      ReachRecord msg(std::to_string(i), true, tgt_frame, seed_state, utils::zip(ik_solver_->getJointNames(), solution), score);
+      ReachRecord msg(std::to_string(i), true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution), score);
       db_->put(msg);
     }
     catch(const std::exception&)
@@ -81,7 +79,7 @@ void ReachStudy::run()
 
     // Print function progress
     current_counter++;
-    utils::integerProgressPrinter(current_counter, previous_pct, target_poses_.size());
+    integerProgressPrinter(current_counter, previous_pct, target_poses_.size());
   }
 }
 
@@ -133,7 +131,7 @@ void ReachStudy::optimize()
 
       // Print function progress
       current_counter++;
-      utils::integerProgressPrinter(current_counter, previous_pct, target_poses_.size());
+      integerProgressPrinter(current_counter, previous_pct, target_poses_.size());
     }
 
     // Recalculate optimized reach study results
@@ -170,7 +168,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 
     // Print function progress
     ++current_counter;
-    utils::integerProgressPrinter(current_counter, previous_pct, total);
+    integerProgressPrinter(current_counter, previous_pct, total);
   }
 
   float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->size());
@@ -180,5 +178,4 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
   return std::make_tuple(avg_neighbor_count, avg_joint_distance);
 }
 
-}  // namespace core
 }  // namespace reach

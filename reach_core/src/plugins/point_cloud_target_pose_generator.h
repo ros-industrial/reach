@@ -1,10 +1,8 @@
-#include <reach_core/plugins/target_pose_generator_base.h>
+#include <reach_core/interfaces/target_pose_generator.h>
 
 namespace reach
 {
-namespace plugins
-{
-class PointCloudTargetPoseGenerator : public TargetPoseGeneratorBase
+class PointCloudTargetPoseGenerator : public TargetPoseGenerator
 {
   VectorIsometry3d generate() const override;
 
@@ -14,6 +12,5 @@ private:
   std::string filename_;
 };
 
-} // namespace plugins
 } // namespace reach
 
