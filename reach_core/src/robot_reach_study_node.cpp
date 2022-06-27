@@ -19,9 +19,10 @@
 #include <pluginlib/class_loader.h>
 
 static const std::string PACKAGE = "reach_core";
-static const std::string IK_BASE_CLASS = "reach::IKSolverBase";
-static const std::string DISPLAY_BASE_CLASS = "reach::DisplayBase";
-static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::WaypointGeneratorBase";
+static const std::string IK_BASE_CLASS = "reach::IKSolver";
+static const std::string DISPLAY_BASE_CLASS = "reach::Display";
+static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::TargetPoseGenerator";
+static const std::string EVALUATOR_BASE_CLASS = "reach::Evaluator";
 
 template <typename T>
 T get(const ros::NodeHandle& nh, const std::string& key)
@@ -67,11 +68,20 @@ int main(int argc, char** argv)
       target_pose_generator->initialize(config);
     }
 
+    // Load the evaluator plugin
+    pluginlib::ClassLoader<reach::Evaluator> eval_loader(PACKAGE, EVALUATOR_BASE_CLASS);
+    reach::Evaluator::Ptr evaluator;
+    {
+      XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "evaluator_config");
+      evaluator = eval_loader.createInstance(config["name"]);
+      evaluator->initialize(config);
+    }
+
     const std::string config_name = get<std::string>(nh, config_name);
     boost::filesystem::path results_dir(get<std::string>(nh, "results_directory"));
 
     // Initialize the reach study
-    reach::ReachStudy rs(ik_solver, target_pose_generator, params, config_name);
+    reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, params, config_name);
 
     // Run the reach study
     rs.run();
