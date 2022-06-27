@@ -39,7 +39,6 @@ include_directories(include
 add_library(
   ${PROJECT_NAME}
   src/utils.cpp
-  src/interfaces/ik_solver.cpp
   src/reach_database.cpp
   src/reach_visualizer.cpp
   src/reach_study.cpp
