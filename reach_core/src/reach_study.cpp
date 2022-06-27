@@ -22,11 +22,12 @@
 
 namespace reach
 {
-ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, TargetPoseGenerator::ConstPtr target_generator,
+ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr target_generator,
                        const Parameters params, const std::string& name)
   : params_(std::move(params))
   , db_(new ReachDatabase(name))
   , ik_solver_(std::move(ik_solver))
+  , evaluator_(std::move(evaluator))
   , target_poses_(target_generator->generate())
 {
 }
@@ -66,7 +67,7 @@ void ReachStudy::run()
     {
       std::vector<double> solution;
       double score;
-      std::tie(solution, score) = ik_solver_->solveIKFromSeed(tgt_frame, seed_state);
+      std::tie(solution, score) = evaluateIK(tgt_frame, seed_state, ik_solver_, evaluator_);
 
       ReachRecord msg(std::to_string(i), true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution), score);
       db_->put(msg);
@@ -126,7 +127,18 @@ void ReachStudy::optimize()
       ReachRecord msg = it->second;
       if (msg.reached)
       {
-        NeighborReachResult result = reachNeighborsDirect(db_, msg, ik_solver_, params_.radius, search_tree_);
+        std::vector<ReachRecord> result =
+            reachNeighborsDirect(db_, msg, ik_solver_, evaluator_, params_.radius, search_tree_);
+
+        // Replace the old records if the scores of the new records are higher
+        for (const ReachRecord& rec : result)
+        {
+          const ReachRecord& old_rec = db_->get(rec.id);
+          if (rec.score > old_rec.score)
+          {
+            db_->put(rec);
+          }
+        }
       }
 
       // Print function progress
@@ -160,7 +172,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
     if (msg.reached)
     {
       NeighborReachResult result;
-      reachNeighborsRecursive(db_, msg, ik_solver_, params_.radius, result, search_tree_);
+      reachNeighborsRecursive(db_, msg, ik_solver_, evaluator_, params_.radius, result, search_tree_);
 
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;

@@ -35,7 +35,7 @@ public:
     float radius;
   };
 
-  ReachStudy(IKSolver::ConstPtr ik_solver, TargetPoseGenerator::ConstPtr pose_generator,
+  ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr pose_generator,
              const Parameters params, const std::string& study_name);
 
   void load(const std::string& filename);
@@ -54,6 +54,7 @@ private:
 
   // Plugins
   IKSolver::ConstPtr ik_solver_;
+  Evaluator::ConstPtr evaluator_;
   const VectorIsometry3d target_poses_;
 
   SearchTreePtr search_tree_ = nullptr;
