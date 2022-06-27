@@ -29,7 +29,7 @@ namespace reach
 /**
  * @brief Base class solving IK at a given reach study location
  */
-class IKSolver
+struct IKSolver
 {
 public:
   using Ptr = boost::shared_ptr<IKSolver>;
@@ -38,38 +38,10 @@ public:
   IKSolver();
   virtual ~IKSolver() = default;
 
-  /**
-   * @brief initialize
-   * @param config
-   * @return
-   */
-  void initialize(XmlRpc::XmlRpcValue& config);
-
-  /**
-   * @brief solveIKFromSeed attempts to find a valid IK solution for the given target pose starting from the input seed
-   * state. If a solution is found, the resulting IK solution is saved, and the pose is scored according to the
-   * specified cost function plugin
-   * @param seed
-   * @param solution
-   * @return a boost optional type indicating the success of the IK solution and containing the score of the solution
-   */
-  std::tuple<std::vector<double>, double> solveIKFromSeed(const Eigen::Isometry3d& target,
-                                                          const std::map<std::string, double>& seed) const;
-
-  /**
-   * @brief getJointNames
-   * @return
-   */
+  virtual void initialize(XmlRpc::XmlRpcValue& config) = 0;
   virtual std::vector<std::string> getJointNames() const = 0;
-
-protected:
-  virtual void initializeImpl(const XmlRpc::XmlRpcValue& config) = 0;
-  virtual std::vector<std::vector<double>> solveIKFromSeedImpl(const Eigen::Isometry3d& target,
-                                                               const std::map<std::string, double>& seed) const = 0;
-
-private:
-  pluginlib::ClassLoader<Evaluator> loader_;
-  Evaluator::Ptr eval_;
+  virtual std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
+                                                   const std::map<std::string, double>& seed) const = 0;
 };
 
 }  // namespace reach
