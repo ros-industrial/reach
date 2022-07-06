@@ -2,8 +2,8 @@
 Changelog for package moveit_reach_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.0 (2022-07-05)
+------------------
 * Add CI, formatting (`#25 <https://github.com/marip8/reach/issues/25>`_)
   * Added formatting files
   * Run clang formatting
