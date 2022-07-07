@@ -2,6 +2,9 @@
 Changelog for package reach
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.1.0 (2022-07-05)
 ------------------
 * Merge pull request `#6 <https://github.com/marip8/reach/issues/6>`_ from mripperger/reorganization
