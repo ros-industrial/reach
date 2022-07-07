@@ -9,6 +9,9 @@ on:
       - master
   schedule:
     - cron: '0 5 * * *'
+  release:
+    types:
+      - released
 
 env:
   REGISTRY: ghcr.io
