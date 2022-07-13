@@ -135,11 +135,7 @@ boost::optional<double> MoveItIKSolver::solveIKFromSeed(const Eigen::Isometry3d&
   state.setJointGroupPositions(jmg_, seed_subset);
   state.update();
 
-  const static int SOLUTION_ATTEMPTS = 3;
-  const static double SOLUTION_TIMEOUT = 0.2;
-
-  if (state.setFromIK(jmg_, target, SOLUTION_ATTEMPTS, SOLUTION_TIMEOUT,
-                      boost::bind(&MoveItIKSolver::isIKSolutionValid, this, _1, _2, _3)))
+  if (state.setFromIK(jmg_, target, 0.0, boost::bind(&MoveItIKSolver::isIKSolutionValid, this, _1, _2, _3)))
   {
     solution.clear();
     state.copyJointGroupPositions(jmg_, solution);
