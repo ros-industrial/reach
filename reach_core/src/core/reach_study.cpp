@@ -24,6 +24,7 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <pluginlib/class_loader.h>
 #include <ros/package.h>
+#include <thread>
 #include <xmlrpcpp/XmlRpcException.h>
 
 const static std::string SAMPLE_MESH_SRV_TOPIC = "sample_mesh";
@@ -155,19 +156,16 @@ bool ReachStudy::run(const StudyParameters& sp)
     }
 
     // Create an efficient search tree for doing nearest neighbors search
-    search_tree_.reset(new SearchTree(flann::KDTreeSingleIndexParams(1, true)));
-
-    flann::Matrix<double> dataset(new double[db_->size() * 3], db_->size(), 3);
-    for (std::size_t i = 0; i < db_->size(); ++i)
     {
-      auto it = db_->begin();
-      std::advance(it, i);
-
-      dataset[i][0] = static_cast<double>(it->second.goal.position.x);
-      dataset[i][1] = static_cast<double>(it->second.goal.position.y);
-      dataset[i][2] = static_cast<double>(it->second.goal.position.z);
+      auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+      for (auto it = db_->begin(); it != db_->end(); ++it)
+      {
+        pcl::PointXYZ pt(it->second.goal.position.x, it->second.goal.position.y, it->second.goal.position.z);
+        cloud->push_back(pt);
+      }
+      search_tree_ = pcl::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
+      search_tree_->setInputCloud(cloud);
     }
-    search_tree_->buildIndex(dataset);
 
     // Run the optimization
     optimizeReachStudyResults();
@@ -251,7 +249,7 @@ void ReachStudy::runInitialReachStudy()
   current_counter = previous_pct = 0;
   const int cloud_size = static_cast<int>(cloud_->points.size());
 
-#pragma omp parallel for
+#pragma omp parallel for num_threads(std::thread::hardware_concurrency())
   for (int i = 0; i < cloud_size; ++i)
   {
     // Get pose from point cloud array
@@ -323,7 +321,7 @@ void ReachStudy::optimizeReachStudyResults()
     // Randomize
     std::random_shuffle(rand_vec.begin(), rand_vec.end());
 
-#pragma parallel for
+#pragma parallel for num_threads(std::thread::hardware_concurrency())
     for (std::size_t i = 0; i < rand_vec.size(); ++i)
     {
       auto it = db_->begin();
@@ -331,8 +329,7 @@ void ReachStudy::optimizeReachStudyResults()
       reach_msgs::ReachRecord msg = it->second;
       if (msg.reached)
       {
-        NeighborReachResult result =
-            reachNeighborsDirect(db_, msg, ik_solver_, sp_.optimization.radius);  //, search_tree_);
+        NeighborReachResult result = reachNeighborsDirect(db_, msg, ik_solver_, sp_.optimization.radius, search_tree_);
       }
 
       // Print function progress
@@ -366,14 +363,14 @@ void ReachStudy::getAverageNeighborsCount()
   const int total = db_->size();
 
 // Iterate
-#pragma parallel for
+#pragma parallel for num_threads(std::thread::hardware_concurrency())
   for (auto it = db_->begin(); it != db_->end(); ++it)
   {
     reach_msgs::ReachRecord msg = it->second;
     if (msg.reached)
     {
       NeighborReachResult result;
-      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result);  //, search_tree_);
+      reachNeighborsRecursive(db_, msg, ik_solver_, sp_.optimization.radius, result, search_tree_);
 
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;

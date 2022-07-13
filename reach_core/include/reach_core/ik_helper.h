@@ -21,8 +21,7 @@
 #include <reach_core/plugins/ik_solver_base.h>
 
 #include <boost/optional.hpp>
-#include <flann/flann.h>
-#include <flann/algorithms/kdtree_single_index.h>
+#include <pcl/search/kdtree.h>
 
 namespace reach
 {
@@ -34,8 +33,7 @@ struct NeighborReachResult
   double joint_distance = 0;
 };
 
-typedef flann::KDTreeSingleIndex<flann::L2_3D<double>> SearchTree;
-typedef std::shared_ptr<SearchTree> SearchTreePtr;
+using SearchTreePtr = pcl::search::KdTree<pcl::PointXYZ>::Ptr;
 
 NeighborReachResult reachNeighborsDirect(std::shared_ptr<ReachDatabase> db, const reach_msgs::ReachRecord& rec,
                                          reach::plugins::IKSolverBasePtr solver, const double radius,
