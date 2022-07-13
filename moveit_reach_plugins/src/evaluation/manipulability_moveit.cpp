@@ -85,12 +85,7 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
   // Calculate manipulability by multiplying Jacobian matrix singular values together
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
   Eigen::MatrixXd singular_values = svd.singularValues();
-  double m = 1.0;
-  for (unsigned int i = 0; i < singular_values.rows(); ++i)
-  {
-    m *= singular_values(i, 0);
-  }
-  return m;
+  return singular_values.array().prod();
 }
 
 }  // namespace evaluation
