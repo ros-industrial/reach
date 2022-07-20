@@ -42,13 +42,14 @@ public:
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 
 private:
-  std::vector<std::vector<double>> getJointLimits();
+  std::tuple<std::vector<double>, std::vector<double>> getJointLimits();
 
   moveit::core::RobotModelConstPtr model_;
 
   const moveit::core::JointModelGroup* jmg_;
 
-  std::vector<std::vector<double>> joint_limits_;
+  std::vector<double> joints_min_;
+  std::vector<double> joints_max_;
 };
 
 }  // namespace evaluation

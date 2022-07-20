@@ -18,9 +18,9 @@
   <class name="moveit_reach_plugins/evaluation/JointPenaltyMoveIt" type="moveit_reach_plugins::evaluation::JointPenaltyMoveIt" base_class_type="reach::plugins::EvaluationBase">
     <description>
       A pose evaluation plugin which returns a score that is the product of each joint's distance from the middle of its joint range, according to the following equation:
-      score[i] = ((joint[i] - joint_min[i])*(joint_max[i] - joint[i])) / (joint_max[i] - joint_min[i])^2
-      The score for each joint will lie in the range [0, 0.25]; therefore, the score for an entire robot will lie in the range n*[0, 0.25], where n is the number of joints
-      in the robot. Higher scores indicate poses which are closer to the nominal middle of travel of each joint. This plugin should be used if it is desirable for kinematic
+      score[i] = 4 * ((joint[i] - joint_min[i])*(joint_max[i] - joint[i])) / (joint_max[i] - joint_min[i])^2
+      The score for each joint will lie in the range [0, 1.0], and the total score is the mean of the scores of the individual joints.
+      Higher scores indicate poses which are closer to the nominal middle of travel of each joint. This plugin should be used if it is desirable for kinematic
       solutions to be near the middle of all joint ranges.
     </description>
   </class>
