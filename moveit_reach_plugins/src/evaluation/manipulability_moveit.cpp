@@ -123,10 +123,19 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
     jacobian = partial_jacobian;
   }
 
-  // Calculate manipulability by multiplying Jacobian matrix singular values together
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
   Eigen::MatrixXd singular_values = svd.singularValues();
-  return singular_values.array().prod();
+  return calculateScore(singular_values);
+}
+
+double ManipulabilityMoveIt::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+{
+  return jacobian_singular_values.array().prod();
+}
+
+double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+{
+  return jacobian_singular_values.minCoeff() / jacobian_singular_values.maxCoeff();
 }
 
 }  // namespace evaluation
@@ -134,3 +143,4 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveIt, reach::plugins::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityRatio, reach::plugins::EvaluationBase)
