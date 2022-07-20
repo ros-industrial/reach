@@ -4,20 +4,36 @@ This package contains the plugin implemenations of REACH kinematics, evaluation,
 
 ## Evaluation Plugins
 
-### Manpiulability
+### Manipulability
 
-This plugin uses MoveIt! to calculate the manipulability of a robot pose. Higher manipulability results in higher pose score.
+This plugin uses MoveIt! to calculate the manipulability of a robot pose. Higher manipulability results in higher pose score. Range: [0, inf)
 
 Parameters:
 
 - **`planning_group`**
   - The name of the planning group with which to evaluate the manipulability of a given robot pose
+- **`jacobian_row_subset`** (optional)
+  - The indices of the rows of the Jacobian to use when evaluating the manipulability. The row indices should be on [0, 6) and correspond to the output space [x, y, z, rx, ry, rz]
+  - Ex. `jacobian_row_subset: [0, 1, 2]  # position manipulability only`
+
+### Manipulability Ratio
+
+This plugin uses MoveIt! to calculate the manipulability of a robot pose and evaluate a score. The score is calculated as the ratio of the smallest manipulability value to the largest manipulability value.
+The larger this ratio, the more uniform the dexterity and the higher the score. Range [0, 1]
+
+Parameters:
+
+- **`planning_group`**
+  - The name of the planning group with which to evaluate the manipulability of a given robot pose
+- **`jacobian_row_subset`** (optional)
+  - The indices of the rows of the Jacobian to use when evaluating the manipulability. The row indices should be on [0, 6) and correspond to the output space [x, y, z, rx, ry, rz]
+  - Ex. `jacobian_row_subset: [0, 1, 2]  # position manipulability only`
 
 ### Distance Penalty
 
 This plugin uses the MoveIt! collision environment to calculate the distance to closest collision
 for a robot pose. That distance value is then used to score the robot pose. Larger distance to closest collision
-results in higher pose score.
+results in higher pose score. Range: [0, inf)
 
 Parameters:
 
@@ -38,7 +54,7 @@ Parameters:
 ### Joint Penalty
 
 This plugin uses the MoveIt! robot model to calculate a robot pose score based on how much the pose deviates
-from the center of the joint range. Robot poses that are closer to the center of the joint range result in higher pose scores.
+from the center of the joint range. Robot poses that are closer to the center of the joint range result in higher pose scores. Range: [0, 1]
 
 Parameters:
 
