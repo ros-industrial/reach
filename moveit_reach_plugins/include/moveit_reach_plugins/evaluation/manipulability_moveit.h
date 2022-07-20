@@ -43,8 +43,8 @@ public:
 
 private:
   moveit::core::RobotModelConstPtr model_;
-
   const moveit::core::JointModelGroup* jmg_;
+  std::vector<int> jacobian_row_subset_;
 };
 
 }  // namespace evaluation
