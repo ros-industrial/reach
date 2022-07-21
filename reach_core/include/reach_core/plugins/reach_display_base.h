@@ -22,6 +22,7 @@
 #include "reach_core/utils/visualization_utils.h"
 #include <visualization_msgs/MarkerArray.h>
 #include <xmlrpcpp/XmlRpcValue.h>
+#include <pcl/point_types_conversion.h>
 
 const static std::string INTERACTIVE_MARKER_TOPIC = "reach_int_markers";
 const static std::string REACH_DIFF_TOPIC = "reach_comparison";
@@ -49,13 +50,36 @@ public:
   virtual void showEnvironment() = 0;
 
   virtual void updateRobotPose(const std::map<std::string, double>& pose) = 0;
-
+// LOOK HERE
   void addInteractiveMarkerData(const reach_msgs::ReachDatabase& database)
   {
     server_.clear();
+
+    // Find the max of the scores
+    double max_score = 0;
+    for(const reach_msgs::ReachRecord& rec : database.records)
+    {
+      if (rec.score > max_score) {
+        max_score = rec.score;
+      }
+    }
+
     for (const reach_msgs::ReachRecord& rec : database.records)
     {
-      auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_);
+      static float max_h = 0.75f * 360.0f;  // Corresponds to blue color
+      float h = max_h - (static_cast<float>(rec.score / max_score) * max_h);
+      float s = 1.0f;
+      float v = rec.reached ? 1.0f : 0.0f;
+
+      // Convert to RGB
+      pcl::PointXYZHSV pt_hsv(h, s, v);
+      pcl::PointXYZRGB pt_rgb;
+      pcl::PointXYZHSVtoXYZRGB(pt_hsv, pt_rgb);
+      //Eigen::Vector3f to get r g b values into vector form
+
+      Eigen::Vector3f rgb_color = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
+
+      auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_, rgb_color);
       server_.insert(std::move(marker));
       menu_handler_.apply(server_, rec.id);
     }
@@ -147,14 +171,6 @@ public:
       ns_vec[static_cast<std::size_t>(perm_ind)] = ns_name;
     }
 
-    // Set the color of the arrow display
-    std::vector<float> color(4);
-    color[0] = 1.0;
-    color[1] = 0.0;
-    color[2] = 0.0;
-    color[3] = 1.0;
-    boost::optional<std::vector<float>> arrow_color = color;
-
     // Create Rviz marker array
     visualization_msgs::MarkerArray marker_array;
 
@@ -176,7 +192,7 @@ public:
       {
         std::string ns = { ns_vec[static_cast<std::size_t>(code)] };
         visualization_msgs::Marker arrow_marker =
-            utils::makeVisual(data.begin()->second.records[i], fixed_frame_, marker_scale_, ns, { arrow_color });
+            utils::makeVisual(data.begin()->second.records[i], fixed_frame_, marker_scale_, ns);
         marker_array.markers.push_back(arrow_marker);
       }
     }
