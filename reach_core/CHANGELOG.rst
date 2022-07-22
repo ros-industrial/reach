@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2022-07-22)
+------------------
 * Various Updates (`#29 <https://github.com/marip8/reach/issues/29>`_)
   * Change FLANN search tree to PCL kd-tree; update nearest neighbors search; parallelize with hardware concurrency
   * Update to use non-deprecated IK solve function
