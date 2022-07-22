@@ -35,7 +35,7 @@ namespace utils
  */
 visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const std::string& frame, const double scale,
                                       const std::string& ns = "reach",
-                                      const boost::optional<std::vector<float>>& color = {});
+                                      const Eigen::Vector3f& color = { 0.5, 0.5, 0.5 });
 
 /**
  * @brief makeInteractiveMarker
@@ -45,7 +45,8 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const st
  * @return
  */
 visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::ReachRecord& r, const std::string& frame,
-                                                            const double scale);
+                                                            const double scale,
+                                                            const Eigen::Vector3f& rgb_color = { 0.5, 0.5, 0.5 });
 
 /**
  * @brief makeMarker
