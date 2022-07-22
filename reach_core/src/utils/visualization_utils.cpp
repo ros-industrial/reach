@@ -60,7 +60,6 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const st
   marker.color.a = 1.0;  // Don't forget to set the alpha!
   if (r.reached)
   {
-    marker.color.a = 1.0;
     marker.color.r = color(0);
     marker.color.g = color(1);
     marker.color.b = color(2);

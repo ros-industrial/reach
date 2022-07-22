@@ -67,16 +67,17 @@ public:
 
     for (const reach_msgs::ReachRecord& rec : database.records)
     {
-      static float max_h = 0.75f * 360.0f;  // Corresponds to blue color
-      float h = max_h - (static_cast<float>(rec.score / max_score) * max_h);
-      float s = 1.0f;
-      float v = rec.reached ? 1.0f : 0.0f;
+      // Compute the color of the marker as a heatmap from blue to red using HSV space
+      const float max_h = 0.75f * 360.0f;  // Corresponds to blue color
+      const float h = max_h - (static_cast<float>(rec.score / max_score) * max_h);
+      const float s = 1.0f;
+      const float v = rec.reached ? 1.0f : 0.0f;
 
       // Convert to RGB
-      pcl::PointXYZHSV pt_hsv(h, s, v);
+      const pcl::PointXYZHSV pt_hsv(h, s, v);
       pcl::PointXYZRGB pt_rgb;
       pcl::PointXYZHSVtoXYZRGB(pt_hsv, pt_rgb);
-      Eigen::Vector3f rgb_color = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
+      const Eigen::Vector3f rgb_color = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
 
       auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_, rgb_color);
       server_.insert(std::move(marker));
