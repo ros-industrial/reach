@@ -20,15 +20,15 @@ namespace reach
 {
 namespace core
 {
-std::vector<reach_msgs::ReachRecord> getNeighbors(const reach_msgs::ReachRecord& rec, const ReachDatabasePtr db,
-                                                  const double radius)
+std::vector<std::string> getNeighbors(const reach_msgs::ReachRecord& rec, const ReachDatabasePtr db,
+                                      const double radius)
 {
   const float x = rec.goal.position.x;
   const float y = rec.goal.position.y;
   const float z = rec.goal.position.z;
 
   // Create vectors for storing poses and reach record messages that lie within radius of current point
-  std::vector<reach_msgs::ReachRecord> reach_records;
+  std::vector<std::string> reach_records;
 
   // Iterate through all points in database to find those that lie within radius of current point
   for (auto it = db->begin(); it != db->end(); ++it)
@@ -40,36 +40,27 @@ std::vector<reach_msgs::ReachRecord> getNeighbors(const reach_msgs::ReachRecord&
 
     if (d2 < std::pow(radius, 2.0f) && d2 != 0.0f)
     {
-      reach_records.push_back(it->second);
+      reach_records.push_back(it->first);
     }
   }
 
   return reach_records;
 }
 
-std::vector<reach_msgs::ReachRecord> getNeighborsFLANN(const reach_msgs::ReachRecord& rec, const ReachDatabasePtr db,
-                                                       const double radius, SearchTreePtr search_tree)
+std::vector<std::string> getNeighborsFLANN(const reach_msgs::ReachRecord& rec, const ReachDatabasePtr db,
+                                           const double radius, SearchTreePtr search_tree)
 {
-  flann::Matrix<double> query(new double[3], 1, 3);
-  query[0][0] = (double)rec.goal.position.x;
-  query[0][1] = (double)rec.goal.position.y;
-  query[0][2] = (double)rec.goal.position.z;
+  pcl::PointXYZ query(rec.goal.position.x, rec.goal.position.y, rec.goal.position.z);
+  std::vector<int> indices;
+  std::vector<float> distances;
+  search_tree->radiusSearch(query, radius, indices, distances);
 
-  std::vector<std::vector<int>> indices;
-  std::vector<std::vector<double>> distances;
-  search_tree->radiusSearch(query, indices, distances, radius, flann::SearchParams());
-
-  // Create vectors for storing poses and reach record messages that lie within radius of current point
-  std::vector<reach_msgs::ReachRecord> neighbors;
-
+  std::vector<std::string> neighbors;
   for (std::size_t i = 0; i < indices.size(); ++i)
   {
-    for (std::size_t j = 0; j < indices[i].size(); ++j)
-    {
-      auto it = db->begin();
-      std::advance(it, j);
-      neighbors.push_back(it->second);
-    }
+    auto it = db->begin();
+    std::advance(it, indices[i]);
+    neighbors.push_back(it->first);
   }
 
   return neighbors;
@@ -83,7 +74,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db, const reach_msgs::
   NeighborReachResult result;
 
   // Get all of the neighboring points
-  std::vector<reach_msgs::ReachRecord> neighbors;
+  std::vector<std::string> neighbors;
   if (search_tree)
   {
     neighbors = getNeighborsFLANN(rec, db, radius, search_tree);
@@ -106,7 +97,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db, const reach_msgs::
     {
       // Initialize new target pose and new empty robot goal state
       Eigen::Isometry3d target;
-      tf::poseMsgToEigen(neighbors[i].goal, target);
+      tf::poseMsgToEigen(db->get(neighbors[i])->goal, target);
 
       // Use current point's IK solution as seed
       std::vector<double> new_solution;
@@ -116,7 +107,7 @@ NeighborReachResult reachNeighborsDirect(ReachDatabasePtr db, const reach_msgs::
       {
         // Change database if currently solved point didn't have solution before
         // or if its current manipulability is better than that saved in the databas
-        reach_msgs::ReachRecord msg = neighbors[i];
+        reach_msgs::ReachRecord msg = *(db->get(neighbors[i]));
 
         if (!msg.reached || (*score > msg.score))
         {
@@ -144,7 +135,7 @@ void reachNeighborsRecursive(ReachDatabasePtr db, const reach_msgs::ReachRecord&
   result.reached_pts.push_back(rec.id);
 
   // Create vectors for storing reach record messages that lie within radius of current point
-  std::vector<reach_msgs::ReachRecord> neighbors;
+  std::vector<std::string> neighbors;
   if (search_tree)
   {
     neighbors = getNeighborsFLANN(rec, db, radius, search_tree);
@@ -168,12 +159,11 @@ void reachNeighborsRecursive(ReachDatabasePtr db, const reach_msgs::ReachRecord&
       }
 
       // Check if the current potential point has been solved previously in the recursion chain
-      if (std::find(result.reached_pts.begin(), result.reached_pts.end(), neighbors[i].id) ==
-          std::end(result.reached_pts))
+      if (std::find(result.reached_pts.begin(), result.reached_pts.end(), neighbors[i]) == std::end(result.reached_pts))
       {
         std::vector<double> new_pose;
         Eigen::Isometry3d target;
-        tf::poseMsgToEigen(neighbors[i].goal, target);
+        tf::poseMsgToEigen(db->get(neighbors[i])->goal, target);
 
         // Use current point's IK solution as seed
         boost::optional<double> score = solver->solveIKFromSeed(target, current_pose_map, new_pose);
@@ -186,7 +176,7 @@ void reachNeighborsRecursive(ReachDatabasePtr db, const reach_msgs::ReachRecord&
           }
 
           // Store information in new reach record object
-          reach_msgs::ReachRecord new_rec(neighbors[i]);
+          reach_msgs::ReachRecord new_rec(*db->get(neighbors[i]));
           new_rec.seed_state.position = current_pose;
           new_rec.goal_state.position = new_pose;
           new_rec.reached = true;

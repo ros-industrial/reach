@@ -22,12 +22,12 @@ public:
   pluginlib::ClassLoader<PluginT> loader;
 };
 
-// Evaluation plugins - 1 in reach_core, 3 in moveit_reach_plugins
+// Evaluation plugins - 1 in reach_core, 4 in moveit_reach_plugins
 template <>
 const std::string PluginTest<reach::plugins::EvaluationBase>::base_class_name = EVAL_PLUGIN_BASE;
 
 template <>
-const unsigned PluginTest<reach::plugins::EvaluationBase>::expected_count = 4;
+const unsigned PluginTest<reach::plugins::EvaluationBase>::expected_count = 5;
 
 // IK Solver plugins - 0 in reach_core, 2 in moveit_reach_plugins
 template <>
