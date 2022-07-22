@@ -2,6 +2,19 @@
 Changelog for package moveit_reach_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Various Updates (`#29 <https://github.com/marip8/reach/issues/29>`_)
+  * Change FLANN search tree to PCL kd-tree; update nearest neighbors search; parallelize with hardware concurrency
+  * Update to use non-deprecated IK solve function
+  * Use Eigen vectorized array product rather than for loop
+  * Support manipulability calculation for subset of dimensions
+  * Added plugin for evaluating manipulability ratio
+  * Simplified and vectorized joint penalty evaluator
+  * Updated README
+  * Updated unit test
+* Contributors: Michael Ripperger
+
 0.1.1 (2022-07-07)
 ------------------
 

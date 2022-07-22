@@ -2,6 +2,25 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Various Updates (`#29 <https://github.com/marip8/reach/issues/29>`_)
+  * Change FLANN search tree to PCL kd-tree; update nearest neighbors search; parallelize with hardware concurrency
+  * Update to use non-deprecated IK solve function
+  * Use Eigen vectorized array product rather than for loop
+  * Support manipulability calculation for subset of dimensions
+  * Added plugin for evaluating manipulability ratio
+  * Simplified and vectorized joint penalty evaluator
+  * Updated README
+  * Updated unit test
+* Incorporated heat map coloring to rviz markers (`#30 <https://github.com/marip8/reach/issues/30>`_)
+  * Incorporated heat map coloring to rviz markers
+  * Fixed formatting on heat map rviz marker code
+  * Minor updates
+  Co-authored-by: David Spielman <david.spielman@swri.org>
+  Co-authored-by: Michael Ripperger <michael.ripperger@swri.org>
+* Contributors: David Spielman, Michael Ripperger
+
 0.1.1 (2022-07-07)
 ------------------
 
