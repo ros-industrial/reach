@@ -27,8 +27,6 @@ namespace evaluation
 {
 ManipulabilityMoveIt::ManipulabilityMoveIt() : reach::plugins::EvaluationBase()
 {
-  jacobian_row_subset_.resize(6);
-  std::iota(jacobian_row_subset_.begin(), jacobian_row_subset_.end(), 0);
 }
 
 bool ManipulabilityMoveIt::initialize(XmlRpc::XmlRpcValue& config)
@@ -73,6 +71,11 @@ bool ManipulabilityMoveIt::initialize(XmlRpc::XmlRpcValue& config)
     }
 
     std::copy(subset_rows.begin(), subset_rows.end(), std::back_inserter(jacobian_row_subset_));
+  }
+  else
+  {
+    jacobian_row_subset_.resize(6);
+    std::iota(jacobian_row_subset_.begin(), jacobian_row_subset_.end(), 0);
   }
 
   model_ = moveit::planning_interface::getSharedRobotModel("robot_description");
