@@ -50,16 +50,17 @@ public:
   virtual void showEnvironment() = 0;
 
   virtual void updateRobotPose(const std::map<std::string, double>& pose) = 0;
-// LOOK HERE
+
   void addInteractiveMarkerData(const reach_msgs::ReachDatabase& database)
   {
     server_.clear();
 
     // Find the max of the scores
     double max_score = 0;
-    for(const reach_msgs::ReachRecord& rec : database.records)
+    for (const reach_msgs::ReachRecord& rec : database.records)
     {
-      if (rec.score > max_score) {
+      if (rec.score > max_score)
+      {
         max_score = rec.score;
       }
     }
@@ -75,8 +76,6 @@ public:
       pcl::PointXYZHSV pt_hsv(h, s, v);
       pcl::PointXYZRGB pt_rgb;
       pcl::PointXYZHSVtoXYZRGB(pt_hsv, pt_rgb);
-      //Eigen::Vector3f to get r g b values into vector form
-
       Eigen::Vector3f rgb_color = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
 
       auto marker = utils::makeInteractiveMarker(rec, fixed_frame_, marker_scale_, rgb_color);

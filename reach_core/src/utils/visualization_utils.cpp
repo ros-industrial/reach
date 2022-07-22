@@ -57,27 +57,24 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const st
   marker.scale.y = scale / ARROW_SCALE_RATIO;
   marker.scale.z = scale / ARROW_SCALE_RATIO;
 
-
-
-    marker.color.a = 1.0;  // Don't forget to set the alpha!
-    if (r.reached)
-    {
-      marker.color.a = 1.0;
-      marker.color.r = color(0);
-      marker.color.g = color(1);
-      marker.color.b = color(2);
-    }
-    else
-    {
-      marker.color.r = 0.0;
-      marker.color.g = 0.0;
-      marker.color.b = 0.0;
-    }
-
+  marker.color.a = 1.0;  // Don't forget to set the alpha!
+  if (r.reached)
+  {
+    marker.color.a = 1.0;
+    marker.color.r = color(0);
+    marker.color.g = color(1);
+    marker.color.b = color(2);
+  }
+  else
+  {
+    marker.color.r = 0.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
+  }
 
   return marker;
 }
-//LOOK HERE
+
 visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::ReachRecord& r, const std::string& frame,
                                                             const double scale, const Eigen::Vector3f& rgb_color)
 {
