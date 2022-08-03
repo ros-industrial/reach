@@ -9,19 +9,55 @@ on:
       - master
   schedule:
     - cron: '0 5 * * *'
+  release:
+    types:
+      - released
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  ROS_DISTRO: noetic
 
 jobs:
-  focal_noetic:
+  ci:
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: 'ros-industrial/industrial_ci@master'
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Login to Github Packages
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker meta-information
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+            prefix=
+            suffix=
+          tags: |
+            type=ref,event=branch,prefix=${{ env.ROS_DISTRO }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ env.ROS_DISTRO }}-
+
+      - name: Build repository
+        uses: 'ros-industrial/industrial_ci@master'
         env:
           CI_NAME: focal
           OS_NAME: ubuntu
           OS_CODE_NAME: focal
-          ROS_DISTRO: noetic
           ROS_REPO: main
-          DOCKER_IMAGE: ros:noetic
+          PREFIX: ${{ github.repository }}_
+          DOCKER_IMAGE: 'ros:${{ env.ROS_DISTRO }}'
+          DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
+
+      - name: Push post-build Docker
+        if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
+        run: docker push ${{ steps.meta.outputs.tags }}

@@ -60,17 +60,13 @@ bool JointPenaltyMoveIt::initialize(XmlRpc::XmlRpcValue& config)
     return false;
   }
 
-  joint_limits_ = getJointLimits();
+  std::tie(joints_min_, joints_max_) = getJointLimits();
 
   return true;
 }
 
 double JointPenaltyMoveIt::calculateScore(const std::map<std::string, double>& pose)
 {
-  std::vector<double> max, min;
-  min = joint_limits_[0];
-  max = joint_limits_[1];
-
   // Pull the joints from the planning group out of the input pose map
   std::vector<double> pose_subset;
   if (!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
@@ -79,16 +75,15 @@ double JointPenaltyMoveIt::calculateScore(const std::map<std::string, double>& p
     return 0.0f;
   }
 
-  double penalty = 1.0;
-  for (std::size_t i = 0; i < max.size(); ++i)
-  {
-    double range = max[i] - min[i];
-    penalty *= ((pose_subset[i] - min[i]) * (max[i] - pose_subset[i])) / std::pow(range, 2);
-  }
-  return std::max(0.0, 1.0 - std::exp(-1.0 * penalty));
+  Eigen::Map<const Eigen::ArrayXd> min(joints_min_.data(), joints_min_.size());
+  Eigen::Map<const Eigen::ArrayXd> max(joints_max_.data(), joints_max_.size());
+  Eigen::Map<const Eigen::ArrayXd> joints(pose_subset.data(), pose_subset.size());
+
+  Eigen::VectorXd score = 4 * ((joints - min) * (max - joints)) / (max - min).pow(2);
+  return score.mean();
 }
 
-std::vector<std::vector<double>> JointPenaltyMoveIt::getJointLimits()
+std::tuple<std::vector<double>, std::vector<double>> JointPenaltyMoveIt::getJointLimits()
 {
   std::vector<double> max, min;
   // Get joint limits
@@ -106,7 +101,7 @@ std::vector<std::vector<double>> JointPenaltyMoveIt::getJointLimits()
   std::vector<std::vector<double>> joint_limits;
   joint_limits.push_back(min);
   joint_limits.push_back(max);
-  return joint_limits;
+  return std::make_tuple(min, max);
 }
 
 }  // namespace evaluation

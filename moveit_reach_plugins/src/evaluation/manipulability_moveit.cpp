@@ -17,6 +17,8 @@
 #include "moveit_reach_plugins/utils.h"
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_model/joint_model_group.h>
+
+#include <numeric>
 #include <xmlrpcpp/XmlRpcException.h>
 
 namespace moveit_reach_plugins
@@ -38,12 +40,42 @@ bool ManipulabilityMoveIt::initialize(XmlRpc::XmlRpcValue& config)
   std::string planning_group;
   try
   {
-    planning_group = std::string(config["planning_group"]);
+    planning_group = static_cast<std::string>(config["planning_group"]);
   }
   catch (const XmlRpc::XmlRpcException& ex)
   {
     ROS_ERROR_STREAM(ex.getMessage());
     return false;
+  }
+
+  if (config.hasMember("jacobian_row_subset") &&
+      config["jacobian_row_subset"].getType() == XmlRpc::XmlRpcValue::TypeArray)
+  {
+    std::set<Eigen::Index> subset_rows;
+    for (std::size_t i = 0; i < config["jacobian_row_subset"].size(); ++i)
+    {
+      int row = static_cast<int>(config["jacobian_row_subset"][i]);
+      if (row < 0 || row >= 6)
+      {
+        ROS_ERROR_STREAM("Invalid Jacobian row subset index provided: " << row << ". Must be on interval [0, 6)");
+        return false;
+      }
+
+      subset_rows.insert(row);
+    }
+
+    if (subset_rows.empty())
+    {
+      ROS_ERROR_STREAM("Jacobian row subset is empty");
+      return false;
+    }
+
+    std::copy(subset_rows.begin(), subset_rows.end(), std::back_inserter(jacobian_row_subset_));
+  }
+  else
+  {
+    jacobian_row_subset_.resize(6);
+    std::iota(jacobian_row_subset_.begin(), jacobian_row_subset_.end(), 0);
   }
 
   model_ = moveit::planning_interface::getSharedRobotModel("robot_description");
@@ -73,7 +105,7 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
   if (!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
   {
     ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
-    return 0.0f;
+    return 0.0;
   }
 
   state.setJointGroupPositions(jmg_, pose_subset);
@@ -82,15 +114,31 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
   // Get the Jacobian matrix
   Eigen::MatrixXd jacobian = state.getJacobian(jmg_);
 
-  // Calculate manipulability by multiplying Jacobian matrix singular values together
+  // Extract the partial jacobian
+  if (jacobian_row_subset_.size() < 6)
+  {
+    Eigen::MatrixXd partial_jacobian(jacobian_row_subset_.size(), jacobian.cols());
+    for (Eigen::Index i = 0; i < jacobian_row_subset_.size(); ++i)
+    {
+      partial_jacobian.row(i) = jacobian.row(jacobian_row_subset_[i]);
+    }
+
+    jacobian = partial_jacobian;
+  }
+
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian);
   Eigen::MatrixXd singular_values = svd.singularValues();
-  double m = 1.0;
-  for (unsigned int i = 0; i < singular_values.rows(); ++i)
-  {
-    m *= singular_values(i, 0);
-  }
-  return m;
+  return calculateScore(singular_values);
+}
+
+double ManipulabilityMoveIt::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+{
+  return jacobian_singular_values.array().prod();
+}
+
+double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+{
+  return jacobian_singular_values.minCoeff() / jacobian_singular_values.maxCoeff();
 }
 
 }  // namespace evaluation
@@ -98,3 +146,4 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveIt, reach::plugins::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityRatio, reach::plugins::EvaluationBase)

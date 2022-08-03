@@ -16,6 +16,8 @@
 #ifndef MOVEIT_REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H
 #define MOVEIT_REACH_PLUGINS_EVALUATION_MANIPULABILITY_EVALUATION_H
 
+#include <Eigen/Dense>
+
 #include <reach_core/plugins/evaluation_base.h>
 
 namespace moveit
@@ -41,10 +43,20 @@ public:
 
   virtual double calculateScore(const std::map<std::string, double>& pose) override;
 
-private:
-  moveit::core::RobotModelConstPtr model_;
+protected:
+  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values);
 
+  moveit::core::RobotModelConstPtr model_;
   const moveit::core::JointModelGroup* jmg_;
+  std::vector<int> jacobian_row_subset_;
+};
+
+class ManipulabilityRatio : public ManipulabilityMoveIt
+{
+public:
+  using ManipulabilityMoveIt::ManipulabilityMoveIt;
+
+  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) override;
 };
 
 }  // namespace evaluation

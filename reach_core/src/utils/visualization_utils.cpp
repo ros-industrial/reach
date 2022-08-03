@@ -25,7 +25,7 @@ namespace reach
 namespace utils
 {
 visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const std::string& frame, const double scale,
-                                      const std::string& ns, const boost::optional<std::vector<float>>& color)
+                                      const std::string& ns, const Eigen::Vector3f& color)
 {
   static int idx = 0;
 
@@ -57,37 +57,25 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const st
   marker.scale.y = scale / ARROW_SCALE_RATIO;
   marker.scale.z = scale / ARROW_SCALE_RATIO;
 
-  if (color)
+  marker.color.a = 1.0;  // Don't forget to set the alpha!
+  if (r.reached)
   {
-    std::vector<float> color_vec = *color;
-    marker.color.r = color_vec[0];
-    marker.color.g = color_vec[1];
-    marker.color.b = color_vec[2];
-    marker.color.a = color_vec[3];
+    marker.color.r = color(0);
+    marker.color.g = color(1);
+    marker.color.b = color(2);
   }
   else
   {
-    marker.color.a = 1.0;  // Don't forget to set the alpha!
-
-    if (r.reached)
-    {
-      marker.color.r = 0.0;
-      marker.color.g = 0.0;
-      marker.color.b = 1.0;
-    }
-    else
-    {
-      marker.color.r = 1.0;
-      marker.color.g = 0.0;
-      marker.color.b = 0.0;
-    }
+    marker.color.r = 0.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
   }
 
   return marker;
 }
 
 visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::ReachRecord& r, const std::string& frame,
-                                                            const double scale)
+                                                            const double scale, const Eigen::Vector3f& rgb_color)
 {
   visualization_msgs::InteractiveMarker m;
   m.header.frame_id = frame;
@@ -99,7 +87,7 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::Re
   control.always_visible = true;
 
   // Visuals
-  auto visual = makeVisual(r, frame, scale);
+  auto visual = makeVisual(r, frame, scale, "reach", rgb_color);
   control.markers.push_back(visual);
   m.controls.push_back(control);
 
