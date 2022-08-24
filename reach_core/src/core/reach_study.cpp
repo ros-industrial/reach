@@ -80,23 +80,19 @@ bool ReachStudy::initializeStudy()
   display_->showEnvironment();
 
   // Create a directory to store results of study
-  if (!sp_.results_directory.empty() && boost::filesystem::exists(sp_.results_directory.c_str()))
+  if (!sp_.results_directory.empty())
   {
     dir_ = sp_.results_directory + "/";
   }
   else
   {
     dir_ = ros::package::getPath("reach_core") + "/results/";
-    ROS_WARN("Using default results file directory: %s", dir_.c_str());
+    ROS_WARN_STREAM("Using default results file directory: '" << dir_ << "'");
   }
   results_dir_ = dir_ + sp_.config_name + "/";
-  const char* char_dir = results_dir_.c_str();
 
-  if (!boost::filesystem::exists(char_dir))
-  {
-    boost::filesystem::path path(char_dir);
-    boost::filesystem::create_directory(path);
-  }
+  if (!boost::filesystem::exists(results_dir_))
+    boost::filesystem::create_directories(results_dir_);
 
   return true;
 }
