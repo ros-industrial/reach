@@ -2,6 +2,11 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.2 (2022-08-24)
+------------------
+* Create nested results directories if they do not exist (`#34 <https://github.com/marip8/reach/issues/34>`_)
+* Contributors: Michael Ripperger
+
 0.2.1 (2022-07-22)
 ------------------
 

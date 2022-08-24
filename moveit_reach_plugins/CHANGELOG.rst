@@ -2,6 +2,9 @@
 Changelog for package moveit_reach_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.2 (2022-08-24)
+------------------
+
 0.2.1 (2022-07-22)
 ------------------
 * Fix setting of jacobian row subset (`#31 <https://github.com/marip8/reach/issues/31>`_)

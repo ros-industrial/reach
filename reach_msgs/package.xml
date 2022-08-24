@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>reach_msgs</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>The reach_msgs package</description>
 
   <maintainer email="michael.ripperger@swri.org">mripperger</maintainer>
