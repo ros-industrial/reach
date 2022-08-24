@@ -7,6 +7,16 @@
       Higher scores indicate higher robot dexterity at a given pose.
     </description>
   </class>
+
+  <!-- Manipulability Normalized -->
+  <class name="moveit_reach_plugins/evaluation/ManipulabilityNormalized" type="moveit_reach_plugins::evaluation::ManipulabilityNormalized" base_class_type="reach::plugins::EvaluationBase">
+    <description>
+      A pose evaluation plugin which returns a score (range [0, inf]) that is the manipulability of a robot at the input pose divided by the characteristic length.
+      Higher scores indicate higher robot dexterity at a given pose.
+    </description>
+  </class>
+
+  <!-- Manipulability Ratio -->
   <class name="moveit_reach_plugins/evaluation/ManipulabilityRatio" type="moveit_reach_plugins::evaluation::ManipulabilityRatio" base_class_type="reach::plugins::EvaluationBase">
     <description>
       A pose evalution plugin which returns a score (range [0, 1]) that is the ratio of smallest to largest manipulability values of robot at the input pose calculated from the robot's Jacobian.

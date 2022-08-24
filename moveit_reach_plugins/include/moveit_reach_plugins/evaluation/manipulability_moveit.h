@@ -51,11 +51,24 @@ protected:
   std::vector<int> jacobian_row_subset_;
 };
 
+class ManipulabilityNormalized : public ManipulabilityMoveIt
+{
+public:
+  using ManipulabilityMoveIt::ManipulabilityMoveIt;
+  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
+
+  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) override;
+  double calculateCharacteristicLength();
+
+protected:
+  std::vector<std::string> exclusion_list_;
+  double characteristic_length_;
+};
+
 class ManipulabilityRatio : public ManipulabilityMoveIt
 {
 public:
   using ManipulabilityMoveIt::ManipulabilityMoveIt;
-
   virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) override;
 };
 

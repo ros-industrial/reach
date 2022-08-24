@@ -25,6 +25,34 @@ namespace moveit_reach_plugins
 {
 namespace evaluation
 {
+double recurse(const moveit::core::JointModel* joint, const moveit::core::RobotState& state,
+               const std::string& tcp_frame)
+{
+  const moveit::core::LinkModel* child_link = joint->getChildLinkModel();
+  if (child_link->getName() == tcp_frame)
+    return child_link->getJointOriginTransform().translation().norm();
+
+  std::vector<const moveit::core::JointModel*> children = child_link->getChildJointModels();
+
+  // Anything other than 1 child suggests that there has been a branch of joints
+  if (children.size() != 1)
+    throw std::runtime_error("The robot model urdf has branching joints after the last active joint. This "
+                             "configuration is currently unsupported");
+
+  switch (children.at(0)->getType())
+  {
+    case moveit::core::JointModel::FIXED:
+      break;
+    default:
+      throw std::runtime_error("The robot model contains non-fixed joints after the last active joint. This "
+                               "configuration is currently unsupported");
+  }
+
+  double d = child_link->getJointOriginTransform().translation().norm();
+  d += recurse(children.at(0), state, tcp_frame);
+  return d;
+}
+
 ManipulabilityMoveIt::ManipulabilityMoveIt() : reach::plugins::EvaluationBase()
 {
 }
@@ -141,9 +169,93 @@ double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singu
   return jacobian_singular_values.minCoeff() / jacobian_singular_values.maxCoeff();
 }
 
+bool ManipulabilityNormalized::initialize(XmlRpc::XmlRpcValue& config)
+{
+  bool ret = ManipulabilityMoveIt::initialize(config);
+
+  if (config.hasMember("exclusion_list") && config["exclusion_list"].getType() == XmlRpc::XmlRpcValue::TypeArray)
+  {
+    for (std::size_t i = 0; i < config["exclusion_list"].size(); ++i)
+    {
+      std::string excluded_link = static_cast<std::string>(config["exclusion_list"][i]);
+      exclusion_list_.push_back(excluded_link);
+    }
+
+    if (exclusion_list_.empty())
+    {
+      ROS_ERROR_STREAM("Exclusion list is empty");
+      return false;
+    }
+  }
+
+  calculateCharacteristicLength();
+  return ret;
+}
+
+double ManipulabilityNormalized::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+{
+  if (characteristic_length_ == 0)
+    throw std::runtime_error("The model must have a nonzero characteristic length");
+
+  return ManipulabilityMoveIt::calculateScore(jacobian_singular_values) / characteristic_length_;
+}
+
+/*
+1. Stay as is, but add inclusion or exclusion lists
+  - boom_crane exclude joint_link_1 and joint_link_3
+2. Add random sampling
+3. Reverse IK? "On the Optimum Dimensioning of Robotic Manipulators"
+*/
+
+double ManipulabilityNormalized::calculateCharacteristicLength()
+{
+  moveit::core::RobotState state(model_);
+
+  std::vector<const moveit::core::JointModel*> active_joints = jmg_->getActiveJointModels();
+
+  characteristic_length_ = 0.0;
+
+  const std::string tcp_frame = jmg_->getSolverInstance()->getTipFrame();
+  for (std::size_t i = 0; i < active_joints.size() - 1; ++i)
+  {
+    const moveit::core::JointModel* aj = active_joints.at(i);
+
+    const moveit::core::LinkModel* child_link = aj->getChildLinkModel();
+    std::string child_link_name = child_link->getName();
+
+    // Skip this joint if its child link is in the exclusion list
+    if (std::any_of(exclusion_list_.begin(), exclusion_list_.end(),
+                    [&child_link_name](std::string excluded_link) { return (excluded_link == child_link_name); }))
+      continue;
+
+    // Calculate the transformation of fully extended primsatic joints
+    if (aj->getType() == moveit::core::JointModel::PRISMATIC)
+    {
+      std::string joint_name = aj->getName();
+      double max_position = aj->getVariableBounds().at(0).max_position_;
+      state.setJointPositions(joint_name, &max_position);
+    }
+
+    Eigen::Isometry3d joint_transform = state.getJointTransform(aj);
+
+    double joint_norm = joint_transform.translation().norm();
+    characteristic_length_ += joint_norm;
+
+    Eigen::Isometry3d transform = aj->getChildLinkModel()->getJointOriginTransform();
+    double norm = transform.translation().norm();
+    characteristic_length_ += norm;
+  }
+
+  // Recurse down the remaining tree of joints until we get to the TCP frame
+  characteristic_length_ += recurse(active_joints.back(), state, tcp_frame);
+
+  return characteristic_length_;
+}
+
 }  // namespace evaluation
 }  // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveIt, reach::plugins::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityNormalized, reach::plugins::EvaluationBase)
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityRatio, reach::plugins::EvaluationBase)
