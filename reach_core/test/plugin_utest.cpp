@@ -27,7 +27,7 @@ template <>
 const std::string PluginTest<reach::plugins::EvaluationBase>::base_class_name = EVAL_PLUGIN_BASE;
 
 template <>
-const unsigned PluginTest<reach::plugins::EvaluationBase>::expected_count = 5;
+const unsigned PluginTest<reach::plugins::EvaluationBase>::expected_count = 6;
 
 // IK Solver plugins - 0 in reach_core, 2 in moveit_reach_plugins
 template <>
