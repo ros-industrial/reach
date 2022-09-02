@@ -182,12 +182,6 @@ bool ManipulabilityNormalized::initialize(XmlRpc::XmlRpcValue& config)
       std::string excluded_link = static_cast<std::string>(config[excluded_links_param][i]);
       excluded_links_.push_back(excluded_link);
     }
-
-    if (excluded_links_.empty())
-    {
-      ROS_ERROR_STREAM("Exclusion list is empty");
-      return false;
-    }
   }
 
   calculateCharacteristicLength();
