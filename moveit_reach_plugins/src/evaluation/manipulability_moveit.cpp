@@ -169,7 +169,7 @@ double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singu
   return jacobian_singular_values.minCoeff() / jacobian_singular_values.maxCoeff();
 }
 
-bool ManipulabilityNormalized::initialize(XmlRpc::XmlRpcValue& config)
+bool ManipulabilityScaled::initialize(XmlRpc::XmlRpcValue& config)
 {
   bool ret = ManipulabilityMoveIt::initialize(config);
 
@@ -188,7 +188,7 @@ bool ManipulabilityNormalized::initialize(XmlRpc::XmlRpcValue& config)
   return ret;
 }
 
-double ManipulabilityNormalized::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+double ManipulabilityScaled::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
 {
   if (characteristic_length_ == 0)
     throw std::runtime_error("The model must have a nonzero characteristic length");
@@ -247,5 +247,5 @@ double calculateCharacteristicLength(moveit::core::RobotModelConstPtr model, con
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveIt, reach::plugins::EvaluationBase)
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityNormalized, reach::plugins::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityScaled, reach::plugins::EvaluationBase)
 PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityRatio, reach::plugins::EvaluationBase)

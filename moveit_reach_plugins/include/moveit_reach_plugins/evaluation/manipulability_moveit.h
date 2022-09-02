@@ -51,7 +51,8 @@ protected:
   std::vector<int> jacobian_row_subset_;
 };
 
-class ManipulabilityNormalized : public ManipulabilityMoveIt
+/** @brief Computes the manipulability of a robot pose divided by the characteristic length of the robot */
+class ManipulabilityScaled : public ManipulabilityMoveIt
 {
 public:
   using ManipulabilityMoveIt::ManipulabilityMoveIt;
