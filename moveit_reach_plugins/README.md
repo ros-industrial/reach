@@ -6,7 +6,7 @@ This package contains the plugin implemenations of REACH kinematics, evaluation,
 
 ### Manipulability
 
-This plugin uses MoveIt! to calculate the manipulability of a robot pose. Higher manipulability results in higher pose score. Range: [0, inf)
+This plugin uses MoveIt! to calculate the manipulability of a robot pose. Higher manipulability results in a higher pose score. Range: [0, inf)
 
 Parameters:
 
@@ -15,6 +15,22 @@ Parameters:
 - **`jacobian_row_subset`** (optional)
   - The indices of the rows of the Jacobian to use when evaluating the manipulability. The row indices should be on [0, 6) and correspond to the output space [x, y, z, rx, ry, rz]
   - Ex. `jacobian_row_subset: [0, 1, 2]  # position manipulability only`
+
+### Manipulability Scaled
+
+This plugin uses MoveIt! to calculate the manipulability of a robot pose divided by the characteristic length of the motion group.
+The characteristic length is computed by walking from the base link to the tip link of the motion group and summing the distances between adjacent links.
+Higher scaled manipulability results in a higher pose score. Range: [0, inf)
+
+Parameters:
+
+- **`planning_group`**
+  - The name of the planning group with which to evaluate the manipulability of a given robot pose
+- **`jacobian_row_subset`** (optional)
+  - The indices of the rows of the Jacobian to use when evaluating the manipulability. The row indices should be on [0, 6) and correspond to the output space [x, y, z, rx, ry, rz]
+  - Ex. `jacobian_row_subset: [0, 1, 2]  # position manipulability only`
+- **`excluded_links`** (optional)
+  - The names of links contained in the motion group that should not contribute to the characteristic length
 
 ### Manipulability Ratio
 
