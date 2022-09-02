@@ -76,13 +76,14 @@ bool ManipulabilityMoveIt::initialize(XmlRpc::XmlRpcValue& config)
     return false;
   }
 
-  if (config.hasMember("jacobian_row_subset") &&
-      config["jacobian_row_subset"].getType() == XmlRpc::XmlRpcValue::TypeArray)
+  const std::string jacobian_row_subset_param = "jacobian_row_subset";
+  if (config.hasMember(jacobian_row_subset_param) &&
+      config[jacobian_row_subset_param].getType() == XmlRpc::XmlRpcValue::TypeArray)
   {
     std::set<Eigen::Index> subset_rows;
-    for (std::size_t i = 0; i < config["jacobian_row_subset"].size(); ++i)
+    for (int i = 0; i < config[jacobian_row_subset_param].size(); ++i)
     {
-      int row = static_cast<int>(config["jacobian_row_subset"][i]);
+      int row = static_cast<int>(config[jacobian_row_subset_param][i]);
       if (row < 0 || row >= 6)
       {
         ROS_ERROR_STREAM("Invalid Jacobian row subset index provided: " << row << ". Must be on interval [0, 6)");
@@ -146,7 +147,7 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
   if (jacobian_row_subset_.size() < 6)
   {
     Eigen::MatrixXd partial_jacobian(jacobian_row_subset_.size(), jacobian.cols());
-    for (Eigen::Index i = 0; i < jacobian_row_subset_.size(); ++i)
+    for (std::size_t i = 0; i < jacobian_row_subset_.size(); ++i)
     {
       partial_jacobian.row(i) = jacobian.row(jacobian_row_subset_[i]);
     }
