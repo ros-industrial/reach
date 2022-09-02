@@ -191,8 +191,8 @@ bool ManipulabilityScaled::initialize(XmlRpc::XmlRpcValue& config)
 
 double ManipulabilityScaled::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
 {
-  if (characteristic_length_ == 0)
-    throw std::runtime_error("The model must have a nonzero characteristic length");
+  if (std::abs(characteristic_length_) < std::numeric_limits<double>::epsilon())
+    throw std::runtime_error("The model must have a non-zero characteristic length");
 
   return ManipulabilityMoveIt::calculateScore(jacobian_singular_values) / characteristic_length_;
 }
