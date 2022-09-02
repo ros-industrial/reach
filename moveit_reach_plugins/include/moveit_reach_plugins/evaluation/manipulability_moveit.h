@@ -61,7 +61,7 @@ public:
   double calculateCharacteristicLength();
 
 protected:
-  std::vector<std::string> exclusion_list_;
+  std::vector<std::string> excluded_links_;
   double characteristic_length_;
 };
 

@@ -173,15 +173,17 @@ bool ManipulabilityNormalized::initialize(XmlRpc::XmlRpcValue& config)
 {
   bool ret = ManipulabilityMoveIt::initialize(config);
 
-  if (config.hasMember("exclusion_list") && config["exclusion_list"].getType() == XmlRpc::XmlRpcValue::TypeArray)
+  const std::string excluded_links_param = "excluded_links";
+  if (config.hasMember(excluded_links_param) &&
+      config[excluded_links_param].getType() == XmlRpc::XmlRpcValue::TypeArray)
   {
-    for (std::size_t i = 0; i < config["exclusion_list"].size(); ++i)
+    for (int i = 0; i < config[excluded_links_param].size(); ++i)
     {
-      std::string excluded_link = static_cast<std::string>(config["exclusion_list"][i]);
-      exclusion_list_.push_back(excluded_link);
+      std::string excluded_link = static_cast<std::string>(config[excluded_links_param][i]);
+      excluded_links_.push_back(excluded_link);
     }
 
-    if (exclusion_list_.empty())
+    if (excluded_links_.empty())
     {
       ROS_ERROR_STREAM("Exclusion list is empty");
       return false;
@@ -200,13 +202,6 @@ double ManipulabilityNormalized::calculateScore(const Eigen::MatrixXd& jacobian_
   return ManipulabilityMoveIt::calculateScore(jacobian_singular_values) / characteristic_length_;
 }
 
-/*
-1. Stay as is, but add inclusion or exclusion lists
-  - boom_crane exclude joint_link_1 and joint_link_3
-2. Add random sampling
-3. Reverse IK? "On the Optimum Dimensioning of Robotic Manipulators"
-*/
-
 double ManipulabilityNormalized::calculateCharacteristicLength()
 {
   moveit::core::RobotState state(model_);
@@ -224,7 +219,7 @@ double ManipulabilityNormalized::calculateCharacteristicLength()
     std::string child_link_name = child_link->getName();
 
     // Skip this joint if its child link is in the exclusion list
-    if (std::any_of(exclusion_list_.begin(), exclusion_list_.end(),
+    if (std::any_of(excluded_links_.begin(), excluded_links_.end(),
                     [&child_link_name](std::string excluded_link) { return (excluded_link == child_link_name); }))
       continue;
 
