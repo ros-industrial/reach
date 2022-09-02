@@ -184,7 +184,7 @@ bool ManipulabilityNormalized::initialize(XmlRpc::XmlRpcValue& config)
     }
   }
 
-  calculateCharacteristicLength();
+  characteristic_length_ = calculateCharacteristicLength(model_, jmg_, excluded_links_);
   return ret;
 }
 
@@ -196,15 +196,16 @@ double ManipulabilityNormalized::calculateScore(const Eigen::MatrixXd& jacobian_
   return ManipulabilityMoveIt::calculateScore(jacobian_singular_values) / characteristic_length_;
 }
 
-double ManipulabilityNormalized::calculateCharacteristicLength()
+double calculateCharacteristicLength(moveit::core::RobotModelConstPtr model, const moveit::core::JointModelGroup* jmg,
+                                     const std::vector<std::string>& excluded_links)
 {
-  moveit::core::RobotState state(model_);
+  moveit::core::RobotState state(model);
 
-  std::vector<const moveit::core::JointModel*> active_joints = jmg_->getActiveJointModels();
+  std::vector<const moveit::core::JointModel*> active_joints = jmg->getActiveJointModels();
 
-  characteristic_length_ = 0.0;
+  double characteristic_length = 0.0;
 
-  const std::string tcp_frame = jmg_->getSolverInstance()->getTipFrame();
+  const std::string tcp_frame = jmg->getSolverInstance()->getTipFrame();
   for (std::size_t i = 0; i < active_joints.size() - 1; ++i)
   {
     const moveit::core::JointModel* aj = active_joints.at(i);
@@ -213,7 +214,7 @@ double ManipulabilityNormalized::calculateCharacteristicLength()
     std::string child_link_name = child_link->getName();
 
     // Skip this joint if its child link is in the exclusion list
-    if (std::any_of(excluded_links_.begin(), excluded_links_.end(),
+    if (std::any_of(excluded_links.begin(), excluded_links.end(),
                     [&child_link_name](std::string excluded_link) { return (excluded_link == child_link_name); }))
       continue;
 
@@ -228,17 +229,17 @@ double ManipulabilityNormalized::calculateCharacteristicLength()
     Eigen::Isometry3d joint_transform = state.getJointTransform(aj);
 
     double joint_norm = joint_transform.translation().norm();
-    characteristic_length_ += joint_norm;
+    characteristic_length += joint_norm;
 
     Eigen::Isometry3d transform = aj->getChildLinkModel()->getJointOriginTransform();
     double norm = transform.translation().norm();
-    characteristic_length_ += norm;
+    characteristic_length += norm;
   }
 
   // Recurse down the remaining tree of joints until we get to the TCP frame
-  characteristic_length_ += recurse(active_joints.back(), state, tcp_frame);
+  characteristic_length += recurse(active_joints.back(), state, tcp_frame);
 
-  return characteristic_length_;
+  return characteristic_length;
 }
 
 }  // namespace evaluation
