@@ -51,13 +51,33 @@ protected:
   std::vector<int> jacobian_row_subset_;
 };
 
+/** @brief Computes the manipulability of a robot pose divided by the characteristic length of the robot */
+class ManipulabilityScaled : public ManipulabilityMoveIt
+{
+public:
+  using ManipulabilityMoveIt::ManipulabilityMoveIt;
+  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
+
+  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) override;
+
+protected:
+  std::vector<std::string> excluded_links_;
+  double characteristic_length_;
+};
+
 class ManipulabilityRatio : public ManipulabilityMoveIt
 {
 public:
   using ManipulabilityMoveIt::ManipulabilityMoveIt;
-
   virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) override;
 };
+
+/**
+ * @brief Computes the characteristic length of the joint model group by walking from the base link of the group to the
+ * tip link and summing distances between links
+ */
+double calculateCharacteristicLength(moveit::core::RobotModelConstPtr model, const moveit::core::JointModelGroup* jmg,
+                                     const std::vector<std::string>& excluded_links);
 
 }  // namespace evaluation
 }  // namespace moveit_reach_plugins
