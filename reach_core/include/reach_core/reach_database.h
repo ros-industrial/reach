@@ -83,7 +83,7 @@ private:
   friend class boost::serialization::access;
 
   template <class Archive>
-  inline void serialize(Archive& ar, const unsigned int version)
+  inline void serialize(Archive& ar, const unsigned int /*version*/)
   {
     ar& BOOST_SERIALIZATION_NVP(id);
     ar& BOOST_SERIALIZATION_NVP(reached);
@@ -181,7 +181,7 @@ private:
 
   friend class boost::serialization::access;
   template <class Archive>
-  inline void serialize(Archive& ar, const unsigned int version)
+  inline void serialize(Archive& ar, const unsigned int /*version*/)
   {
     ar& BOOST_SERIALIZATION_NVP(name_);
     ar& BOOST_SERIALIZATION_NVP(map_);
