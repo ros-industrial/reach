@@ -35,11 +35,21 @@ struct Display
   Display() = default;
   virtual ~Display() = default;
 
-  virtual void initialize(const YAML::Node& config) = 0;
   virtual void showEnvironment() const = 0;
   virtual void updateRobotPose(const std::map<std::string, double>& pose) const = 0;
   virtual void showReachNeighborhood(const std::vector<ReachRecord>& neighborhood) const = 0;
-//  virtual void compareDatabases(const std::map<std::string, ReachDatabase>& dbs) const = 0;
+  //  virtual void compareDatabases(const std::map<std::string, ReachDatabase>& dbs) const = 0;
+};
+
+struct DisplayFactory
+{
+  using Ptr = boost::shared_ptr<Display>;
+  using ConstPtr = boost::shared_ptr<const Display>;
+
+  DisplayFactory() = default;
+  virtual ~DisplayFactory() = default;
+
+  virtual Display::ConstPtr create(const YAML::Node& config) const = 0;
 };
 
 }  // namespace reach

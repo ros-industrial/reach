@@ -41,10 +41,21 @@ public:
   IKSolver();
   virtual ~IKSolver() = default;
 
-  virtual void initialize(const YAML::Node& config) = 0;
   virtual std::vector<std::string> getJointNames() const = 0;
+
   virtual std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                                    const std::map<std::string, double>& seed) const = 0;
+};
+
+struct IKSolverFactory
+{
+  using Ptr = boost::shared_ptr<IKSolverFactory>;
+  using ConstPtr = boost::shared_ptr<const IKSolverFactory>;
+
+  IKSolverFactory() = default;
+  virtual ~IKSolverFactory() = default;
+
+  virtual IKSolver::ConstPtr create(const YAML::Node& config) = 0;
 };
 
 }  // namespace reach

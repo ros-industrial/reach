@@ -30,9 +30,8 @@ namespace reach
 /**
  * @brief The Evaluator class
  */
-class Evaluator
+struct Evaluator
 {
-public:
   using Ptr = boost::shared_ptr<Evaluator>;
   using ConstPtr = boost::shared_ptr<const Evaluator>;
 
@@ -40,17 +39,22 @@ public:
   virtual ~Evaluator() = default;
 
   /**
-   * @brief initialize
-   * @param config
-   */
-  virtual void initialize(const YAML::Node& config) = 0;
-
-  /**
    * @brief calculateScore
    * @param pose
    * @return
    */
   virtual double calculateScore(const std::map<std::string, double>& pose) const = 0;
+};
+
+struct EvaluatorFactory
+{
+  using Ptr = boost::shared_ptr<EvaluatorFactory>;
+  using ConstPtr = boost::shared_ptr<const EvaluatorFactory>;
+
+  EvaluatorFactory() = default;
+  virtual ~EvaluatorFactory() = default;
+
+  virtual Evaluator::ConstPtr create(const YAML::Node& config) const = 0;
 };
 
 }  // namespace reach
