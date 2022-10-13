@@ -20,11 +20,14 @@ namespace reach
 {
 ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                                  Display::ConstPtr display, const double neighbor_radius)
-  : db_(db), solver_(solver), evaluator_(evaluator), display_(display), neighbor_radius_(neighbor_radius)
+  : db_(db)
+  , solver_(solver)
+  , evaluator_(evaluator)
+  , display_(display)
+  , search_tree_(createSearchTree(*db_))
+  , neighbor_radius_(neighbor_radius)
 {
   display_->showEnvironment();
-
-  // TODO: Build the search tree
 }
 
 void ReachVisualizer::reSolveIK(const std::string& marker_name)
