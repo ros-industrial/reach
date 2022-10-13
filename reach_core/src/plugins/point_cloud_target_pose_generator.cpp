@@ -58,6 +58,10 @@ static Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt, const Eigen::Vec
 
 namespace reach
 {
+PointCloudTargetPoseGenerator::PointCloudTargetPoseGenerator(std::string filename) : filename_(std::move(filename))
+{
+}
+
 VectorIsometry3d PointCloudTargetPoseGenerator::generate() const
 {
   // Check if file exists
@@ -84,12 +88,12 @@ VectorIsometry3d PointCloudTargetPoseGenerator::generate() const
   return target_poses;
 }
 
-void PointCloudTargetPoseGenerator::initialize(const YAML::Node& config)
+TargetPoseGenerator::ConstPtr PointCloudTargetPoseGeneratorFactory::create(const YAML::Node& config) const
 {
-  filename_ = config["pcd_file"].as<std::string>();
+  return boost::make_shared<PointCloudTargetPoseGenerator>(config["pcd_file"].as<std::string>());
 }
 
 } // namespace reach
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach::PointCloudTargetPoseGenerator, reach::TargetPoseGenerator)
+PLUGINLIB_EXPORT_CLASS(reach::PointCloudTargetPoseGeneratorFactory, reach::TargetPoseGeneratorFactory)

@@ -21,19 +21,25 @@
 
 namespace reach
 {
-class MultiplicativeFactory : public Evaluator
+class MultiplicativeEvaluator : public Evaluator
 {
 public:
-  MultiplicativeFactory();
-
-  virtual void initialize(const YAML::Node& config) override;
+  MultiplicativeEvaluator(std::vector<Evaluator::ConstPtr> evaluators);
 
   virtual double calculateScore(const std::map<std::string, double>& pose) const override;
 
 private:
-  std::vector<Evaluator::Ptr> eval_plugins_;
+  std::vector<Evaluator::ConstPtr> evaluators_;
+};
 
-  pluginlib::ClassLoader<Evaluator> class_loader_;
+class MultiplicativeEvaluatorFactory : public EvaluatorFactory
+{
+public:
+  MultiplicativeEvaluatorFactory();
+  Evaluator::ConstPtr create(const YAML::Node& config) const override;
+
+private:
+  mutable pluginlib::ClassLoader<EvaluatorFactory> class_loader_;
 };
 
 }  // namespace reach
