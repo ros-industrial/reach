@@ -16,10 +16,9 @@
 #ifndef REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 #define REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
 
-#include <reach_core/interfaces/evaluator.h>
-
 #include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
+#include <map>
 #include <vector>
 
 namespace YAML
