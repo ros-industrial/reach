@@ -34,7 +34,10 @@ int main(int argc, char** argv)
     // clang-format off
     desc.add_options()
       ("help", "produce help message")
-      ("config-file", bpo::value<std::string>()->required(), "configuration file");
+      ("config-file", bpo::value<std::string>()->required(), "configuration file")
+      ("config-name", bpo::value<std::string>()->required(), "reach study configuration name")
+      ("results-dir", bpo::value<std::string>()->required(), "reach study results directory")
+    ;
     // clang-format on
 
     bpo::variables_map vm;
@@ -54,6 +57,7 @@ int main(int argc, char** argv)
     const YAML::Node& ik_config = config["ik_solver"];
     const YAML::Node& pose_gen_config = config["target_pose_generator"];
     const YAML::Node& eval_config = config["evaluator"];
+    const YAML::Node& display_config = config["display"];
 
     // Extract the study parameters
     reach::ReachStudy::Parameters params;
@@ -87,17 +91,41 @@ int main(int argc, char** argv)
       evaluator = factory->create(eval_config);
     }
 
-    const std::string config_name = config["name"].as<std::string>();
-    boost::filesystem::path results_dir(config["results_directory"].as<std::string>());
+    // Load the display plugin
+    pluginlib::ClassLoader<reach::DisplayFactory> display_loader(PACKAGE, DISPLAY_BASE_CLASS);
+    reach::Display::ConstPtr display;
+    {
+      reach::DisplayFactory::Ptr factory = display_loader.createInstance(display_config["name"].as<std::string>());
+      display = factory->create(display_config);
+    }
+
+    const std::string config_name = vm["config-name"].as<std::string>();
+    boost::filesystem::path results_dir(vm["results-dir"].as<std::string>());
 
     // Initialize the reach study
-    reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, params, config_name);
+    reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, params, config_name);
 
-    // Run the reach study
-    rs.run();
-    rs.save((results_dir / "study.db").string());
-    rs.optimize();
-    rs.save((results_dir / "study_optimized.db").string());
+    const boost::filesystem::path db_file = results_dir / config_name / "study.db";
+    const boost::filesystem::path opt_db_file = results_dir / config_name / "study_optimized.db";
+
+    if (boost::filesystem::exists(opt_db_file))
+    {
+      // Attempt to load the optimized database first, if it exists
+      rs.load(opt_db_file.string());
+    }
+    else if (boost::filesystem::exists(db_file))
+    {
+      // Then try to load the un-optimized database, if it exists
+      rs.load(db_file.string());
+    }
+    else
+    {
+      // Otherwise, run the reach study
+      rs.run();
+      rs.save((results_dir / config_name / "study.db").string());
+      rs.optimize();
+      rs.save((results_dir / config_name / "study_optimized.db").string());
+    }
   }
   catch (const std::exception& ex)
   {
