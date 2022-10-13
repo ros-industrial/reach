@@ -43,8 +43,8 @@ struct Display
 
 struct DisplayFactory
 {
-  using Ptr = boost::shared_ptr<Display>;
-  using ConstPtr = boost::shared_ptr<const Display>;
+  using Ptr = boost::shared_ptr<DisplayFactory>;
+  using ConstPtr = boost::shared_ptr<const DisplayFactory>;
 
   DisplayFactory() = default;
   virtual ~DisplayFactory() = default;
