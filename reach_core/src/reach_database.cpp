@@ -18,13 +18,14 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <fstream>
+#include <pcl/point_types_conversion.h>
 
 namespace reach
 {
 ReachRecord::ReachRecord(const std::string id_, const bool reached_, const Eigen::Isometry3d& goal_,
                          const std::map<std::string, double> seed_state_,
                          const std::map<std::string, double> goal_state_, const double score_)
-  : id(id_), goal(goal_), reached(reached_), seed_state(seed_state_), goal_state(goal_state_), score(score_)
+  : id(id_), reached(reached_), goal(goal_), seed_state(seed_state_), goal_state(goal_state_), score(score_)
 {
 }
 
@@ -85,11 +86,23 @@ ReachDatabase::const_iterator ReachDatabase::end() const
   return map_.cend();
 }
 
+ReachDatabase::iterator ReachDatabase::max()
+{
+  using RecordPair = std::map<std::string, ReachRecord>::value_type;
+  return std::max_element(map_.begin(), map_.end(),
+                          [](const RecordPair& a, const RecordPair& b) { return a.second.score < b.second.score; });
+}
+
+ReachDatabase::const_iterator ReachDatabase::max() const
+{
+  return max();
+}
+
 StudyResults ReachDatabase::calculateResults()
 {
   unsigned int success = 0, total = 0;
   double score = 0.0;
-  for (int i = 0; i < this->size(); ++i)
+  for (std::size_t i = 0; i < this->size(); ++i)
   {
     ReachRecord msg = get(std::to_string(i));
 
@@ -125,6 +138,32 @@ ReachDatabase load(const std::string& filename)
   ReachDatabase db;
   ia >> db;
   return db;
+}
+
+Eigen::MatrixX3f ReachDatabase::computeHeatMapColors() const
+{
+  // Find the max element
+  ReachDatabase::const_iterator max_it = max();
+
+  Eigen::MatrixX3f colors(map_.size(), 3);
+  for (auto it = map_.begin(); it != map_.end(); ++it)
+  {
+    // Compute the color of the marker as a heatmap from blue to red using HSV space
+    const float max_h = 0.75f * 360.0f;  // Corresponds to blue color
+    const float h = max_h - (static_cast<float>(it->second.score / max_it->second.score) * max_h);
+    const float s = 1.0f;
+    const float v = it->second.reached ? 1.0f : 0.0f;
+
+    // Convert to RGB
+    const pcl::PointXYZHSV pt_hsv(h, s, v);
+    pcl::PointXYZRGB pt_rgb;
+    pcl::PointXYZHSVtoXYZRGB(pt_hsv, pt_rgb);
+
+    Eigen::Index idx = static_cast<Eigen::Index>(std::distance(map_.begin(), it));
+    colors.row(idx) = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
+  }
+
+  return colors;
 }
 
 }  // namespace reach

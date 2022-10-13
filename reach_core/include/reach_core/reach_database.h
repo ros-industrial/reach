@@ -167,11 +167,17 @@ public:
    */
   StudyResults calculateResults();
 
+  Eigen::MatrixX3f computeHeatMapColors() const;
+
   // For loops
   iterator begin();
   const_iterator begin() const;
   iterator end();
   const_iterator end() const;
+
+  // Max element iterators
+  iterator max();
+  const_iterator max() const;
 
 private:
   std::string name_;
