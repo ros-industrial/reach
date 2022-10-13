@@ -16,6 +16,8 @@
 #ifndef REACH_CORE_REACH_STUDY_H
 #define REACH_CORE_REACH_STUDY_H
 
+#include <reach_core/interfaces/display.h>
+#include <reach_core/interfaces/evaluator.h>
 #include <reach_core/interfaces/ik_solver.h>
 #include <reach_core/interfaces/target_pose_generator.h>
 #include <reach_core/utils.h>
@@ -36,7 +38,7 @@ public:
   };
 
   ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr pose_generator,
-             const Parameters params, const std::string& study_name);
+             Display::ConstPtr display, const Parameters params, const std::string& study_name);
 
   void load(const std::string& filename);
   void run();
@@ -55,6 +57,7 @@ private:
   // Plugins
   IKSolver::ConstPtr ik_solver_;
   Evaluator::ConstPtr evaluator_;
+  Display::ConstPtr display_;
   const VectorIsometry3d target_poses_;
 
   SearchTreePtr search_tree_ = nullptr;

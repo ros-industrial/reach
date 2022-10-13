@@ -22,12 +22,14 @@
 
 namespace reach
 {
-ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr target_generator,
+ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator,
+                       TargetPoseGenerator::ConstPtr target_generator, Display::ConstPtr display,
                        const Parameters params, const std::string& name)
   : params_(std::move(params))
   , db_(new ReachDatabase(name))
   , ik_solver_(std::move(ik_solver))
   , evaluator_(std::move(evaluator))
+  , display_(std::move(display))
   , target_poses_(target_generator->generate())
 {
 }
@@ -35,6 +37,9 @@ ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluat
 void ReachStudy::load(const std::string& filename)
 {
   *db_ = reach::load(filename);
+  search_tree_ = createSearchTree(*db_);
+  display_->showEnvironment();
+  display_->showResults(*db_);
 }
 
 void ReachStudy::save(const std::string& filename) const
@@ -49,6 +54,10 @@ ReachDatabase::ConstPtr ReachStudy::getDatabase() const
 
 void ReachStudy::run()
 {
+  // Show display
+  display_->showEnvironment();
+  display_->showResults(*db_);
+
   // First loop through all points in point cloud and get IK solution
   std::atomic<int> current_counter, previous_pct;
   current_counter = previous_pct = 0;
@@ -82,22 +91,18 @@ void ReachStudy::run()
     current_counter++;
     integerProgressPrinter(current_counter, previous_pct, target_poses_.size());
   }
+
+  display_->showResults(*db_);
 }
 
 void ReachStudy::optimize()
 {
+  // Show environment display
+  display_->showEnvironment();
+  display_->showResults(*db_);
+
   // Create an efficient search tree for doing nearest neighbors search
-  {
-    auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-    for (auto it = db_->begin(); it != db_->end(); ++it)
-    {
-      pcl::PointXYZ pt;
-      pt.getVector3fMap() = it->second.goal.translation().cast<float>();
-      cloud->push_back(pt);
-    }
-    search_tree_ = pcl::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
-    search_tree_->setInputCloud(cloud);
-  }
+  search_tree_ = createSearchTree(*db_);
 
   // Create sequential vector to be randomized
   std::vector<std::size_t> rand_vec(db_->size());
@@ -151,6 +156,9 @@ void ReachStudy::optimize()
     std::cout << results.print() << std::endl;
     pct_improve = std::abs((results.norm_total_pose_score - previous_score) / previous_score);
     ++n_opt;
+
+    // Show the results
+    display_->showResults(*db_);
   }
 }
 
