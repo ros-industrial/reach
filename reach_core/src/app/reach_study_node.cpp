@@ -20,10 +20,10 @@
 #include <yaml-cpp/yaml.h>
 
 static const std::string PACKAGE = "reach_core";
-static const std::string IK_BASE_CLASS = "reach::IKSolver";
-static const std::string DISPLAY_BASE_CLASS = "reach::Display";
-static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::TargetPoseGenerator";
-static const std::string EVALUATOR_BASE_CLASS = "reach::Evaluator";
+static const std::string IK_BASE_CLASS = "reach::IKSolverFactory";
+static const std::string DISPLAY_BASE_CLASS = "reach::DisplayFactory";
+static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::TargetPoseGeneratorFactory";
+static const std::string EVALUATOR_BASE_CLASS = "reach::EvaluatorFactory";
 
 int main(int argc, char** argv)
 {
@@ -62,28 +62,29 @@ int main(int argc, char** argv)
     params.step_improvement_threshold = opt_config["step_improvement_threshold"].as<double>();
 
     // Load the IK Solver plugin
-    pluginlib::ClassLoader<reach::IKSolver> solver_loader(PACKAGE, IK_BASE_CLASS);
-    reach::IKSolver::Ptr ik_solver;
+    pluginlib::ClassLoader<reach::IKSolverFactory> solver_loader(PACKAGE, IK_BASE_CLASS);
+    reach::IKSolver::ConstPtr ik_solver;
     {
-      ik_solver = solver_loader.createInstance(ik_config["name"].as<std::string>());
-      ik_solver->initialize(ik_config);
+      reach::IKSolverFactory::Ptr factory = solver_loader.createInstance(ik_config["name"].as<std::string>());
+      ik_solver = factory->create(ik_config);
     }
 
     // Load the target pose generator plugin
-    pluginlib::ClassLoader<reach::TargetPoseGenerator> target_pose_generator_loader_(
+    pluginlib::ClassLoader<reach::TargetPoseGeneratorFactory> target_pose_generator_loader_(
         PACKAGE, TARGET_POSE_GENERATOR_BASE_CLASS);
-    reach::TargetPoseGenerator::Ptr target_pose_generator;
+    reach::TargetPoseGenerator::ConstPtr target_pose_generator;
     {
-      target_pose_generator = target_pose_generator_loader_.createInstance(pose_gen_config["name"].as<std::string>());
-      target_pose_generator->initialize(pose_gen_config);
+      reach::TargetPoseGeneratorFactory::Ptr factory =
+          target_pose_generator_loader_.createInstance(pose_gen_config["name"].as<std::string>());
+      target_pose_generator = factory->create(pose_gen_config);
     }
 
     // Load the evaluator plugin
-    pluginlib::ClassLoader<reach::Evaluator> eval_loader(PACKAGE, EVALUATOR_BASE_CLASS);
-    reach::Evaluator::Ptr evaluator;
+    pluginlib::ClassLoader<reach::EvaluatorFactory> eval_loader(PACKAGE, EVALUATOR_BASE_CLASS);
+    reach::Evaluator::ConstPtr evaluator;
     {
-      evaluator = eval_loader.createInstance(eval_config["name"].as<std::string>());
-      evaluator->initialize(eval_config);
+      reach::EvaluatorFactory::Ptr factory = eval_loader.createInstance(eval_config["name"].as<std::string>());
+      evaluator = factory->create(eval_config);
     }
 
     const std::string config_name = config["name"].as<std::string>();
