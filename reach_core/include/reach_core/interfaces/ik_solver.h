@@ -55,7 +55,7 @@ struct IKSolverFactory
   IKSolverFactory() = default;
   virtual ~IKSolverFactory() = default;
 
-  virtual IKSolver::ConstPtr create(const YAML::Node& config) = 0;
+  virtual IKSolver::ConstPtr create(const YAML::Node& config) const = 0;
 };
 
 }  // namespace reach
