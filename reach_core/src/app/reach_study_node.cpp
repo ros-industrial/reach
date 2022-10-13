@@ -15,8 +15,9 @@
  */
 #include <reach_core/reach_study.h>
 
-#include <ros/ros.h>
+#include <boost/program_options.hpp>
 #include <pluginlib/class_loader.h>
+#include <yaml-cpp/yaml.h>
 
 static const std::string PACKAGE = "reach_core";
 static const std::string IK_BASE_CLASS = "reach::IKSolver";
@@ -24,38 +25,48 @@ static const std::string DISPLAY_BASE_CLASS = "reach::Display";
 static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::TargetPoseGenerator";
 static const std::string EVALUATOR_BASE_CLASS = "reach::Evaluator";
 
-template <typename T>
-T get(const ros::NodeHandle& nh, const std::string& key)
-{
-  T val;
-  if (!nh.getParam(key, val))
-    throw std::runtime_error("Failed to get '" + key + "' parameter");
-  return val;
-}
-
 int main(int argc, char** argv)
 {
   try
   {
-    ros::init(argc, argv, "robot_reach_study_node");
-    ros::NodeHandle pnh("~"), nh;
+    namespace bpo = boost::program_options;
+    bpo::options_description desc("Allowed options");
+    // clang-format off
+    desc.add_options()
+      ("help", "produce help message")
+      ("config-file", bpo::value<std::string>()->required(), "configuration file");
+    // clang-format on
 
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
+    bpo::variables_map vm;
+    bpo::store(bpo::parse_command_line(argc, argv, desc), vm);
 
-    // Get the study parameters
+    if (vm.count("help"))
+    {
+      std::cout << desc << std::endl;
+      return 1;
+    }
+
+    bpo::notify(vm);
+
+    // Load the configuration file
+    const YAML::Node& config = YAML::LoadFile(vm["config-file"].as<std::string>());
+    const YAML::Node& opt_config = config["optimization"];
+    const YAML::Node& ik_config = config["ik_solver"];
+    const YAML::Node& pose_gen_config = config["target_pose_generator"];
+    const YAML::Node& eval_config = config["evaluator"];
+
+    // Extract the study parameters
     reach::ReachStudy::Parameters params;
-    params.radius = get<double>(nh, "optimization/radius");
-    params.max_steps = get<int>(nh, "optimization/max_steps");
-    params.step_improvement_threshold = get<double>(nh, "optimization/step_improvement_threshold");
+    params.radius = opt_config["radius"].as<double>();
+    params.max_steps = opt_config["max_steps"].as<int>();
+    params.step_improvement_threshold = opt_config["step_improvement_threshold"].as<double>();
 
     // Load the IK Solver plugin
     pluginlib::ClassLoader<reach::IKSolver> solver_loader(PACKAGE, IK_BASE_CLASS);
     reach::IKSolver::Ptr ik_solver;
     {
-      XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "ik_solver_config");
-      ik_solver = solver_loader.createInstance(config["name"]);
-      ik_solver->initialize(config);
+      ik_solver = solver_loader.createInstance(ik_config["name"].as<std::string>());
+      ik_solver->initialize(ik_config);
     }
 
     // Load the target pose generator plugin
@@ -63,22 +74,20 @@ int main(int argc, char** argv)
         PACKAGE, TARGET_POSE_GENERATOR_BASE_CLASS);
     reach::TargetPoseGenerator::Ptr target_pose_generator;
     {
-      XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "target_pose_generator_config");
-      target_pose_generator = target_pose_generator_loader_.createInstance(config["name"]);
-      target_pose_generator->initialize(config);
+      target_pose_generator = target_pose_generator_loader_.createInstance(pose_gen_config["name"].as<std::string>());
+      target_pose_generator->initialize(pose_gen_config);
     }
 
     // Load the evaluator plugin
     pluginlib::ClassLoader<reach::Evaluator> eval_loader(PACKAGE, EVALUATOR_BASE_CLASS);
     reach::Evaluator::Ptr evaluator;
     {
-      XmlRpc::XmlRpcValue config = get<XmlRpc::XmlRpcValue>(nh, "evaluator_config");
-      evaluator = eval_loader.createInstance(config["name"]);
-      evaluator->initialize(config);
+      evaluator = eval_loader.createInstance(eval_config["name"].as<std::string>());
+      evaluator->initialize(eval_config);
     }
 
-    const std::string config_name = get<std::string>(nh, config_name);
-    boost::filesystem::path results_dir(get<std::string>(nh, "results_directory"));
+    const std::string config_name = config["name"].as<std::string>();
+    boost::filesystem::path results_dir(config["results_directory"].as<std::string>());
 
     // Initialize the reach study
     reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, params, config_name);

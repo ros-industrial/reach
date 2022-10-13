@@ -5,9 +5,10 @@ add_compile_options(-std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS roscpp pluginlib)
 
-find_package(Boost REQUIRED COMPONENTS serialization)
+find_package(Boost REQUIRED COMPONENTS serialization program_options)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS io search)
+find_package(yaml-cpp REQUIRED)
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -43,7 +44,7 @@ add_library(
   src/reach_visualizer.cpp
   src/reach_study.cpp
   src/reach_study_comparison.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen Boost::serialization ${PCL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen Boost::serialization ${PCL_LIBRARIES} yaml-cpp)
 
 # Plugins Library
 add_library(${PROJECT_NAME}_plugins

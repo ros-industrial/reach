@@ -17,11 +17,10 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <ros/package.h>
-#include <ros/ros.h>
+#include <boost/program_options.hpp>
+#include <iostream>
 
-const static std::string RESULTS_FOLDER_NAME = "results";
-const static std::string OPT_DB_NAME = "optimized_reach.db";
+static const std::string OPT_DB_NAME = "optimized_reach.db";
 
 bool get_all(const boost::filesystem::path& root, const std::string& ext,
              std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>>& ret)
@@ -55,43 +54,57 @@ bool get_all(const boost::filesystem::path& root, const std::string& ext,
 
 int main(int argc, char** argv)
 {
-  if (argc > 2)
+  try
   {
-    return -1;
-  }
+    namespace bpo = boost::program_options;
+    bpo::options_description desc("Allowed options");
+    // clang-format off
+    desc.add_options()
+      ("help", "produce help message")
+      ("results-folder", bpo::value<std::string>()->required(), "folder containing reach study results database(s)");
+    // clang-format on
 
-  std::string root_path = ros::package::getPath("reach_core") + "/" + RESULTS_FOLDER_NAME;
+    bpo::variables_map vm;
+    bpo::store(bpo::parse_command_line(argc, argv, desc), vm);
 
-  if (argv[1])
-  {
-    const std::string folder_name = argv[1];
-    root_path += "/" + folder_name;
-  }
+    if (vm.count("help"))
+    {
+      std::cout << desc << std::endl;
+      return 1;
+    }
 
-  boost::filesystem::path root(root_path);
-  std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>> files;
-  if (!get_all(root, ".db", files))
-  {
-    std::cout << "Specified directory does not exist";
+    bpo::notify(vm);
+
+    boost::filesystem::path root(vm["results-folder"].as<std::string>());
+    std::vector<std::pair<boost::filesystem::path, boost::filesystem::path>> files;
+    if (!get_all(root, ".db", files))
+    {
+      std::cout << "Specified directory does not exist";
+      return 0;
+    }
+
+    for (size_t i = 0; i < files.size(); ++i)
+    {
+      try
+      {
+        const std::string config = files[i].first.string();
+        const std::string path = files[i].second.string();
+
+        reach::ReachDatabase db = reach::load(path);
+        reach::StudyResults res = db.calculateResults();
+        std::cout << res.print() << std::endl;
+      }
+      catch (const std::exception& ex)
+      {
+        std::cout << ex.what() << std::endl;
+      }
+    }
+
     return 0;
   }
-
-  for (size_t i = 0; i < files.size(); ++i)
+  catch (const std::exception& ex)
   {
-    try
-    {
-      const std::string config = files[i].first.string();
-      const std::string path = files[i].second.string();
-
-      reach::ReachDatabase db = reach::load(path);
-      reach::StudyResults res = db.calculateResults();
-      std::cout << res.print() << std::endl;
-    }
-    catch (const std::exception& ex)
-    {
-      std::cout << ex.what() << std::endl;
-    }
+    std::cerr << ex.what() << std::endl;
+    return -1;
   }
-
-  return 0;
 }

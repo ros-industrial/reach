@@ -111,7 +111,7 @@ void ReachStudy::optimize()
 
   while (pct_improve > params_.step_improvement_threshold && n_opt < params_.max_steps)
   {
-    ROS_INFO("Entering optimization loop %d", n_opt);
+    std::cout << "Entering optimization loop " << n_opt << std::endl;
     previous_score = db_->calculateResults().norm_total_pose_score;
     current_counter = 0;
     previous_pct = 0;
@@ -156,8 +156,8 @@ void ReachStudy::optimize()
 
 std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 {
-  ROS_INFO("--------------------------------------------");
-  ROS_INFO("Beginning average neighbor count calculation");
+  std::cout << "--------------------------------------------" << std::endl;
+  std::cout << "Beginning average neighbor count calculation" << std::endl;
 
   std::atomic<int> current_counter, previous_pct, neighbor_count;
   current_counter = previous_pct = neighbor_count = 0;
