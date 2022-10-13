@@ -3,11 +3,13 @@
 #include <reach_core/interfaces/evaluator.h>
 #include <reach_core/interfaces/ik_solver.h>
 #include <reach_core/interfaces/display.h>
+#include <reach_core/interfaces/target_pose_generator.h>
 #include <ros/ros.h>
 
 const static std::string EVAL_PLUGIN_BASE = "reach::EvaluatorFactory";
 const static std::string IK_PLUGIN_BASE = "reach::IKSolverFactory";
 const static std::string DISPLAY_PLUGIN_BASE = "reach::DisplayFactory";
+const static std::string TARGET_POSE_GENERATOR_BASE = "reach::TargetPoseGeneratorFactory";
 
 template <typename PluginT>
 class PluginTest : public ::testing::Test
@@ -43,8 +45,16 @@ const std::string PluginTest<reach::DisplayFactory>::base_class_name = DISPLAY_P
 template <>
 const unsigned PluginTest<reach::DisplayFactory>::expected_count = 1;
 
+// Target Pose Generator Plugins - 1 in reach_core
+template <>
+const std::string PluginTest<reach::TargetPoseGeneratorFactory>::base_class_name = TARGET_POSE_GENERATOR_BASE;
+
+template <>
+const unsigned PluginTest<reach::TargetPoseGeneratorFactory>::expected_count = 1;
+
 // Test Implementations
-using Implementations = ::testing::Types<reach::EvaluatorFactory, reach::IKSolverFactory, reach::DisplayFactory>;
+using Implementations = ::testing::Types<reach::EvaluatorFactory, reach::IKSolverFactory, reach::DisplayFactory,
+                                         reach::TargetPoseGeneratorFactory>;
 
 TYPED_TEST_CASE(PluginTest, Implementations);
 
