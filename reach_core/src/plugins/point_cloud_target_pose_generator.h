@@ -6,7 +6,7 @@ class PointCloudTargetPoseGenerator : public TargetPoseGenerator
 {
   VectorIsometry3d generate() const override;
 
-  void initialize(const XmlRpc::XmlRpcValue& config) override;
+  void initialize(const YAML::Node& config) override;
 
 private:
   std::string filename_;

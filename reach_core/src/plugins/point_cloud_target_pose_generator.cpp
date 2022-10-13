@@ -3,6 +3,7 @@
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/PCLPointField.h>
+#include <yaml-cpp/yaml.h>
 
 static bool hasNormals(pcl::PCLPointCloud2& cloud)
 {
@@ -83,9 +84,9 @@ VectorIsometry3d PointCloudTargetPoseGenerator::generate() const
   return target_poses;
 }
 
-void PointCloudTargetPoseGenerator::initialize(const XmlRpc::XmlRpcValue &config)
+void PointCloudTargetPoseGenerator::initialize(const YAML::Node& config)
 {
-  filename_ = static_cast<std::string>(config["pcd_file"]);
+  filename_ = config["pcd_file"].as<std::string>();
 }
 
 } // namespace reach

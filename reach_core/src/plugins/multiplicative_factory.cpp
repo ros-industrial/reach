@@ -15,6 +15,8 @@
  */
 #include "multiplicative_factory.h"
 
+#include <yaml-cpp/yaml.h>
+
 namespace reach
 {
 const static std::string PACKAGE = "reach_core";
@@ -24,18 +26,16 @@ MultiplicativeFactory::MultiplicativeFactory() : Evaluator(), class_loader_(PACK
 {
 }
 
-void MultiplicativeFactory::initialize(XmlRpc::XmlRpcValue& config)
+void MultiplicativeFactory::initialize(const YAML::Node& config)
 {
-  XmlRpc::XmlRpcValue& plugin_configs = config["plugins"];
+  const YAML::Node plugin_configs = config["plugins"];
 
   eval_plugins_.reserve(plugin_configs.size());
 
-  for (int i = 0; i < plugin_configs.size(); ++i)
+  for (auto it = plugin_configs.begin(); it != plugin_configs.end(); ++it)
   {
-    XmlRpc::XmlRpcValue& plugin_config = plugin_configs[i];
-    const std::string name = std::string(plugin_config["name"]);
-
-    Evaluator::Ptr plugin = class_loader_.createInstance(name);
+    const YAML::Node& plugin_config = *it;
+    Evaluator::Ptr plugin = class_loader_.createInstance(plugin_config["name"].as<std::string>());
     plugin->initialize(plugin_config);
 
     eval_plugins_.push_back(std::move(plugin));

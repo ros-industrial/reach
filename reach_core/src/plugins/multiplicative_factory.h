@@ -26,7 +26,7 @@ class MultiplicativeFactory : public Evaluator
 public:
   MultiplicativeFactory();
 
-  virtual void initialize(XmlRpc::XmlRpcValue& config) override;
+  virtual void initialize(const YAML::Node& config) override;
 
   virtual double calculateScore(const std::map<std::string, double>& pose) const override;
 
