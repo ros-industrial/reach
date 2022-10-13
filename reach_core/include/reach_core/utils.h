@@ -18,6 +18,7 @@
 
 #include <reach_core/reach_database.h>
 #include <reach_core/interfaces/ik_solver.h>
+#include <reach_core/interfaces/evaluator.h>
 
 #include <atomic>
 #include <Eigen/Dense>
@@ -52,6 +53,7 @@ std::tuple<std::vector<double>, double> evaluateIK(const Eigen::Isometry3d& targ
                                                    IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator);
 
 using SearchTreePtr = pcl::search::KdTree<pcl::PointXYZ>::Ptr;
+SearchTreePtr createSearchTree(const ReachDatabase& db);
 
 std::vector<ReachRecord> reachNeighborsDirect(ReachDatabase::ConstPtr db, const ReachRecord& rec,
                                               IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
@@ -66,6 +68,7 @@ struct NeighborReachResult
 void reachNeighborsRecursive(ReachDatabase::ConstPtr db, const ReachRecord& msg, IKSolver::ConstPtr solver,
                              Evaluator::ConstPtr evaluator, const double radius, NeighborReachResult& result,
                              SearchTreePtr search_tree = nullptr);
+
 }  // namespace reach
 
 #endif  // REACH_UTILS_GENERAL_UTILS_H

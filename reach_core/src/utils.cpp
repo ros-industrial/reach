@@ -52,6 +52,21 @@ std::tuple<std::vector<double>, double> evaluateIK(const Eigen::Isometry3d& targ
   return std::make_tuple(poses.at(best_idx), best_score);
 }
 
+SearchTreePtr createSearchTree(const ReachDatabase& db)
+{
+  auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  for (auto it = db.begin(); it != db.end(); ++it)
+  {
+    pcl::PointXYZ pt;
+    pt.getVector3fMap() = it->second.goal.translation().cast<float>();
+    cloud->push_back(pt);
+  }
+  auto search_tree = pcl::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
+  search_tree->setInputCloud(cloud);
+
+  return search_tree;
+}
+
 std::vector<std::string> getNeighbors(const ReachRecord& rec, const ReachDatabase::ConstPtr db, const double radius)
 {
   // Create vectors for storing poses and reach record messages that lie within radius of current point
