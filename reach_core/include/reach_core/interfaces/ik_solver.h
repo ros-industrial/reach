@@ -20,9 +20,12 @@
 
 #include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
-#include <pluginlib/class_loader.h>
 #include <vector>
-#include <xmlrpcpp/XmlRpcValue.h>
+
+namespace YAML
+{
+class Node;
+}
 
 namespace reach
 {
@@ -38,7 +41,7 @@ public:
   IKSolver();
   virtual ~IKSolver() = default;
 
-  virtual void initialize(XmlRpc::XmlRpcValue& config) = 0;
+  virtual void initialize(const YAML::Node& config) = 0;
   virtual std::vector<std::string> getJointNames() const = 0;
   virtual std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                                    const std::map<std::string, double>& seed) const = 0;

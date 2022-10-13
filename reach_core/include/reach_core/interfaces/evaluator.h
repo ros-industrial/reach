@@ -17,8 +17,13 @@
 #define REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE
 
 #include <boost/shared_ptr.hpp>
+#include <map>
 #include <vector>
-#include <xmlrpcpp/XmlRpcValue.h>
+
+namespace YAML
+{
+class Node;
+}
 
 namespace reach
 {
@@ -38,7 +43,7 @@ public:
    * @brief initialize
    * @param config
    */
-  virtual void initialize(XmlRpc::XmlRpcValue& config) = 0;
+  virtual void initialize(const YAML::Node& config) = 0;
 
   /**
    * @brief calculateScore

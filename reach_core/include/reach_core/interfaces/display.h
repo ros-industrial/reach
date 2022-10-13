@@ -19,8 +19,11 @@
 #include <reach_core/reach_database.h>
 
 #include <boost/shared_ptr.hpp>
-#include <xmlrpcpp/XmlRpcValue.h>
-#include <pcl/point_types_conversion.h>
+
+namespace YAML
+{
+class Node;
+}
 
 namespace reach
 {
@@ -32,7 +35,7 @@ struct Display
   Display() = default;
   virtual ~Display() = default;
 
-  virtual void initialize(XmlRpc::XmlRpcValue& config) = 0;
+  virtual void initialize(const YAML::Node& config) = 0;
   virtual void showEnvironment() const = 0;
   virtual void updateRobotPose(const std::map<std::string, double>& pose) const = 0;
   virtual void showReachNeighborhood(const std::vector<ReachRecord>& neighborhood) const = 0;

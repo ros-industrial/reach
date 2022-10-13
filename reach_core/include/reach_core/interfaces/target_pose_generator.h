@@ -2,7 +2,12 @@
 
 #include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
-#include <xmlrpcpp/XmlRpcValue.h>
+#include <vector>
+
+namespace YAML
+{
+class Node;
+}
 
 namespace reach
 {
@@ -15,7 +20,7 @@ struct TargetPoseGenerator
 
   virtual VectorIsometry3d generate() const = 0;
 
-  virtual void initialize(const XmlRpc::XmlRpcValue& config) = 0;
+  virtual void initialize(const YAML::Node& config) = 0;
 };
 
 } // namepsace reach
