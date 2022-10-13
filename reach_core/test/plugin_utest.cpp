@@ -5,9 +5,9 @@
 #include <reach_core/interfaces/display.h>
 #include <ros/ros.h>
 
-const static std::string EVAL_PLUGIN_BASE = "reach::Evaluator";
-const static std::string IK_PLUGIN_BASE = "reach::IKSolver";
-const static std::string DISPLAY_PLUGIN_BASE = "reach::Display";
+const static std::string EVAL_PLUGIN_BASE = "reach::EvaluatorFactory";
+const static std::string IK_PLUGIN_BASE = "reach::IKSolverFactory";
+const static std::string DISPLAY_PLUGIN_BASE = "reach::DisplayFactory";
 
 template <typename PluginT>
 class PluginTest : public ::testing::Test
@@ -24,28 +24,27 @@ public:
 
 // Evaluation plugins - 1 in reach_core, 4 in moveit_reach_plugins
 template <>
-const std::string PluginTest<reach::Evaluator>::base_class_name = EVAL_PLUGIN_BASE;
+const std::string PluginTest<reach::EvaluatorFactory>::base_class_name = EVAL_PLUGIN_BASE;
 
 template <>
-const unsigned PluginTest<reach::Evaluator>::expected_count = 6;
+const unsigned PluginTest<reach::EvaluatorFactory>::expected_count = 6;
 
 // IK Solver plugins - 0 in reach_core, 2 in moveit_reach_plugins
 template <>
-const std::string PluginTest<reach::IKSolver>::base_class_name = IK_PLUGIN_BASE;
+const std::string PluginTest<reach::IKSolverFactory>::base_class_name = IK_PLUGIN_BASE;
 
 template <>
-const unsigned PluginTest<reach::IKSolver>::expected_count = 2;
+const unsigned PluginTest<reach::IKSolverFactory>::expected_count = 2;
 
 // Display Plugins - 0 in reach_core, 1 in moveit_reach_plugins
 template <>
-const std::string PluginTest<reach::Display>::base_class_name = DISPLAY_PLUGIN_BASE;
+const std::string PluginTest<reach::DisplayFactory>::base_class_name = DISPLAY_PLUGIN_BASE;
 
 template <>
-const unsigned PluginTest<reach::Display>::expected_count = 1;
+const unsigned PluginTest<reach::DisplayFactory>::expected_count = 1;
 
 // Test Implementations
-using Implementations =
-    ::testing::Types<reach::Evaluator, reach::IKSolver, reach::Display>;
+using Implementations = ::testing::Types<reach::EvaluatorFactory, reach::IKSolverFactory, reach::DisplayFactory>;
 
 TYPED_TEST_CASE(PluginTest, Implementations);
 
