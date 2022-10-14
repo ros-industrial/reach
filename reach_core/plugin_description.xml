@@ -1,13 +1,38 @@
 <library path="lib/libreach_core_plugins">
   <!-- Multiplicative Factory -->
-  <class name="reach_core/MultiplicativeFactory" type="reach::MultiplicativeFactory" base_class_type="reach::EvaluationBase">
+  <class name="MultiplicativeEvaluator" type="reach::MultiplicativeEvaluatorFactory" base_class_type="reach::EvaluatorFactory">
     <description>
       A pose evaluation plugin which loads other pose evaluation plugins and returns a score for an input pose that is the product of the scores of each individual plugin.
       This plugin allows for the use of any combination of other pose evaulation plugins.
     </description>
   </class>
   <!-- Point Cloud Target Pose Generator Factory -->
-  <class name="reach_core/PointCloudTargetPoseGenerator" type="reach::PointCloudTargetPoseGenerator" base_class_type="reach::TargetPoseGenerator">
+  <class name="PointCloudTargetPoseGenerator" type="reach::PointCloudTargetPoseGeneratorFactory" base_class_type="reach::TargetPoseGeneratorFactory">
+    <description>
+    </description>
+  </class>
+  <!-- Console Logger -->
+  <class name="ConsoleLogger" type="reach::ConsoleLoggerFactory" base_class_type="reach::LoggerFactory">
+    <description>
+    </description>
+  </class>
+  <!-- Boost Progress Console Logger -->
+  <class name="BoostProgressConsoleLogger" type="reach::BoostProgressConsoleLoggerFactory" base_class_type="reach::LoggerFactory">
+    <description>
+    </description>
+  </class>
+  <!-- No-op Evaluator -->
+  <class name="NoOpEvaluator" type="reach::NoOpEvaluatorFactory" base_class_type="reach::EvaluatorFactory">
+    <description>
+    </description>
+  </class>
+  <!-- No-op IK Solver -->
+  <class name="NoOpIKSolver" type="reach::NoOpIKSolverFactory" base_class_type="reach::IKSolverFactory">
+    <description>
+    </description>
+  </class>
+  <!-- No-op Display -->
+  <class name="NoOpDisplay" type="reach::NoOpDisplayFactory" base_class_type="reach::DisplayFactory">
     <description>
     </description>
   </class>
