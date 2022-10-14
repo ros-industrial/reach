@@ -37,7 +37,7 @@ public:
   using Ptr = boost::shared_ptr<IKSolver>;
   using ConstPtr = boost::shared_ptr<const IKSolver>;
 
-  IKSolver();
+  IKSolver() = default;
   virtual ~IKSolver() = default;
 
   virtual std::vector<std::string> getJointNames() const = 0;
