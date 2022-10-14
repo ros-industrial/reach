@@ -13,13 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "moveit_reach_plugins/evaluation/manipulability_moveit.h"
-#include "moveit_reach_plugins/utils.h"
+#include <moveit_reach_plugins/evaluation/manipulability_moveit.h>
+#include <moveit_reach_plugins/utils.h>
+
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_model/joint_model_group.h>
-
 #include <numeric>
-#include <xmlrpcpp/XmlRpcException.h>
+#include <reach_core/utils.h>
+#include <yaml-cpp/yaml.h>
+
+static std::vector<Eigen::Index> getJacobianRowSubset(const YAML::Node& config, const std::string& key = "jacobian_row_"
+                                                                                                         "subset")
+{
+  std::vector<Eigen::Index> jacobian_row_subset;
+
+  const YAML::Node& jrs_config = config[key];
+  if (jrs_config.IsDefined())
+  {
+    std::set<Eigen::Index> subset_rows;
+    for (auto it = jrs_config.begin(); it != jrs_config.end(); ++it)
+    {
+      int row = (*it).as<Eigen::Index>();
+      if (row < 0 || row >= 6)
+      {
+        std::stringstream ss;
+        ss << "Invalid Jacobian row subset index provided: " << row << ". Must be on interval [0, 6)";
+        throw std::runtime_error(ss.str());
+      }
+
+      subset_rows.insert(row);
+    }
+
+    if (subset_rows.empty())
+      throw std::runtime_error("Jacobian row subset is empty");
+
+    std::copy(subset_rows.begin(), subset_rows.end(), std::back_inserter(jacobian_row_subset));
+  }
+  else
+  {
+    jacobian_row_subset.resize(6);
+    std::iota(jacobian_row_subset.begin(), jacobian_row_subset.end(), 0);
+  }
+
+  return jacobian_row_subset;
+}
+
+static std::vector<std::string> getExcludedLinks(const YAML::Node& config, const std::string& key = "excluded_links")
+{
+  try
+  {
+    return reach::get<std::vector<std::string>>(config, key);
+  }
+  catch (const std::exception& ex)
+  {
+    return {};
+  }
+}
 
 namespace moveit_reach_plugins
 {
@@ -53,90 +102,23 @@ double recurse(const moveit::core::JointModel* joint, const moveit::core::RobotS
   return d;
 }
 
-ManipulabilityMoveIt::ManipulabilityMoveIt() : reach::plugins::EvaluationBase()
+ManipulabilityMoveIt::ManipulabilityMoveIt(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
+                                           std::vector<Eigen::Index> jacobian_row_subset)
+  : model_(std::move(model))
+  , jmg_(model_->getJointModelGroup(planning_group))
+  , jacobian_row_subset_(std::move(jacobian_row_subset))
 {
-}
-
-bool ManipulabilityMoveIt::initialize(XmlRpc::XmlRpcValue& config)
-{
-  if (!config.hasMember("planning_group"))
-  {
-    ROS_ERROR("MoveIt Manipulability Evaluation Plugin is missing 'planning_group' parameter");
-    return false;
-  }
-
-  std::string planning_group;
-  try
-  {
-    planning_group = static_cast<std::string>(config["planning_group"]);
-  }
-  catch (const XmlRpc::XmlRpcException& ex)
-  {
-    ROS_ERROR_STREAM(ex.getMessage());
-    return false;
-  }
-
-  const std::string jacobian_row_subset_param = "jacobian_row_subset";
-  if (config.hasMember(jacobian_row_subset_param) &&
-      config[jacobian_row_subset_param].getType() == XmlRpc::XmlRpcValue::TypeArray)
-  {
-    std::set<Eigen::Index> subset_rows;
-    for (int i = 0; i < config[jacobian_row_subset_param].size(); ++i)
-    {
-      int row = static_cast<int>(config[jacobian_row_subset_param][i]);
-      if (row < 0 || row >= 6)
-      {
-        ROS_ERROR_STREAM("Invalid Jacobian row subset index provided: " << row << ". Must be on interval [0, 6)");
-        return false;
-      }
-
-      subset_rows.insert(row);
-    }
-
-    if (subset_rows.empty())
-    {
-      ROS_ERROR_STREAM("Jacobian row subset is empty");
-      return false;
-    }
-
-    std::copy(subset_rows.begin(), subset_rows.end(), std::back_inserter(jacobian_row_subset_));
-  }
-  else
-  {
-    jacobian_row_subset_.resize(6);
-    std::iota(jacobian_row_subset_.begin(), jacobian_row_subset_.end(), 0);
-  }
-
-  model_ = moveit::planning_interface::getSharedRobotModel("robot_description");
-  if (!model_)
-  {
-    ROS_ERROR("Failed to initialize robot model pointer");
-    return false;
-  }
-
-  jmg_ = model_->getJointModelGroup(planning_group);
   if (!jmg_)
-  {
-    ROS_ERROR("Failed to initialize joint model group pointer");
-    return false;
-  }
-
-  return true;
+    throw std::runtime_error("Failed to initialize joint model group pointer");
 }
 
-double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>& pose)
+double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>& pose) const
 {
   // Calculate manipulability of kinematic chain of input robot pose
   moveit::core::RobotState state(model_);
 
   // Take the subset of joints in the joint model group out of the input pose
-  std::vector<double> pose_subset;
-  if (!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
-  {
-    ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
-    return 0.0;
-  }
-
+  std::vector<double> pose_subset = utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames());
   state.setJointGroupPositions(jmg_, pose_subset);
   state.update();
 
@@ -160,41 +142,71 @@ double ManipulabilityMoveIt::calculateScore(const std::map<std::string, double>&
   return calculateScore(singular_values);
 }
 
-double ManipulabilityMoveIt::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+double ManipulabilityMoveIt::calculateScore(const Eigen::MatrixXd& jacobian_singular_values) const
 {
   return jacobian_singular_values.array().prod();
 }
 
-double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+reach::Evaluator::ConstPtr ManipulabilityMoveItFactory::create(const YAML::Node& config) const
+{
+  auto planning_group = reach::get<std::string>(config, "planning_group");
+
+  std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
+
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  if (!model)
+    throw std::runtime_error("Failed to initialize robot model pointer");
+
+  return boost::make_shared<ManipulabilityMoveIt>(model, planning_group, jacobian_row_subset);
+}
+
+double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singular_values) const
 {
   return jacobian_singular_values.minCoeff() / jacobian_singular_values.maxCoeff();
 }
 
-bool ManipulabilityScaled::initialize(XmlRpc::XmlRpcValue& config)
+reach::Evaluator::ConstPtr ManipulabilityRatioFactory::create(const YAML::Node& config) const
 {
-  bool ret = ManipulabilityMoveIt::initialize(config);
+  auto planning_group = reach::get<std::string>(config, "planning_group");
 
-  const std::string excluded_links_param = "excluded_links";
-  if (config.hasMember(excluded_links_param) &&
-      config[excluded_links_param].getType() == XmlRpc::XmlRpcValue::TypeArray)
-  {
-    for (int i = 0; i < config[excluded_links_param].size(); ++i)
-    {
-      std::string excluded_link = static_cast<std::string>(config[excluded_links_param][i]);
-      excluded_links_.push_back(excluded_link);
-    }
-  }
+  std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
 
-  characteristic_length_ = calculateCharacteristicLength(model_, jmg_, excluded_links_);
-  return ret;
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  if (!model)
+    throw std::runtime_error("Failed to initialize robot model pointer");
+
+  return boost::make_shared<ManipulabilityRatio>(model, planning_group, jacobian_row_subset);
 }
 
-double ManipulabilityScaled::calculateScore(const Eigen::MatrixXd& jacobian_singular_values)
+ManipulabilityScaled::ManipulabilityScaled(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
+                                           std::vector<Eigen::Index> jacobian_row_subset,
+                                           std::vector<std::string> excluded_links)
+  : ManipulabilityMoveIt(model, planning_group, jacobian_row_subset), excluded_links_(std::move(excluded_links))
+{
+  characteristic_length_ = calculateCharacteristicLength(model_, jmg_, excluded_links_);
+}
+
+double ManipulabilityScaled::calculateScore(const Eigen::MatrixXd& jacobian_singular_values) const
 {
   if (std::abs(characteristic_length_) < std::numeric_limits<double>::epsilon())
     throw std::runtime_error("The model must have a non-zero characteristic length");
 
   return ManipulabilityMoveIt::calculateScore(jacobian_singular_values) / characteristic_length_;
+}
+
+reach::Evaluator::ConstPtr ManipulabilityScaledFactory::create(const YAML::Node& config) const
+{
+  auto planning_group = reach::get<std::string>(config, "planning_group");
+
+  std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
+
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  if (!model)
+    throw std::runtime_error("Failed to initialize robot model pointer");
+
+  std::vector<std::string> excluded_links = getExcludedLinks(config);
+
+  return boost::make_shared<ManipulabilityScaled>(model, planning_group, jacobian_row_subset, excluded_links);
 }
 
 double calculateCharacteristicLength(moveit::core::RobotModelConstPtr model, const moveit::core::JointModelGroup* jmg,
@@ -247,6 +259,6 @@ double calculateCharacteristicLength(moveit::core::RobotModelConstPtr model, con
 }  // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveIt, reach::plugins::EvaluationBase)
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityScaled, reach::plugins::EvaluationBase)
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityRatio, reach::plugins::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveItFactory, reach::EvaluatorFactory)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityScaledFactory, reach::EvaluatorFactory)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityRatioFactory, reach::EvaluatorFactory)

@@ -18,7 +18,7 @@
 
 #include <Eigen/Dense>
 
-#include <reach_core/plugins/evaluation_base.h>
+#include <reach_core/interfaces/evaluator.h>
 
 namespace moveit
 {
@@ -34,42 +34,60 @@ namespace moveit_reach_plugins
 {
 namespace evaluation
 {
-class ManipulabilityMoveIt : public reach::plugins::EvaluationBase
+class ManipulabilityMoveIt : public reach::Evaluator
 {
 public:
-  ManipulabilityMoveIt();
-
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
-
-  virtual double calculateScore(const std::map<std::string, double>& pose) override;
+  ManipulabilityMoveIt(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
+                       std::vector<Eigen::Index> jacobian_row_subset);
+  double calculateScore(const std::map<std::string, double>& pose) const override;
 
 protected:
-  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values);
+  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) const;
 
   moveit::core::RobotModelConstPtr model_;
   const moveit::core::JointModelGroup* jmg_;
-  std::vector<int> jacobian_row_subset_;
+  const std::vector<Eigen::Index> jacobian_row_subset_;
+};
+
+struct ManipulabilityMoveItFactory : public reach::EvaluatorFactory
+{
+  using reach::EvaluatorFactory::EvaluatorFactory;
+
+  reach::Evaluator::ConstPtr create(const YAML::Node& config) const override;
 };
 
 /** @brief Computes the manipulability of a robot pose divided by the characteristic length of the robot */
 class ManipulabilityScaled : public ManipulabilityMoveIt
 {
 public:
-  using ManipulabilityMoveIt::ManipulabilityMoveIt;
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
-
-  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) override;
+  ManipulabilityScaled(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
+                       std::vector<Eigen::Index> jacobian_row_subset, std::vector<std::string> excluded_links);
+  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) const override;
 
 protected:
-  std::vector<std::string> excluded_links_;
+  const std::vector<std::string> excluded_links_;
   double characteristic_length_;
+};
+
+struct ManipulabilityScaledFactory : public reach::EvaluatorFactory
+{
+  using reach::EvaluatorFactory::EvaluatorFactory;
+
+  reach::Evaluator::ConstPtr create(const YAML::Node& config) const override;
 };
 
 class ManipulabilityRatio : public ManipulabilityMoveIt
 {
 public:
   using ManipulabilityMoveIt::ManipulabilityMoveIt;
-  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) override;
+  virtual double calculateScore(const Eigen::MatrixXd& jacobian_singular_values) const override;
+};
+
+struct ManipulabilityRatioFactory : public reach::EvaluatorFactory
+{
+  using reach::EvaluatorFactory::EvaluatorFactory;
+
+  reach::Evaluator::ConstPtr create(const YAML::Node& config) const override;
 };
 
 /**

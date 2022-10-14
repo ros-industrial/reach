@@ -16,7 +16,9 @@
 #ifndef MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 #define MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 
-#include <reach_core/plugins/reach_display_base.h>
+#include <reach_core/interfaces/display.h>
+#include <ros/node_handle.h>
+#include <ros/publisher.h>
 
 namespace moveit
 {
@@ -38,31 +40,35 @@ namespace moveit_reach_plugins
 {
 namespace display
 {
-class MoveItReachDisplay : public reach::plugins::DisplayBase
+class MoveItReachDisplay : public reach::Display
 {
 public:
-  MoveItReachDisplay();
+  MoveItReachDisplay(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
+                     std::string collision_mesh_filename, std::string collision_mesh_frame, double marker_scale);
 
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
-
-  virtual void showEnvironment() override;
-
-  virtual void updateRobotPose(const std::map<std::string, double>& pose) override;
+  void showEnvironment() const override;
+  void updateRobotPose(const std::map<std::string, double>& pose) const override;
+  void showResults(const reach::ReachDatabase& db) const override;
+  void showReachNeighborhood(const std::vector<reach::ReachRecord>& neighborhood) const override;
 
 private:
   moveit::core::RobotModelConstPtr model_;
+  const moveit::core::JointModelGroup* jmg_;
+  const std::string collision_mesh_filename_;
+  const std::string collision_mesh_frame_;
+  const double marker_scale_;
 
   planning_scene::PlanningScenePtr scene_;
 
-  const moveit::core::JointModelGroup* jmg_;
-
-  std::string collision_mesh_filename_;
-
-  std::string collision_mesh_frame_;
-
+  // ROS comoponents
   ros::NodeHandle nh_;
-
   ros::Publisher scene_pub_;
+  ros::Publisher neighbors_pub_;
+};
+
+struct MoveItReachDisplayFactory : public reach::DisplayFactory
+{
+  reach::Display::ConstPtr create(const YAML::Node& config) const override;
 };
 
 }  // namespace display

@@ -16,68 +16,37 @@
 #ifndef MOVEIT_REACH_PLUGINS_KINEMATICS_UTILS_H
 #define MOVEIT_REACH_PLUGINS_KINEMATICS_UTILS_H
 
+#include <Eigen/Dense>
 #include <string>
 #include <moveit_msgs/CollisionObject.h>
-#include <reach_msgs/ReachRecord.h>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/InteractiveMarker.h>
-#include <boost/optional.hpp>
+
+namespace reach
+{
+class ReachRecord;
+}
 
 namespace moveit_reach_plugins
 {
 namespace utils
 {
-/**
- * @brief createCollisionObject
- * @param mesh_filename
- * @param parent_link
- * @param object_name
- * @return
- */
 moveit_msgs::CollisionObject createCollisionObject(const std::string& mesh_filename, const std::string& parent_link,
                                                    const std::string& object_name);
 
-/**
- * @brief makeInteractiveMarker
- * @param r
- * @param frame
- * @param scale
- * @return
- */
-visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const std::string& frame, const double scale,
+visualization_msgs::Marker makeVisual(const reach::ReachRecord& r, const std::string& frame, const double scale,
                                       const std::string& ns = "reach",
-                                      const boost::optional<std::vector<float>>& color = {});
+                                      const Eigen::Vector3f& color = { 0.5, 0.5, 0.5 });
 
-/**
- * @brief makeInteractiveMarker
- * @param r
- * @param frame
- * @param scale
- * @return
- */
-visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::ReachRecord& r, const std::string& frame,
-                                                            const double scale);
+visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach::ReachRecord& r, const std::string& frame,
+                                                            const double scale,
+                                                            const Eigen::Vector3f& rgb_color = { 0.5, 0.5, 0.5 });
 
-/**
- * @brief makeMarker
- * @param pts
- * @param frame
- * @param scale
- * @param ns
- * @return
- */
 visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts, const std::string& frame,
                                       const double scale, const std::string& ns = "");
 
-/**
- * @brief validateInputMap
- * @param input
- * @param joint_names
- * @param revised_input
- * @return
- */
-bool transcribeInputMap(const std::map<std::string, double>& input, const std::vector<std::string>& joint_names,
-                        std::vector<double>& revised_input);
+std::vector<double> transcribeInputMap(const std::map<std::string, double>& input,
+                                       const std::vector<std::string>& joint_names);
 
 }  // namespace utils
 }  // namespace moveit_reach_plugins

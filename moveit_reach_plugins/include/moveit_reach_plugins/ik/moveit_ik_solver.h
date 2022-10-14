@@ -16,9 +16,8 @@
 #ifndef MOVEIT_REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
 #define MOVEIT_REACH_PLUGINS_IK_MOVEIT_IK_SOLVER_H
 
-#include <reach_core/plugins/ik_solver_base.h>
-#include <reach_core/plugins/evaluation_base.h>
-#include <pluginlib/class_loader.h>
+#include <reach_core/interfaces/ik_solver.h>
+#include <vector>
 
 namespace moveit
 {
@@ -41,40 +40,54 @@ namespace moveit_reach_plugins
 {
 namespace ik
 {
-class MoveItIKSolver : public reach::plugins::IKSolverBase
+class MoveItIKSolver : public reach::IKSolver
 {
 public:
-  MoveItIKSolver();
+  MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group, double dist_threshold,
+                 std::string collision_mesh_filename, std::string collision_mesh_frame,
+                 std::vector<std::string> touch_links);
 
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
+  std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
+                                           const std::map<std::string, double>& seed) const override;
 
-  virtual boost::optional<double> solveIKFromSeed(const Eigen::Isometry3d& target,
-                                                  const std::map<std::string, double>& seed,
-                                                  std::vector<double>& solution) override;
-
-  virtual std::vector<std::string> getJointNames() const override;
+  std::vector<std::string> getJointNames() const override;
 
 protected:
   bool isIKSolutionValid(moveit::core::RobotState* state, const moveit::core::JointModelGroup* jmg,
                          const double* ik_solution) const;
 
   moveit::core::RobotModelConstPtr model_;
+  const moveit::core::JointModelGroup* jmg_;
+  const double distance_threshold_;
+  const std::string collision_mesh_filename_;
+  const std::string collision_mesh_frame_;
+  const std::vector<std::string> touch_links_;
 
   planning_scene::PlanningScenePtr scene_;
+};
 
-  const moveit::core::JointModelGroup* jmg_;
+struct MoveItIKSolverFactory : public reach::IKSolverFactory
+{
+  reach::IKSolver::ConstPtr create(const YAML::Node& config) const override;
+};
 
-  pluginlib::ClassLoader<reach::plugins::EvaluationBase> class_loader_;
+class DiscretizedMoveItIKSolver : public MoveItIKSolver
+{
+public:
+  DiscretizedMoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
+                            double dist_threshold, std::string collision_mesh_filename,
+                            std::string collision_mesh_frame, std::vector<std::string> touch_links, double dt);
 
-  reach::plugins::EvaluationBasePtr eval_;
+  std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
+                                           const std::map<std::string, double>& seed) const override;
 
-  double distance_threshold_;
+protected:
+  const double dt_;
+};
 
-  std::string collision_mesh_filename_;
-
-  std::string collision_mesh_frame_;
-
-  std::vector<std::string> touch_links_;
+struct DiscretizedMoveItIKSolverFactory : public reach::IKSolverFactory
+{
+  reach::IKSolver::ConstPtr create(const YAML::Node& config) const override;
 };
 
 }  // namespace ik

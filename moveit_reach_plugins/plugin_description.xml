@@ -1,7 +1,7 @@
 <!-- Evalution Plugins -->
-<library path="lib/libevaluation_plugins">
+<library path="lib/libmoveit_reach_plugins_plugins">
   <!-- Manipulability MoveIt -->
-  <class name="moveit_reach_plugins/evaluation/ManipulabilityMoveIt" type="moveit_reach_plugins::evaluation::ManipulabilityMoveIt" base_class_type="reach::plugins::EvaluationBase">
+  <class name="ManipulabilityMoveIt" type="moveit_reach_plugins::evaluation::ManipulabilityMoveItFactory" base_class_type="reach::EvaluatorFactory">
     <description>
       A pose evalution plugin which returns a score (range [0, inf)) that is the manipulability of robot at the input pose calculated from the robot's Jacobian.
       Higher scores indicate higher robot dexterity at a given pose.
@@ -9,7 +9,7 @@
   </class>
 
   <!-- Manipulability Normalized -->
-  <class name="moveit_reach_plugins/evaluation/ManipulabilityScaled" type="moveit_reach_plugins::evaluation::ManipulabilityScaled" base_class_type="reach::plugins::EvaluationBase">
+  <class name="ManipulabilityScaled" type="moveit_reach_plugins::evaluation::ManipulabilityScaledFactory" base_class_type="reach::EvaluatorFactory">
     <description>
       A pose evaluation plugin which returns a score (range [0, inf]) that is the manipulability of a robot at the input pose divided by the characteristic length.
       Higher scores indicate higher robot dexterity at a given pose.
@@ -17,7 +17,7 @@
   </class>
 
   <!-- Manipulability Ratio -->
-  <class name="moveit_reach_plugins/evaluation/ManipulabilityRatio" type="moveit_reach_plugins::evaluation::ManipulabilityRatio" base_class_type="reach::plugins::EvaluationBase">
+  <class name="ManipulabilityRatio" type="moveit_reach_plugins::evaluation::ManipulabilityRatioFactory" base_class_type="reach::EvaluatorFactory">
     <description>
       A pose evalution plugin which returns a score (range [0, 1]) that is the ratio of smallest to largest manipulability values of robot at the input pose calculated from the robot's Jacobian.
       Higher scores indicate more uniform dexterity at a given pose.
@@ -25,7 +25,7 @@
   </class>
 
   <!-- Joint Penalty MoveIt -->
-  <class name="moveit_reach_plugins/evaluation/JointPenaltyMoveIt" type="moveit_reach_plugins::evaluation::JointPenaltyMoveIt" base_class_type="reach::plugins::EvaluationBase">
+  <class name="JointPenaltyMoveIt" type="moveit_reach_plugins::evaluation::JointPenaltyMoveItFactory" base_class_type="reach::EvaluatorFactory">
     <description>
       A pose evaluation plugin which returns a score that is the product of each joint's distance from the middle of its joint range, according to the following equation:
       score[i] = 4 * ((joint[i] - joint_min[i])*(joint_max[i] - joint[i])) / (joint_max[i] - joint_min[i])^2
@@ -36,7 +36,7 @@
   </class>
 
   <!-- Distance Penalty MoveIt -->
-  <class name="moveit_reach_plugins/evaluation/DistancePenaltyMoveIt" type="moveit_reach_plugins::evaluation::DistancePenaltyMoveIt" base_class_type="reach::plugins::EvaluationBase">
+  <class name="DistancePenaltyMoveIt" type="moveit_reach_plugins::evaluation::DistancePenaltyMoveItFactory" base_class_type="reach::EvaluatorFactory">
     <description>
       A pose evaluation plugin which returns a score (range [0, inf]) based on the robot's distance to the nearest collision, with respect to an input threshold and according
       to the following equation: score = (closest_distance_to_collision - input_threshold)^input_exponent.
@@ -44,29 +44,21 @@
       the score will exponentially approach infinity. This plugin should be used if it is desirable to prefer solutions that are at least the threshold distance away from collision.
     </description>
   </class>
-</library>
-
-<!-- IK Plugins -->
-<library path="lib/libik_solver_plugins">
   <!-- MoveIt IK Solver -->
-  <class name="moveit_reach_plugins/ik/MoveItIKSolver" type="moveit_reach_plugins::ik::MoveItIKSolver" base_class_type="reach::plugins::IKSolverBase">
+  <class name="MoveItIKSolver" type="moveit_reach_plugins::ik::MoveItIKSolverFactory" base_class_type="reach::IKSolverFactory">
     <description>
       An inverse kinematics solver plugin which utilizes the MoveIt framework for solving robot inverse kinematics with respect to a given planning environment
     </description>
   </class>
   <!-- Discretized MoveIt IK Solver -->
-  <class name="moveit_reach_plugins/ik/DiscretizedMoveItIKSolver" type="moveit_reach_plugins::ik::DiscretizedMoveItIKSolver" base_class_type="reach::plugins::IKSolverBase">
+  <class name="DiscretizedMoveItIKSolver" type="moveit_reach_plugins::ik::DiscretizedMoveItIKSolverFactory" base_class_type="reach::IKSolverFactory">
     <description>
       An inverse kinematics solver plugin which utilizes the MoveIt framework for solving robot inverse kinematics with respect to a given planning environment
       This plugin discretizes the target pose around the Z-axis and outputs the solution with the highest score
     </description>
   </class>
-</library>
-
-<!-- Display Plugins -->
-<library path="lib/libreach_display_plugins">
   <!-- MoveIt Reach Display -->
-  <class name="moveit_reach_plugins/display/MoveItReachDisplay" type="moveit_reach_plugins::display::MoveItReachDisplay" base_class_type="reach::plugins::DisplayBase">
+  <class name="MoveItReachDisplay" type="moveit_reach_plugins::display::MoveItReachDisplayFactory" base_class_type="reach::DisplayFactory">
     <description>
       A reach study display plugin using the MoveIt framework
     </description>

@@ -16,7 +16,7 @@
 #ifndef MOVEIT_REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
 #define MOVEIT_REACH_PLUGINS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
 
-#include <reach_core/plugins/evaluation_base.h>
+#include <reach_core/interfaces/evaluator.h>
 #include <moveit_msgs/PlanningScene.h>
 
 namespace moveit
@@ -39,31 +39,29 @@ namespace moveit_reach_plugins
 {
 namespace evaluation
 {
-class DistancePenaltyMoveIt : public reach::plugins::EvaluationBase
+class DistancePenaltyMoveIt : public reach::Evaluator
 {
 public:
-  DistancePenaltyMoveIt();
-
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
-
-  virtual double calculateScore(const std::map<std::string, double>& pose) override;
+  DistancePenaltyMoveIt(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
+                        const double dist_threshold, int exponent, std::string collision_mesh_filename,
+                        std::string collision_mesh_frame, std::vector<std::string> touch_links);
+  double calculateScore(const std::map<std::string, double>& pose) const override;
 
 private:
   moveit::core::RobotModelConstPtr model_;
-
   const moveit::core::JointModelGroup* jmg_;
+  const double dist_threshold_;
+  const int exponent_;
+  const std::string collision_mesh_filename_;
+  const std::string collision_mesh_frame_;
+  const std::vector<std::string> touch_links_;
 
   planning_scene::PlanningScenePtr scene_;
+};
 
-  double dist_threshold_;
-
-  int exponent_;
-
-  std::string collision_mesh_filename_;
-
-  std::string collision_mesh_frame_;
-
-  std::vector<std::string> touch_links_;
+struct DistancePenaltyMoveItFactory : public reach::EvaluatorFactory
+{
+  reach::Evaluator::ConstPtr create(const YAML::Node& config) const override;
 };
 
 }  // namespace evaluation

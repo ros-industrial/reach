@@ -17,7 +17,6 @@
   <depend>moveit_ros_planning_interface</depend>
   <depend>pluginlib</depend>
   <depend>reach_core</depend>
-  <depend>reach_msgs</depend>
   <depend>visualization_msgs</depend>
   <depend>xmlrpcpp</depend>
 

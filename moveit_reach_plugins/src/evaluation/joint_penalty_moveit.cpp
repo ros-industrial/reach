@@ -13,68 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "moveit_reach_plugins/evaluation/joint_penalty_moveit.h"
-#include "moveit_reach_plugins/utils.h"
+#include <moveit_reach_plugins/evaluation/joint_penalty_moveit.h>
+#include <moveit_reach_plugins/utils.h>
+
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
-#include <xmlrpcpp/XmlRpcException.h>
+#include <reach_core/utils.h>
+#include <yaml-cpp/yaml.h>
 
 namespace moveit_reach_plugins
 {
 namespace evaluation
 {
-JointPenaltyMoveIt::JointPenaltyMoveIt() : reach::plugins::EvaluationBase()
+JointPenaltyMoveIt::JointPenaltyMoveIt(moveit::core::RobotModelConstPtr model, const std::string& planning_group)
+  : model_(model), jmg_(model_->getJointModelGroup(planning_group))
 {
-}
-
-bool JointPenaltyMoveIt::initialize(XmlRpc::XmlRpcValue& config)
-{
-  if (!config.hasMember("planning_group"))
-  {
-    ROS_ERROR("MoveIt Joint Penalty Evaluation Plugin is missing 'planning_group' parameter");
-    return false;
-  }
-
-  std::string planning_group;
-  try
-  {
-    planning_group = std::string(config["planning_group"]);
-  }
-  catch (const XmlRpc::XmlRpcException& ex)
-  {
-    ROS_ERROR_STREAM(ex.getMessage());
-    return false;
-  }
-
-  model_ = moveit::planning_interface::getSharedRobotModel("robot_description");
-  if (!model_)
-  {
-    ROS_ERROR("Failed to initialize robot model pointer");
-    return false;
-  }
-
-  jmg_ = model_->getJointModelGroup(planning_group);
   if (!jmg_)
-  {
-    ROS_ERROR("Failed to initialize joint model group pointer");
-    return false;
-  }
+    throw std::runtime_error("Failed to get joint model group");
 
   std::tie(joints_min_, joints_max_) = getJointLimits();
-
-  return true;
 }
 
-double JointPenaltyMoveIt::calculateScore(const std::map<std::string, double>& pose)
+double JointPenaltyMoveIt::calculateScore(const std::map<std::string, double>& pose) const
 {
   // Pull the joints from the planning group out of the input pose map
-  std::vector<double> pose_subset;
-  if (!utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames(), pose_subset))
-  {
-    ROS_ERROR_STREAM(__FUNCTION__ << ": failed to transcribe input pose map");
-    return 0.0f;
-  }
-
+  std::vector<double> pose_subset = utils::transcribeInputMap(pose, jmg_->getActiveJointModelNames());
   Eigen::Map<const Eigen::ArrayXd> min(joints_min_.data(), joints_min_.size());
   Eigen::Map<const Eigen::ArrayXd> max(joints_max_.data(), joints_max_.size());
   Eigen::Map<const Eigen::ArrayXd> joints(pose_subset.data(), pose_subset.size());
@@ -92,9 +55,8 @@ std::tuple<std::vector<double>, std::vector<double>> JointPenaltyMoveIt::getJoin
   {
     const auto& bounds_vec = *limits_vec[i];
     if (bounds_vec.size() > 1)
-    {
-      ROS_FATAL("Joint has more than one DOF; can't pull joint limits correctly");
-    }
+      throw std::runtime_error("Joint has more than one DOF; can't pull joint limits correctly");
+
     max.push_back(bounds_vec[0].max_position_);
     min.push_back(bounds_vec[0].min_position_);
   }
@@ -104,8 +66,19 @@ std::tuple<std::vector<double>, std::vector<double>> JointPenaltyMoveIt::getJoin
   return std::make_tuple(min, max);
 }
 
+reach::Evaluator::ConstPtr JointPenaltyMoveItFactory::create(const YAML::Node& config) const
+{
+  auto planning_group = reach::get<std::string>(config, "planning_group");
+
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  if (!model)
+    throw std::runtime_error("Failed to initialize robot model pointer");
+
+  return boost::make_shared<JointPenaltyMoveIt>(model, planning_group);
+}
+
 }  // namespace evaluation
 }  // namespace moveit_reach_plugins
 
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::JointPenaltyMoveIt, reach::plugins::EvaluationBase)
+PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::JointPenaltyMoveItFactory, reach::EvaluatorFactory)

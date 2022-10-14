@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "moveit_reach_plugins/utils.h"
+#include <moveit_reach_plugins/utils.h>
 
+#include <reach_core/reach_database.h>
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/shapes.h>
@@ -51,8 +52,8 @@ moveit_msgs::CollisionObject createCollisionObject(const std::string& mesh_filen
   return obj;
 }
 
-visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const std::string& frame, const double scale,
-                                      const std::string& ns, const boost::optional<std::vector<float>>& color)
+visualization_msgs::Marker makeVisual(const reach::ReachRecord& r, const std::string& frame, const double scale,
+                                      const std::string& ns, const Eigen::Vector3f& color)
 {
   static int idx = 0;
 
@@ -64,16 +65,13 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const st
   marker.type = visualization_msgs::Marker::ARROW;
   marker.action = visualization_msgs::Marker::ADD;
 
-  Eigen::Isometry3d goal_eigen;
-  tf::poseMsgToEigen(r.goal, goal_eigen);
-
   // Transform arrow such that arrow x-axis points along goal pose z-axis (Rviz convention)
   // convert msg parameter goal to Eigen matrix
   Eigen::AngleAxisd rot_flip_normal(M_PI, Eigen::Vector3d::UnitX());
   Eigen::AngleAxisd rot_x_to_z(-M_PI / 2, Eigen::Vector3d::UnitY());
 
   // Transform
-  goal_eigen = goal_eigen * rot_flip_normal * rot_x_to_z;
+  Eigen::Isometry3d goal_eigen = r.goal * rot_flip_normal * rot_x_to_z;
 
   // Convert back to geometry_msgs pose
   geometry_msgs::Pose msg;
@@ -84,37 +82,25 @@ visualization_msgs::Marker makeVisual(const reach_msgs::ReachRecord& r, const st
   marker.scale.y = scale / ARROW_SCALE_RATIO;
   marker.scale.z = scale / ARROW_SCALE_RATIO;
 
-  if (color)
+  marker.color.a = 1.0;  // Don't forget to set the alpha!
+  if (r.reached)
   {
-    std::vector<float> color_vec = *color;
-    marker.color.r = color_vec[0];
-    marker.color.g = color_vec[1];
-    marker.color.b = color_vec[2];
-    marker.color.a = color_vec[3];
+    marker.color.r = color(0);
+    marker.color.g = color(1);
+    marker.color.b = color(2);
   }
   else
   {
-    marker.color.a = 1.0;  // Don't forget to set the alpha!
-
-    if (r.reached)
-    {
-      marker.color.r = 0.0;
-      marker.color.g = 0.0;
-      marker.color.b = 1.0;
-    }
-    else
-    {
-      marker.color.r = 1.0;
-      marker.color.g = 0.0;
-      marker.color.b = 0.0;
-    }
+    marker.color.r = 0.0;
+    marker.color.g = 0.0;
+    marker.color.b = 0.0;
   }
 
   return marker;
 }
 
-visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::ReachRecord& r, const std::string& frame,
-                                                            const double scale)
+visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach::ReachRecord& r, const std::string& frame,
+                                                            const double scale, const Eigen::Vector3f& rgb_color)
 {
   visualization_msgs::InteractiveMarker m;
   m.header.frame_id = frame;
@@ -126,12 +112,9 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach_msgs::Re
   control.always_visible = true;
 
   // Visuals
-  auto visual = makeVisual(r, frame, scale);
+  auto visual = makeVisual(r, frame, scale, "reach", rgb_color);
   control.markers.push_back(visual);
   m.controls.push_back(control);
-
-  // Set the pose of the interactive marker to be the same as the visual marker
-  m.pose = visual.pose;
 
   return m;
 }
@@ -161,35 +144,25 @@ visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& p
   return marker;
 }
 
-bool transcribeInputMap(const std::map<std::string, double>& input, const std::vector<std::string>& joint_names,
-                        std::vector<double>& input_subset)
+std::vector<double> transcribeInputMap(const std::map<std::string, double>& input,
+                                       const std::vector<std::string>& joint_names)
 {
   if (joint_names.size() > input.size())
-  {
-    ROS_ERROR("Seed pose size was not at least as large as the number of joints in the planning group");
-    return false;
-  }
+    throw std::runtime_error("Seed pose size was not at least as large as the number of joints in the planning group");
 
   // Pull the joints of the planning group out of the input map
-  std::vector<double> tmp;
-  tmp.reserve(joint_names.size());
+  std::vector<double> joints;
+  joints.reserve(joint_names.size());
   for (const std::string& name : joint_names)
   {
     const auto it = input.find(name);
     if (it == input.end())
-    {
-      ROS_ERROR_STREAM("Joint '" << name << "' in the planning group was not in the input map");
-      return false;
-    }
-    else
-    {
-      tmp.push_back(it->second);
-    }
+      throw std::runtime_error("Joint '" + name + "' in the planning group was not in the input map");
+
+    joints.push_back(it->second);
   }
 
-  input_subset = std::move(tmp);
-
-  return true;
+  return joints;
 }
 
 }  // namespace utils

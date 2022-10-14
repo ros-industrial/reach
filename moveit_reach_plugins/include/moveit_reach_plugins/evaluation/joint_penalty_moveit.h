@@ -16,7 +16,7 @@
 #ifndef MOVEIT_REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
 #define MOVEIT_REACH_PLUGINS_EVALUATION_JOINT_PENALTY_MOVEIT_H
 
-#include <reach_core/plugins/evaluation_base.h>
+#include <reach_core/interfaces/evaluator.h>
 
 namespace moveit
 {
@@ -32,14 +32,11 @@ namespace moveit_reach_plugins
 {
 namespace evaluation
 {
-class JointPenaltyMoveIt : public reach::plugins::EvaluationBase
+class JointPenaltyMoveIt : public reach::Evaluator
 {
 public:
-  JointPenaltyMoveIt();
-
-  virtual bool initialize(XmlRpc::XmlRpcValue& config) override;
-
-  virtual double calculateScore(const std::map<std::string, double>& pose) override;
+  JointPenaltyMoveIt(moveit::core::RobotModelConstPtr model, const std::string& planning_group);
+  double calculateScore(const std::map<std::string, double>& pose) const override;
 
 private:
   std::tuple<std::vector<double>, std::vector<double>> getJointLimits();
@@ -50,6 +47,11 @@ private:
 
   std::vector<double> joints_min_;
   std::vector<double> joints_max_;
+};
+
+struct JointPenaltyMoveItFactory : public reach::EvaluatorFactory
+{
+  reach::Evaluator::ConstPtr create(const YAML::Node& config) const override;
 };
 
 }  // namespace evaluation
