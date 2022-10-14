@@ -20,7 +20,7 @@
 namespace reach
 {
 const static std::string PACKAGE = "reach_core";
-const static std::string PLUGIN_BASE_NAME = "reach::Evaluator";
+const static std::string PLUGIN_BASE_NAME = "reach::EvaluatorFactory";
 
 MultiplicativeEvaluator::MultiplicativeEvaluator(std::vector<Evaluator::ConstPtr> evaluators)
   : evaluators_(std::move(evaluators))
