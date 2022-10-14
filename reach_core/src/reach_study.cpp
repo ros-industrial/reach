@@ -18,7 +18,9 @@
 
 #include <boost/filesystem.hpp>
 #include <numeric>
+#include <pluginlib/class_loader.h>
 #include <thread>
+#include <yaml-cpp/yaml.h>
 
 namespace reach
 {
@@ -205,6 +207,116 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
       static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
 
   return std::make_tuple(avg_neighbor_count, avg_joint_distance);
+}
+
+static const std::string PACKAGE = "reach_core";
+static const std::string IK_BASE_CLASS = "reach::IKSolverFactory";
+static const std::string DISPLAY_BASE_CLASS = "reach::DisplayFactory";
+static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::TargetPoseGeneratorFactory";
+static const std::string EVALUATOR_BASE_CLASS = "reach::EvaluatorFactory";
+static const std::string LOGGER_BASE_CLASS = "reach::LoggerFactory";
+
+void runReachStudy(const YAML::Node& config, const std::string& config_name, const boost::filesystem::path& results_dir,
+                   const bool wait_after_completion)
+{
+  const YAML::Node& opt_config = config["optimization"];
+  const YAML::Node& ik_config = config["ik_solver"];
+  const YAML::Node& pose_gen_config = config["target_pose_generator"];
+  const YAML::Node& eval_config = config["evaluator"];
+  const YAML::Node& display_config = config["display"];
+  const YAML::Node& logger_config = config["logger"];
+
+  // Extract the study parameters
+  reach::ReachStudy::Parameters params;
+  params.radius = opt_config["radius"].as<double>();
+  params.max_steps = opt_config["max_steps"].as<int>();
+  params.step_improvement_threshold = opt_config["step_improvement_threshold"].as<double>();
+
+  // Load the IK Solver plugin
+  pluginlib::ClassLoader<reach::IKSolverFactory> solver_loader(PACKAGE, IK_BASE_CLASS);
+  reach::IKSolver::ConstPtr ik_solver;
+  {
+    reach::IKSolverFactory::Ptr factory = solver_loader.createInstance(ik_config["name"].as<std::string>());
+    ik_solver = factory->create(ik_config);
+  }
+
+  // Load the target pose generator plugin
+  pluginlib::ClassLoader<reach::TargetPoseGeneratorFactory> target_pose_generator_loader_(
+      PACKAGE, TARGET_POSE_GENERATOR_BASE_CLASS);
+  reach::TargetPoseGenerator::ConstPtr target_pose_generator;
+  {
+    reach::TargetPoseGeneratorFactory::Ptr factory =
+        target_pose_generator_loader_.createInstance(pose_gen_config["name"].as<std::string>());
+    target_pose_generator = factory->create(pose_gen_config);
+  }
+
+  // Load the evaluator plugin
+  pluginlib::ClassLoader<reach::EvaluatorFactory> eval_loader(PACKAGE, EVALUATOR_BASE_CLASS);
+  reach::Evaluator::ConstPtr evaluator;
+  {
+    reach::EvaluatorFactory::Ptr factory = eval_loader.createInstance(eval_config["name"].as<std::string>());
+    evaluator = factory->create(eval_config);
+  }
+
+  // Load the display plugin
+  pluginlib::ClassLoader<reach::DisplayFactory> display_loader(PACKAGE, DISPLAY_BASE_CLASS);
+  reach::Display::ConstPtr display;
+  {
+    reach::DisplayFactory::Ptr factory = display_loader.createInstance(display_config["name"].as<std::string>());
+    display = factory->create(display_config);
+  }
+
+  // Load the logger plugin
+  pluginlib::ClassLoader<reach::LoggerFactory> logger_loader(PACKAGE, LOGGER_BASE_CLASS);
+  reach::Logger::ConstPtr logger;
+  {
+    reach::LoggerFactory::ConstPtr factory = logger_loader.createInstance(logger_config["name"].as<std::string>());
+    logger = factory->create(logger_config);
+  }
+
+  // Initialize the reach study
+  reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, logger, params, config_name);
+
+  const boost::filesystem::path db_file = results_dir / config_name / "study.db";
+  const boost::filesystem::path opt_db_file = results_dir / config_name / "study_optimized.db";
+
+  if (boost::filesystem::exists(opt_db_file))
+  {
+    // Attempt to load the optimized database first, if it exists
+    rs.load(opt_db_file.string());
+    logger->print("Loaded optimized database");
+  }
+  else if (boost::filesystem::exists(db_file))
+  {
+    // Then try to load the un-optimized database, if it exists
+    rs.load(db_file.string());
+
+    logger->print("Loaded un-optimized database");
+    rs.optimize();
+    rs.save((results_dir / config_name / "study_optimized.db").string());
+  }
+  else
+  {
+    boost::filesystem::create_directories(results_dir / config_name);
+
+    // Otherwise, run the reach study
+    rs.run();
+    rs.save((results_dir / config_name / "study.db").string());
+    rs.optimize();
+    rs.save((results_dir / config_name / "study_optimized.db").string());
+  }
+
+  // Show the results
+  reach::ReachDatabase::ConstPtr db = rs.getDatabase();
+  logger->printResults(db->calculateResults());
+  display->showEnvironment();
+  display->showResults(*db);
+
+  if (wait_after_completion)
+  {
+    logger->print("Press enter to quit");
+    std::cin.get();
+  }
 }
 
 }  // namespace reach

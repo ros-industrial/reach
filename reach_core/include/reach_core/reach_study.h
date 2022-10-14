@@ -23,6 +23,8 @@
 #include <reach_core/interfaces/logger.h>
 #include <reach_core/utils.h>
 
+#include <boost/filesystem/path.hpp>
+
 namespace reach
 {
 /**
@@ -66,6 +68,12 @@ private:
 
   SearchTreePtr search_tree_ = nullptr;
 };
+
+/**
+ * @brief Helper function for configuring a ReachStudy object and performing a reach study
+ */
+void runReachStudy(const YAML::Node& config, const std::string& config_name = "reach_study",
+                   const boost::filesystem::path& results_dir = "/tmp", const bool wait_after_completion = true);
 
 }  // namespace reach
 
