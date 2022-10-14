@@ -49,7 +49,8 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} Eigen3::Eigen Boost::s
 # Plugins Library
 add_library(${PROJECT_NAME}_plugins
   src/plugins/multiplicative_factory.cpp
-  src/plugins/point_cloud_target_pose_generator.cpp)
+  src/plugins/point_cloud_target_pose_generator.cpp
+  src/plugins/logger.cpp)
 target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} Eigen3::Eigen ${PCL_LIBRARIES})
 
 # Reach Study Node
