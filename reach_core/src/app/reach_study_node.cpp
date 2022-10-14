@@ -24,6 +24,7 @@ static const std::string IK_BASE_CLASS = "reach::IKSolverFactory";
 static const std::string DISPLAY_BASE_CLASS = "reach::DisplayFactory";
 static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::TargetPoseGeneratorFactory";
 static const std::string EVALUATOR_BASE_CLASS = "reach::EvaluatorFactory";
+static const std::string LOGGER_BASE_CLASS = "reach::LoggerFactory";
 
 int main(int argc, char** argv)
 {
@@ -58,6 +59,7 @@ int main(int argc, char** argv)
     const YAML::Node& pose_gen_config = config["target_pose_generator"];
     const YAML::Node& eval_config = config["evaluator"];
     const YAML::Node& display_config = config["display"];
+    const YAML::Node& logger_config = config["logger"];
 
     // Extract the study parameters
     reach::ReachStudy::Parameters params;
@@ -99,11 +101,19 @@ int main(int argc, char** argv)
       display = factory->create(display_config);
     }
 
+    // Load the logger plugin
+    pluginlib::ClassLoader<reach::LoggerFactory> logger_loader(PACKAGE, LOGGER_BASE_CLASS);
+    reach::Logger::ConstPtr logger;
+    {
+      reach::LoggerFactory::ConstPtr factory = logger_loader.createInstance(logger_config["name"].as<std::string>());
+      logger = factory->create(logger_config);
+    }
+
     const std::string config_name = vm["config-name"].as<std::string>();
     boost::filesystem::path results_dir(vm["results-dir"].as<std::string>());
 
     // Initialize the reach study
-    reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, params, config_name);
+    reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, logger, params, config_name);
 
     const boost::filesystem::path db_file = results_dir / config_name / "study.db";
     const boost::filesystem::path opt_db_file = results_dir / config_name / "study_optimized.db";
