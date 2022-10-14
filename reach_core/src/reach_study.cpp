@@ -236,7 +236,7 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   pluginlib::ClassLoader<reach::IKSolverFactory> solver_loader(PACKAGE, IK_BASE_CLASS);
   reach::IKSolver::ConstPtr ik_solver;
   {
-    reach::IKSolverFactory::Ptr factory = solver_loader.createInstance(ik_config["name"].as<std::string>());
+    reach::IKSolverFactory::Ptr factory = solver_loader.createInstance(get<std::string>(ik_config, "name"));
     ik_solver = factory->create(ik_config);
   }
 
@@ -246,7 +246,7 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   reach::TargetPoseGenerator::ConstPtr target_pose_generator;
   {
     reach::TargetPoseGeneratorFactory::Ptr factory =
-        target_pose_generator_loader_.createInstance(pose_gen_config["name"].as<std::string>());
+        target_pose_generator_loader_.createInstance(get<std::string>(pose_gen_config, "name"));
     target_pose_generator = factory->create(pose_gen_config);
   }
 
@@ -254,7 +254,7 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   pluginlib::ClassLoader<reach::EvaluatorFactory> eval_loader(PACKAGE, EVALUATOR_BASE_CLASS);
   reach::Evaluator::ConstPtr evaluator;
   {
-    reach::EvaluatorFactory::Ptr factory = eval_loader.createInstance(eval_config["name"].as<std::string>());
+    reach::EvaluatorFactory::Ptr factory = eval_loader.createInstance(get<std::string>(eval_config, "name"));
     evaluator = factory->create(eval_config);
   }
 
@@ -262,7 +262,7 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   pluginlib::ClassLoader<reach::DisplayFactory> display_loader(PACKAGE, DISPLAY_BASE_CLASS);
   reach::Display::ConstPtr display;
   {
-    reach::DisplayFactory::Ptr factory = display_loader.createInstance(display_config["name"].as<std::string>());
+    reach::DisplayFactory::Ptr factory = display_loader.createInstance(get<std::string>(display_config, "name"));
     display = factory->create(display_config);
   }
 
@@ -270,7 +270,7 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   pluginlib::ClassLoader<reach::LoggerFactory> logger_loader(PACKAGE, LOGGER_BASE_CLASS);
   reach::Logger::ConstPtr logger;
   {
-    reach::LoggerFactory::ConstPtr factory = logger_loader.createInstance(logger_config["name"].as<std::string>());
+    reach::LoggerFactory::ConstPtr factory = logger_loader.createInstance(get<std::string>(logger_config, "name"));
     logger = factory->create(logger_config);
   }
 

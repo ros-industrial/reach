@@ -90,7 +90,7 @@ VectorIsometry3d PointCloudTargetPoseGenerator::generate() const
 
 TargetPoseGenerator::ConstPtr PointCloudTargetPoseGeneratorFactory::create(const YAML::Node& config) const
 {
-  return boost::make_shared<PointCloudTargetPoseGenerator>(config["pcd_file"].as<std::string>());
+  return boost::make_shared<PointCloudTargetPoseGenerator>(get<std::string>(config, "pcd_file"));
 }
 
 } // namespace reach

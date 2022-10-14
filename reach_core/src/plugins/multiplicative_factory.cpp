@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "multiplicative_factory.h"
+#include <reach_core/utils.h>
 
 #include <yaml-cpp/yaml.h>
 
@@ -50,7 +51,7 @@ Evaluator::ConstPtr MultiplicativeEvaluatorFactory::create(const YAML::Node& con
   for (auto it = plugin_configs.begin(); it != plugin_configs.end(); ++it)
   {
     const YAML::Node& plugin_config = *it;
-    EvaluatorFactory::Ptr factory = class_loader_.createInstance(plugin_config["name"].as<std::string>());
+    EvaluatorFactory::Ptr factory = class_loader_.createInstance(get<std::string>(plugin_config, "name"));
     evaluators.push_back(factory->create(plugin_config));
   }
 
