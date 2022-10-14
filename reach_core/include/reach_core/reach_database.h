@@ -104,7 +104,7 @@ public:
   float norm_total_pose_score = 0.0f;
   float reach_percentage = 0.0f;
 
-  inline std::string print()
+  inline std::string print() const
   {
     std::stringstream ss;
     ss << "------------------------------------------------\n";
@@ -165,7 +165,7 @@ public:
   /**
    * @brief calculateResults calculates the results of the reach study and saves them to internal class members
    */
-  StudyResults calculateResults();
+  StudyResults calculateResults() const;
 
   Eigen::MatrixX3f computeHeatMapColors() const;
 

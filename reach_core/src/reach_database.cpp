@@ -98,7 +98,7 @@ ReachDatabase::const_iterator ReachDatabase::max() const
   return max();
 }
 
-StudyResults ReachDatabase::calculateResults()
+StudyResults ReachDatabase::calculateResults() const
 {
   unsigned int success = 0, total = 0;
   double score = 0.0;
