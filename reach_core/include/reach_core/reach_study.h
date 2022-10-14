@@ -20,6 +20,7 @@
 #include <reach_core/interfaces/evaluator.h>
 #include <reach_core/interfaces/ik_solver.h>
 #include <reach_core/interfaces/target_pose_generator.h>
+#include <reach_core/interfaces/logger.h>
 #include <reach_core/utils.h>
 
 namespace reach
@@ -38,7 +39,8 @@ public:
   };
 
   ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr pose_generator,
-             Display::ConstPtr display, const Parameters params, const std::string& study_name);
+             Display::ConstPtr display, Logger::ConstPtr logger, const Parameters params,
+             const std::string& study_name);
 
   void load(const std::string& filename);
   void run();
@@ -58,6 +60,8 @@ private:
   IKSolver::ConstPtr ik_solver_;
   Evaluator::ConstPtr evaluator_;
   Display::ConstPtr display_;
+  Logger::ConstPtr logger_;
+
   const VectorIsometry3d target_poses_;
 
   SearchTreePtr search_tree_ = nullptr;

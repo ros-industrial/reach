@@ -24,12 +24,13 @@ namespace reach
 {
 ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator,
                        TargetPoseGenerator::ConstPtr target_generator, Display::ConstPtr display,
-                       const Parameters params, const std::string& name)
+                       Logger::ConstPtr logger, const Parameters params, const std::string& name)
   : params_(std::move(params))
   , db_(new ReachDatabase(name))
   , ik_solver_(std::move(ik_solver))
   , evaluator_(std::move(evaluator))
   , display_(std::move(display))
+  , logger_(std::move(logger))
   , target_poses_(target_generator->generate())
 {
 }
@@ -54,13 +55,16 @@ ReachDatabase::ConstPtr ReachStudy::getDatabase() const
 
 void ReachStudy::run()
 {
+  logger_->print("Starting reach study");
+  logger_->setMaxProgress(target_poses_.size());
+
   // Show display
   display_->showEnvironment();
   display_->showResults(*db_);
 
   // First loop through all points in point cloud and get IK solution
-  std::atomic<int> current_counter, previous_pct;
-  current_counter = previous_pct = 0;
+  std::atomic<unsigned long> current_counter;
+  current_counter = 0;
 
 #pragma omp parallel for num_threads(std::thread::hardware_concurrency())
   for (std::size_t i = 0; i < target_poses_.size(); ++i)
@@ -89,14 +93,17 @@ void ReachStudy::run()
 
     // Print function progress
     current_counter++;
-    integerProgressPrinter(current_counter, previous_pct, target_poses_.size());
+    logger_->printProgress(current_counter.load());
   }
 
+  logger_->print("Reach study complete");
   display_->showResults(*db_);
 }
 
 void ReachStudy::optimize()
 {
+  logger_->print("Starting optimization");
+
   // Show environment display
   display_->showEnvironment();
   display_->showResults(*db_);
@@ -109,17 +116,18 @@ void ReachStudy::optimize()
   std::iota(rand_vec.begin(), rand_vec.end(), 0);
 
   // Iterate
-  std::atomic<int> current_counter, previous_pct;
+  std::atomic<unsigned long> current_counter;
   int n_opt = 0;
   float previous_score = 0.0;
   float pct_improve = 1.0;
 
   while (pct_improve > params_.step_improvement_threshold && n_opt < params_.max_steps)
   {
-    std::cout << "Entering optimization loop " << n_opt << std::endl;
+    logger_->print("Entering optimization loop " + std::to_string(n_opt));
+    logger_->setMaxProgress(target_poses_.size());
+
     previous_score = db_->calculateResults().norm_total_pose_score;
     current_counter = 0;
-    previous_pct = 0;
 
     // Randomize
     std::random_shuffle(rand_vec.begin(), rand_vec.end());
@@ -148,29 +156,30 @@ void ReachStudy::optimize()
 
       // Print function progress
       current_counter++;
-      integerProgressPrinter(current_counter, previous_pct, target_poses_.size());
+      logger_->printProgress(current_counter.load());
     }
 
     // Recalculate optimized reach study results
     auto results = db_->calculateResults();
-    std::cout << results.print() << std::endl;
+    logger_->printResults(results);
+
     pct_improve = std::abs((results.norm_total_pose_score - previous_score) / previous_score);
     ++n_opt;
 
     // Show the results
     display_->showResults(*db_);
   }
+
+  logger_->print("Optimization complete");
 }
 
 std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 {
-  std::cout << "--------------------------------------------" << std::endl;
-  std::cout << "Beginning average neighbor count calculation" << std::endl;
+  logger_->print("Beginning average neighbor count calculation");
 
-  std::atomic<int> current_counter, previous_pct, neighbor_count;
-  current_counter = previous_pct = neighbor_count = 0;
+  std::atomic<unsigned long> current_counter, neighbor_count;
+  current_counter = neighbor_count = 0;
   std::atomic<double> total_joint_distance;
-  const int total = db_->size();
 
 // Iterate
 #pragma parallel for num_threads(std::thread::hardware_concurrency())
@@ -188,7 +197,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 
     // Print function progress
     ++current_counter;
-    integerProgressPrinter(current_counter, previous_pct, total);
+    logger_->printProgress(current_counter.load());
   }
 
   float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->size());
