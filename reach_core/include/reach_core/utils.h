@@ -29,14 +29,6 @@
 
 namespace reach
 {
-/**
- * @brief integerProgressPrinter
- * @param current_counter
- * @param previous_pct
- * @param total_size
- */
-void integerProgressPrinter(std::atomic<int>& current_counter, std::atomic<int>& previous_pct, const int total_size);
-
 template <typename T>
 static std::map<std::string, T> zip(const std::vector<std::string>& keys, const std::vector<T>& values)
 {
