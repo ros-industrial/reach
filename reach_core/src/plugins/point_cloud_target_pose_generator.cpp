@@ -69,8 +69,8 @@ VectorIsometry3d PointCloudTargetPoseGenerator::generate() const
     throw std::runtime_error("File '" + filename_ + "' does not exist");
 
   pcl::PCLPointCloud2 cloud_msg;
-  if (pcl::io::loadPCDFile(filename_, cloud_msg) < 1)
-    throw std::runtime_error("Unable to load point cloud from '" + filename_ + "'");
+  if (pcl::io::loadPCDFile(filename_, cloud_msg) < 0)
+    throw std::runtime_error("Failed to load point cloud from '" + filename_ + "'");
 
   if (!hasNormals(cloud_msg))
     throw std::runtime_error("Point cloud file does not contain normals. Please regenerate the cloud with normal "
