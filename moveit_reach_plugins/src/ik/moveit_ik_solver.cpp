@@ -19,7 +19,7 @@
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit_msgs/PlanningScene.h>
-#include <reach_core/utils.h>
+#include <reach_core/plugin_utils.h>
 #include <yaml-cpp/yaml.h>
 
 namespace
@@ -117,8 +117,8 @@ reach::IKSolver::ConstPtr MoveItIKSolverFactory::create(const YAML::Node& config
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
-  return boost::make_shared<MoveItIKSolver>(model, planning_group, dist_threshold, collision_mesh_filename,
-                                            collision_mesh_frame, touch_links);
+  return std::make_shared<MoveItIKSolver>(model, planning_group, dist_threshold, collision_mesh_filename,
+                                          collision_mesh_frame, touch_links);
 }
 
 DiscretizedMoveItIKSolver::DiscretizedMoveItIKSolver(moveit::core::RobotModelConstPtr model,
@@ -172,13 +172,12 @@ reach::IKSolver::ConstPtr DiscretizedMoveItIKSolverFactory::create(const YAML::N
   }
   dt = clamped_dt;
 
-  return boost::make_shared<DiscretizedMoveItIKSolver>(model, planning_group, dist_threshold, collision_mesh_filename,
-                                                       collision_mesh_frame, touch_links, dt);
+  return std::make_shared<DiscretizedMoveItIKSolver>(model, planning_group, dist_threshold, collision_mesh_filename,
+                                                     collision_mesh_frame, touch_links, dt);
 }
 
 }  // namespace ik
 }  // namespace moveit_reach_plugins
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::ik::MoveItIKSolverFactory, reach::IKSolverFactory)
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::ik::DiscretizedMoveItIKSolverFactory, reach::IKSolverFactory)
+EXPORT_IK_SOLVER_PLUGIN(moveit_reach_plugins::ik::MoveItIKSolverFactory, MoveItIKSolver)
+EXPORT_IK_SOLVER_PLUGIN(moveit_reach_plugins::ik::DiscretizedMoveItIKSolverFactory, DiscretizedMoveItIKSolverFactory)

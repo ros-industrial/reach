@@ -19,7 +19,7 @@
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_model/joint_model_group.h>
 #include <numeric>
-#include <reach_core/utils.h>
+#include <reach_core/plugin_utils.h>
 #include <yaml-cpp/yaml.h>
 
 static std::vector<Eigen::Index> getJacobianRowSubset(const YAML::Node& config, const std::string& key = "jacobian_row_"
@@ -157,7 +157,7 @@ reach::Evaluator::ConstPtr ManipulabilityMoveItFactory::create(const YAML::Node&
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
-  return boost::make_shared<ManipulabilityMoveIt>(model, planning_group, jacobian_row_subset);
+  return std::make_shared<ManipulabilityMoveIt>(model, planning_group, jacobian_row_subset);
 }
 
 double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singular_values) const
@@ -175,7 +175,7 @@ reach::Evaluator::ConstPtr ManipulabilityRatioFactory::create(const YAML::Node& 
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
-  return boost::make_shared<ManipulabilityRatio>(model, planning_group, jacobian_row_subset);
+  return std::make_shared<ManipulabilityRatio>(model, planning_group, jacobian_row_subset);
 }
 
 ManipulabilityScaled::ManipulabilityScaled(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
@@ -206,7 +206,7 @@ reach::Evaluator::ConstPtr ManipulabilityScaledFactory::create(const YAML::Node&
 
   std::vector<std::string> excluded_links = getExcludedLinks(config);
 
-  return boost::make_shared<ManipulabilityScaled>(model, planning_group, jacobian_row_subset, excluded_links);
+  return std::make_shared<ManipulabilityScaled>(model, planning_group, jacobian_row_subset, excluded_links);
 }
 
 double calculateCharacteristicLength(moveit::core::RobotModelConstPtr model, const moveit::core::JointModelGroup* jmg,
@@ -258,7 +258,6 @@ double calculateCharacteristicLength(moveit::core::RobotModelConstPtr model, con
 }  // namespace evaluation
 }  // namespace moveit_reach_plugins
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityMoveItFactory, reach::EvaluatorFactory)
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityScaledFactory, reach::EvaluatorFactory)
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::ManipulabilityRatioFactory, reach::EvaluatorFactory)
+EXPORT_EVALUATOR_PLUGIN(moveit_reach_plugins::evaluation::ManipulabilityMoveItFactory, ManipulabilityMoveIt)
+EXPORT_EVALUATOR_PLUGIN(moveit_reach_plugins::evaluation::ManipulabilityScaledFactory, ManipulabilityScaledMoveIt)
+EXPORT_EVALUATOR_PLUGIN(moveit_reach_plugins::evaluation::ManipulabilityRatioFactory, ManipulabilityRatioMoveIt)

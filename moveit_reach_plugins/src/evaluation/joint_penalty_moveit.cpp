@@ -18,7 +18,7 @@
 
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
-#include <reach_core/utils.h>
+#include <reach_core/plugin_utils.h>
 #include <yaml-cpp/yaml.h>
 
 namespace moveit_reach_plugins
@@ -74,11 +74,10 @@ reach::Evaluator::ConstPtr JointPenaltyMoveItFactory::create(const YAML::Node& c
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
-  return boost::make_shared<JointPenaltyMoveIt>(model, planning_group);
+  return std::make_shared<JointPenaltyMoveIt>(model, planning_group);
 }
 
 }  // namespace evaluation
 }  // namespace moveit_reach_plugins
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::evaluation::JointPenaltyMoveItFactory, reach::EvaluatorFactory)
+EXPORT_EVALUATOR_PLUGIN(moveit_reach_plugins::evaluation::JointPenaltyMoveItFactory, JointPenaltyMoveIt)

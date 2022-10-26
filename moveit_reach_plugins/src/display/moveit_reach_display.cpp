@@ -19,7 +19,7 @@
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <reach_core/utils.h>
+#include <reach_core/plugin_utils.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <yaml-cpp/yaml.h>
 
@@ -109,12 +109,11 @@ reach::Display::ConstPtr MoveItReachDisplayFactory::create(const YAML::Node& con
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
-  return boost::make_shared<MoveItReachDisplay>(model, planning_group, collision_mesh_filename, collision_mesh_frame,
-                                                marker_scale);
+  return std::make_shared<MoveItReachDisplay>(model, planning_group, collision_mesh_filename, collision_mesh_frame,
+                                              marker_scale);
 }
 
 }  // namespace display
 }  // namespace moveit_reach_plugins
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(moveit_reach_plugins::display::MoveItReachDisplayFactory, reach::DisplayFactory)
+EXPORT_DISPLAY_PLUGIN(moveit_reach_plugins::display::MoveItReachDisplayFactory, MoveItReachDisplay)

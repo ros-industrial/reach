@@ -3,6 +3,8 @@ project(moveit_reach_plugins)
 
 add_compile_options(-std=c++14)
 
+find_package(reach_core REQUIRED)
+
 find_package(
   catkin REQUIRED
   COMPONENTS eigen_conversions
@@ -10,29 +12,21 @@ find_package(
              moveit_core
              moveit_msgs
              moveit_ros_planning_interface
-             pluginlib
-             reach_core
-             visualization_msgs
-             xmlrpcpp)
+             visualization_msgs)
 
 catkin_package(
   INCLUDE_DIRS
   include
   LIBRARIES
   ${PROJECT_NAME}_utils
-  evaluation_plugins
-  ik_solver_plugins
-  reach_display_plugins
+  ${PROJECT_NAME}_plugins
   CATKIN_DEPENDS
   eigen_conversions
   interactive_markers
   moveit_core
   moveit_msgs
   moveit_ros_planning_interface
-  reach_core
-  pluginlib
-  visualization_msgs
-  xmlrpcpp)
+  visualization_msgs)
 
 # ######################################################################################################################
 # BUILD ##
@@ -43,7 +37,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 # Utils Library
 add_library(${PROJECT_NAME}_utils src/utils.cpp)
 add_dependencies(${PROJECT_NAME}_utils ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_utils ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_utils ${catkin_LIBRARIES} reach::reach_core)
 
 # Plugins
 add_library(${PROJECT_NAME}_plugins
@@ -56,11 +50,11 @@ add_library(${PROJECT_NAME}_plugins
   # Display
   src/display/moveit_reach_display.cpp
 )
-target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} ${PROJECT_NAME}_utils)
+target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} ${PROJECT_NAME}_utils reach::reach_core)
 
 # Reach study node
 add_executable(${PROJECT_NAME}_node src/reach_study_node.cpp)
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} yaml-cpp)
+target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} yaml-cpp reach::reach_core)
 
 # ######################################################################################################################
 # INSTALL ##
