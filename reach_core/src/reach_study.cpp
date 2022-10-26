@@ -287,13 +287,22 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   }
   else
   {
-    boost::filesystem::create_directories(results_dir / config_name);
+    if (!results_dir.empty())
+      boost::filesystem::create_directories(results_dir / config_name);
 
-    // Otherwise, run the reach study
+    // Run the reach study
     rs.run();
-    rs.save((results_dir / config_name / "study.db").string());
+
+    // Save the preliminary results
+    if (!results_dir.empty())
+      rs.save((results_dir / config_name / "study.db").string());
+
+    // Optimize the reach study
     rs.optimize();
-    rs.save((results_dir / config_name / "study_optimized.db").string());
+
+    // Save the optimized results
+    if (!results_dir.empty())
+      rs.save((results_dir / config_name / "study_optimized.db").string());
   }
 
   // Show the results
