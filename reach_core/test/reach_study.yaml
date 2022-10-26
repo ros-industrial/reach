@@ -1,0 +1,20 @@
+optimization:
+  radius: 0.4
+  max_steps: 10
+  step_improvement_threshold: 0.01
+
+ik_solver:
+  name: NoOpIKSolver
+
+evaluator:
+  name: NoOpEvaluator
+
+target_pose_generator:
+  name: PointCloudTargetPoseGenerator
+  pcd_file: part.pcd
+
+display:
+  name: NoOpDisplay
+
+logger:
+  name: BoostProgressConsoleLogger
