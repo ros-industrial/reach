@@ -44,8 +44,8 @@ public:
   }
 
 protected:
-  unsigned long max_progress_{ 0 };
   mutable std::mutex mutex_;
+  unsigned long max_progress_{ 0 };
 };
 
 struct ConsoleLoggerFactory : public LoggerFactory
@@ -69,7 +69,7 @@ public:
   void setMaxProgress(unsigned long max_progress) override
   {
     std::lock_guard<std::mutex> lock{ mutex_ };
-    display_ = std::make_shared<boost::progress_display>(max_progress);
+    display_ = boost::make_shared<boost::progress_display>(max_progress);
   }
 
   void printProgress(unsigned long progress) const override
@@ -91,8 +91,8 @@ public:
   }
 
 protected:
-  mutable std::shared_ptr<boost::progress_display> display_;
   mutable std::mutex mutex_;
+  mutable boost::shared_ptr<boost::progress_display> display_;
 };
 
 struct BoostProgressConsoleLoggerFactory : public LoggerFactory
@@ -107,4 +107,4 @@ struct BoostProgressConsoleLoggerFactory : public LoggerFactory
 
 #include <reach_core/plugin_utils.h>
 EXPORT_LOGGER_PLUGIN(reach::ConsoleLoggerFactory, ConsoleLogger)
-EXPORT_LOGGER_PLUGIN(reach::BoostProgressConsoleLogger, BoostProgressConsoleLogger)
+EXPORT_LOGGER_PLUGIN(reach::BoostProgressConsoleLoggerFactory, BoostProgressConsoleLogger)
