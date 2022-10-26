@@ -1,81 +1,110 @@
-#include "logger.h"
+#include <reach_core/interfaces/logger.h>
 #include <reach_core/reach_database.h>
 
 #include <boost/progress.hpp>
 #include <iostream>
+#include <mutex>
 
 namespace reach
 {
-void ConsoleLogger::setMaxProgress(unsigned long max_progress)
+/**
+ * @brief Thread-safe logger that prints messages to the console via stdout
+ */
+class ConsoleLogger : public Logger
 {
-  std::lock_guard<std::mutex> lock{ mutex_ };
-  max_progress_ = max_progress;
-}
-
-void ConsoleLogger::printProgress(unsigned long progress) const
-{
-  static std::atomic<double> previous_pct{ 0.0 };
-  const double current_pct_float = (static_cast<double>(progress) / static_cast<double>(max_progress_)) * 100.0;
-  const int current_pct = static_cast<int>(current_pct_float);
-  if (current_pct > previous_pct)
+public:
+  void setMaxProgress(unsigned long progress) override
   {
     std::lock_guard<std::mutex> lock{ mutex_ };
-    std::cout << "[" << current_pct << "%]" << std::endl;
+    max_progress_ = progress;
   }
-  previous_pct = current_pct;
-}
 
-void ConsoleLogger::printResults(const StudyResults& results) const
-{
-  print(results.print());
-}
+  void printProgress(unsigned long progress) const override
+  {
+    static std::atomic<double> previous_pct{ 0.0 };
+    const double current_pct_float = (static_cast<double>(progress) / static_cast<double>(max_progress_)) * 100.0;
+    const int current_pct = static_cast<int>(current_pct_float);
+    if (current_pct > previous_pct)
+    {
+      std::lock_guard<std::mutex> lock{ mutex_ };
+      std::cout << "[" << current_pct << "%]" << std::endl;
+    }
+    previous_pct = current_pct;
+  }
 
-void ConsoleLogger::print(const std::string& message) const
-{
-  std::lock_guard<std::mutex> lock{ mutex_ };
-  std::cout << message << std::endl;
-}
+  void printResults(const StudyResults& results) const override
+  {
+    print(results.print());
+  }
 
-Logger::ConstPtr ConsoleLoggerFactory::create(const YAML::Node&) const
-{
-  return boost::make_shared<ConsoleLogger>();
-}
+  void print(const std::string& message) const override
+  {
+    std::lock_guard<std::mutex> lock{ mutex_ };
+    std::cout << message << std::endl;
+  }
 
-BoostProgressConsoleLogger::BoostProgressConsoleLogger() : display_(nullptr)
-{
-}
+protected:
+  unsigned long max_progress_{ 0 };
+  mutable std::mutex mutex_;
+};
 
-void BoostProgressConsoleLogger::setMaxProgress(unsigned long max_progress)
+struct ConsoleLoggerFactory : public LoggerFactory
 {
-  std::lock_guard<std::mutex> lock{ mutex_ };
-  display_ = boost::make_shared<boost::progress_display>(max_progress);
-}
+  Logger::ConstPtr create(const YAML::Node& /*config*/) const override
+  {
+    return std::make_shared<ConsoleLogger>();
+  }
+};
 
-void BoostProgressConsoleLogger::printProgress(unsigned long progress) const
+/**
+ * @brief Thread-safe logger that prints messages to the console via stdout, with boost progress bar progress logging
+ */
+class BoostProgressConsoleLogger : public Logger
 {
-  std::lock_guard<std::mutex> lock{ mutex_ };
-  if (progress > display_->count())
-    *display_ += progress - display_->count();
-}
+public:
+  BoostProgressConsoleLogger() : display_(nullptr)
+  {
+  }
 
-void BoostProgressConsoleLogger::printResults(const StudyResults& results) const
-{
-  print(results.print());
-}
+  void setMaxProgress(unsigned long max_progress) override
+  {
+    std::lock_guard<std::mutex> lock{ mutex_ };
+    display_ = std::make_shared<boost::progress_display>(max_progress);
+  }
 
-void BoostProgressConsoleLogger::print(const std::string& message) const
-{
-  std::lock_guard<std::mutex> lock{ mutex_ };
-  std::cout << message << std::endl;
-}
+  void printProgress(unsigned long progress) const override
+  {
+    std::lock_guard<std::mutex> lock{ mutex_ };
+    if (progress > display_->count())
+      *display_ += progress - display_->count();
+  }
 
-Logger::ConstPtr BoostProgressConsoleLoggerFactory::create(const YAML::Node&) const
+  void printResults(const StudyResults& results) const override
+  {
+    print(results.print());
+  }
+
+  void print(const std::string& message) const override
+  {
+    std::lock_guard<std::mutex> lock{ mutex_ };
+    std::cout << message << std::endl;
+  }
+
+protected:
+  mutable std::shared_ptr<boost::progress_display> display_;
+  mutable std::mutex mutex_;
+};
+
+struct BoostProgressConsoleLoggerFactory : public LoggerFactory
 {
-  return boost::make_shared<BoostProgressConsoleLogger>();
-}
+  Logger::ConstPtr create(const YAML::Node& /*config*/) const override
+  {
+    return std::make_shared<BoostProgressConsoleLogger>();
+  }
+};
 
 }  // namespace reach
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach::ConsoleLoggerFactory, reach::LoggerFactory)
-PLUGINLIB_EXPORT_CLASS(reach::BoostProgressConsoleLoggerFactory, reach::LoggerFactory)
+#include <reach_core/plugin_utils.h>
+EXPORT_LOGGER_PLUGIN(reach::ConsoleLoggerFactory, ConsoleLogger)
+EXPORT_LOGGER_PLUGIN(reach::BoostProgressConsoleLogger, BoostProgressConsoleLogger)

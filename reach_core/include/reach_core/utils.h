@@ -21,7 +21,6 @@
 #include <reach_core/interfaces/evaluator.h>
 
 #include <atomic>
-#include <boost/core/demangle.hpp>
 #include <Eigen/Dense>
 #include <map>
 #include <memory>
@@ -63,32 +62,6 @@ struct NeighborReachResult
 void reachNeighborsRecursive(ReachDatabase::ConstPtr db, const ReachRecord& msg, IKSolver::ConstPtr solver,
                              Evaluator::ConstPtr evaluator, const double radius, NeighborReachResult& result,
                              SearchTreePtr search_tree = nullptr);
-
-/**
- * @brief Helper function for getting YAML parameters
- */
-template <typename T>
-T get(const YAML::Node& config, const std::string& key)
-{
-  if (!config[key].IsDefined())
-  {
-    std::stringstream ss;
-    ss << "Failed to get '" << key << "' parameter within node at line " << config.Mark().line;
-    throw std::runtime_error(ss.str());
-  }
-
-  try
-  {
-    return config[key].as<T>();
-  }
-  catch (const YAML::Exception& ex)
-  {
-    std::stringstream ss;
-    ss << "Failed to cast '" << key << "' parameter with value '" << config[key] << "' to expected type '"
-       << boost::core::demangle(typeid(T).name()) << "' (line " << ex.mark.line << ")";
-    throw std::runtime_error(ss.str());
-  }
-}
 
 }  // namespace reach
 

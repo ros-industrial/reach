@@ -15,10 +15,11 @@
  */
 #include <reach_core/reach_study.h>
 #include <reach_core/utils.h>
+#include <reach_core/plugin_utils.h>
 
 #include <boost/filesystem.hpp>
+#include <boost_plugin_loader/plugin_loader.hpp>
 #include <numeric>
-#include <pluginlib/class_loader.h>
 #include <thread>
 #include <yaml-cpp/yaml.h>
 
@@ -209,13 +210,6 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
   return std::make_tuple(avg_neighbor_count, avg_joint_distance);
 }
 
-static const std::string PACKAGE = "reach_core";
-static const std::string IK_BASE_CLASS = "reach::IKSolverFactory";
-static const std::string DISPLAY_BASE_CLASS = "reach::DisplayFactory";
-static const std::string TARGET_POSE_GENERATOR_BASE_CLASS = "reach::TargetPoseGeneratorFactory";
-static const std::string EVALUATOR_BASE_CLASS = "reach::EvaluatorFactory";
-static const std::string LOGGER_BASE_CLASS = "reach::LoggerFactory";
-
 void runReachStudy(const YAML::Node& config, const std::string& config_name, const boost::filesystem::path& results_dir,
                    const bool wait_after_completion)
 {
@@ -232,45 +226,41 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   params.max_steps = opt_config["max_steps"].as<int>();
   params.step_improvement_threshold = opt_config["step_improvement_threshold"].as<double>();
 
+  boost_plugin_loader::PluginLoader loader;
+  loader.search_libraries_env = SEARCH_LIBRARIES_ENV;
+
   // Load the IK Solver plugin
-  pluginlib::ClassLoader<reach::IKSolverFactory> solver_loader(PACKAGE, IK_BASE_CLASS);
   reach::IKSolver::ConstPtr ik_solver;
   {
-    reach::IKSolverFactory::Ptr factory = solver_loader.createInstance(get<std::string>(ik_config, "name"));
+    auto factory = loader.createInstance<IKSolverFactory>(get<std::string>(ik_config, "name"));
     ik_solver = factory->create(ik_config);
   }
 
   // Load the target pose generator plugin
-  pluginlib::ClassLoader<reach::TargetPoseGeneratorFactory> target_pose_generator_loader_(
-      PACKAGE, TARGET_POSE_GENERATOR_BASE_CLASS);
   reach::TargetPoseGenerator::ConstPtr target_pose_generator;
   {
-    reach::TargetPoseGeneratorFactory::Ptr factory =
-        target_pose_generator_loader_.createInstance(get<std::string>(pose_gen_config, "name"));
+    auto factory = loader.createInstance<TargetPoseGeneratorFactory>(get<std::string>(pose_gen_config, "name"));
     target_pose_generator = factory->create(pose_gen_config);
   }
 
   // Load the evaluator plugin
-  pluginlib::ClassLoader<reach::EvaluatorFactory> eval_loader(PACKAGE, EVALUATOR_BASE_CLASS);
   reach::Evaluator::ConstPtr evaluator;
   {
-    reach::EvaluatorFactory::Ptr factory = eval_loader.createInstance(get<std::string>(eval_config, "name"));
+    auto factory = loader.createInstance<EvaluatorFactory>(get<std::string>(eval_config, "name"));
     evaluator = factory->create(eval_config);
   }
 
   // Load the display plugin
-  pluginlib::ClassLoader<reach::DisplayFactory> display_loader(PACKAGE, DISPLAY_BASE_CLASS);
   reach::Display::ConstPtr display;
   {
-    reach::DisplayFactory::Ptr factory = display_loader.createInstance(get<std::string>(display_config, "name"));
+    auto factory = loader.createInstance<DisplayFactory>(get<std::string>(display_config, "name"));
     display = factory->create(display_config);
   }
 
   // Load the logger plugin
-  pluginlib::ClassLoader<reach::LoggerFactory> logger_loader(PACKAGE, LOGGER_BASE_CLASS);
   reach::Logger::ConstPtr logger;
   {
-    reach::LoggerFactory::ConstPtr factory = logger_loader.createInstance(get<std::string>(logger_config, "name"));
+    auto factory = loader.createInstance<LoggerFactory>(get<std::string>(logger_config, "name"));
     logger = factory->create(logger_config);
   }
 

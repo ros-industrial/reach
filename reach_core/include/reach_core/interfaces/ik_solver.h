@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
-#define REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
+#ifndef REACH_CORE_INTERFACES_IK_SOLVER_H
+#define REACH_CORE_INTERFACES_IK_SOLVER_H
 
-#include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace YAML
@@ -34,8 +34,8 @@ namespace reach
 struct IKSolver
 {
 public:
-  using Ptr = boost::shared_ptr<IKSolver>;
-  using ConstPtr = boost::shared_ptr<const IKSolver>;
+  using Ptr = std::shared_ptr<IKSolver>;
+  using ConstPtr = std::shared_ptr<const IKSolver>;
 
   IKSolver() = default;
   virtual ~IKSolver() = default;
@@ -48,15 +48,20 @@ public:
 
 struct IKSolverFactory
 {
-  using Ptr = boost::shared_ptr<IKSolverFactory>;
-  using ConstPtr = boost::shared_ptr<const IKSolverFactory>;
+  using Ptr = std::shared_ptr<IKSolverFactory>;
+  using ConstPtr = std::shared_ptr<const IKSolverFactory>;
 
   IKSolverFactory() = default;
   virtual ~IKSolverFactory() = default;
 
   virtual IKSolver::ConstPtr create(const YAML::Node& config) const = 0;
+
+  static std::string getSection()
+  {
+    return "ik";
+  }
 };
 
 }  // namespace reach
 
-#endif  // REACH_CORE_PLUGINS_IK_IK_SOLVER_BASE_H
+#endif  // REACH_CORE_INTERFACES_IK_SOLVER_H

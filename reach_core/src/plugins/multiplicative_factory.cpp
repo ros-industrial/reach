@@ -13,55 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "multiplicative_factory.h"
-#include <reach_core/utils.h>
 
+#include <reach_core/interfaces/evaluator.h>
+#include <reach_core/plugin_utils.h>
+
+#include <boost_plugin_loader/plugin_loader.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace reach
 {
-const static std::string PACKAGE = "reach_core";
-const static std::string PLUGIN_BASE_NAME = "reach::EvaluatorFactory";
-
-MultiplicativeEvaluator::MultiplicativeEvaluator(std::vector<Evaluator::ConstPtr> evaluators)
-  : evaluators_(std::move(evaluators))
+class MultiplicativeEvaluator : public Evaluator
 {
-}
-
-double MultiplicativeEvaluator::calculateScore(const std::map<std::string, double>& pose) const
-{
-  double score = 1.0;
-  for (const Evaluator::ConstPtr& eval : evaluators_)
+public:
+  MultiplicativeEvaluator(std::vector<Evaluator::ConstPtr> evaluators) : evaluators_(std::move(evaluators))
   {
-    score *= eval->calculateScore(pose);
-  }
-  return score;
-}
-
-MultiplicativeEvaluatorFactory::MultiplicativeEvaluatorFactory() : class_loader_(PACKAGE, PLUGIN_BASE_NAME)
-{
-}
-
-Evaluator::ConstPtr MultiplicativeEvaluatorFactory::create(const YAML::Node& config) const
-{
-  const YAML::Node plugin_configs = config["plugins"];
-  std::vector<Evaluator::ConstPtr> evaluators;
-  evaluators.reserve(plugin_configs.size());
-
-  for (auto it = plugin_configs.begin(); it != plugin_configs.end(); ++it)
-  {
-    const YAML::Node& plugin_config = *it;
-    EvaluatorFactory::Ptr factory = class_loader_.createInstance(get<std::string>(plugin_config, "name"));
-    evaluators.push_back(factory->create(plugin_config));
   }
 
-  if (evaluators.empty())
-    throw std::runtime_error("No valid plugins remain");
+  virtual double calculateScore(const std::map<std::string, double>& pose) const override
+  {
+    double score = 1.0;
+    for (const Evaluator::ConstPtr& eval : evaluators_)
+    {
+      score *= eval->calculateScore(pose);
+    }
+    return score;
+  }
 
-  return boost::make_shared<MultiplicativeEvaluator>(evaluators);
-}
+private:
+  std::vector<Evaluator::ConstPtr> evaluators_;
+};
+
+class MultiplicativeEvaluatorFactory : public EvaluatorFactory
+{
+public:
+  MultiplicativeEvaluatorFactory()
+  {
+    loader_.search_libraries_env = SEARCH_LIBRARIES_ENV;
+    loader_.search_system_folders = true;
+  }
+
+  Evaluator::ConstPtr create(const YAML::Node& config) const override
+  {
+    const YAML::Node plugin_configs = config["plugins"];
+    std::vector<Evaluator::ConstPtr> evaluators;
+    evaluators.reserve(plugin_configs.size());
+
+    for (auto it = plugin_configs.begin(); it != plugin_configs.end(); ++it)
+    {
+      const YAML::Node& plugin_config = *it;
+      EvaluatorFactory::Ptr factory = loader_.createInstance<EvaluatorFactory>(get<std::string>(plugin_config, "name"));
+      evaluators.push_back(factory->create(plugin_config));
+    }
+
+    if (evaluators.empty())
+      throw std::runtime_error("No valid plugins remain");
+
+    return std::make_shared<MultiplicativeEvaluator>(evaluators);
+  }
+
+private:
+  mutable boost_plugin_loader::PluginLoader loader_;
+};
 
 }  // namespace reach
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach::MultiplicativeEvaluatorFactory, reach::EvaluatorFactory)
+EXPORT_EVALUATOR_PLUGIN(reach::MultiplicativeEvaluatorFactory, MultiplicativeEvaluator)

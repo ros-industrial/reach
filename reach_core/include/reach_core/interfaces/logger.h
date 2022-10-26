@@ -2,7 +2,7 @@
 #define REACH_CORE_INTERFACES_LOGGER_H
 
 #include <atomic>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include <string>
 
 namespace YAML
@@ -16,8 +16,8 @@ class StudyResults;
 
 struct Logger
 {
-  using Ptr = boost::shared_ptr<Logger>;
-  using ConstPtr = boost::shared_ptr<Logger>;
+  using Ptr = std::shared_ptr<Logger>;
+  using ConstPtr = std::shared_ptr<Logger>;
 
   virtual void setMaxProgress(unsigned long max_progress) = 0;
   virtual void printProgress(unsigned long progress) const = 0;
@@ -29,10 +29,15 @@ struct Logger
 
 struct LoggerFactory
 {
-  using Ptr = boost::shared_ptr<LoggerFactory>;
-  using ConstPtr = boost::shared_ptr<const LoggerFactory>;
+  using Ptr = std::shared_ptr<LoggerFactory>;
+  using ConstPtr = std::shared_ptr<const LoggerFactory>;
 
   virtual Logger::ConstPtr create(const YAML::Node& config) const = 0;
+
+  static std::string getSection()
+  {
+    return "logger";
+  }
 };
 
 }  // namespace reach

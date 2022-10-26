@@ -1,7 +1,8 @@
-#pragma once
+#ifndef REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H
+#define REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H
 
-#include <boost/shared_ptr.hpp>
 #include <Eigen/Dense>
+#include <memory>
 #include <vector>
 
 namespace YAML
@@ -15,21 +16,28 @@ using VectorIsometry3d = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator
 
 struct TargetPoseGenerator
 {
-  using Ptr = boost::shared_ptr<TargetPoseGenerator>;
-  using ConstPtr = boost::shared_ptr<const TargetPoseGenerator>;
+  using Ptr = std::shared_ptr<TargetPoseGenerator>;
+  using ConstPtr = std::shared_ptr<const TargetPoseGenerator>;
 
   virtual VectorIsometry3d generate() const = 0;
 };
 
 struct TargetPoseGeneratorFactory
 {
-  using Ptr = boost::shared_ptr<TargetPoseGeneratorFactory>;
-  using ConstPtr = boost::shared_ptr<const TargetPoseGeneratorFactory>;
+  using Ptr = std::shared_ptr<TargetPoseGeneratorFactory>;
+  using ConstPtr = std::shared_ptr<const TargetPoseGeneratorFactory>;
 
   TargetPoseGeneratorFactory() = default;
   virtual ~TargetPoseGeneratorFactory() = default;
 
   virtual TargetPoseGenerator::ConstPtr create(const YAML::Node& config) const = 0;
+
+  static std::string getSection()
+  {
+    return "pose";
+  }
 };
 
 } // namepsace reach
+
+#endif  // REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H

@@ -18,7 +18,7 @@ struct NoOpEvaluatorFactory : public EvaluatorFactory
 {
   virtual Evaluator::ConstPtr create(const YAML::Node&) const override
   {
-    return boost::make_shared<NoOpEvaluator>();
+    return std::make_shared<NoOpEvaluator>();
   }
 };
 
@@ -41,7 +41,7 @@ struct NoOpIKSolverFactory : public IKSolverFactory
 {
   IKSolver::ConstPtr create(const YAML::Node&) const override
   {
-    return boost::make_shared<NoOpIKSolver>();
+    return std::make_shared<NoOpIKSolver>();
   }
 };
 
@@ -57,13 +57,13 @@ struct NoOpDisplayFactory : public DisplayFactory
 {
   Display::ConstPtr create(const YAML::Node&) const override
   {
-    return boost::make_shared<NoOpDisplay>();
+    return std::make_shared<NoOpDisplay>();
   }
 };
 
 }  // namespace reach
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach::NoOpEvaluatorFactory, reach::EvaluatorFactory)
-PLUGINLIB_EXPORT_CLASS(reach::NoOpIKSolverFactory, reach::IKSolverFactory)
-PLUGINLIB_EXPORT_CLASS(reach::NoOpDisplayFactory, reach::DisplayFactory)
+#include <reach_core/plugin_utils.h>
+EXPORT_EVALUATOR_PLUGIN(reach::NoOpEvaluatorFactory, NoOpEvaluator)
+EXPORT_IK_SOLVER_PLUGIN(reach::NoOpIKSolverFactory, NoOpIKSolver)
+EXPORT_DISPLAY_PLUGIN(reach::NoOpDisplayFactory, NoOpDisplay)

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE
-#define REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE
+#ifndef REACH_CORE_INTERFACES_EVALUATOR_H
+#define REACH_CORE_INTERFACES_EVALUATOR_H
 
-#include <boost/shared_ptr.hpp>
 #include <map>
+#include <memory>
 #include <vector>
 
 namespace YAML
@@ -32,8 +32,8 @@ namespace reach
  */
 struct Evaluator
 {
-  using Ptr = boost::shared_ptr<Evaluator>;
-  using ConstPtr = boost::shared_ptr<const Evaluator>;
+  using Ptr = std::shared_ptr<Evaluator>;
+  using ConstPtr = std::shared_ptr<const Evaluator>;
 
   Evaluator() = default;
   virtual ~Evaluator() = default;
@@ -48,15 +48,20 @@ struct Evaluator
 
 struct EvaluatorFactory
 {
-  using Ptr = boost::shared_ptr<EvaluatorFactory>;
-  using ConstPtr = boost::shared_ptr<const EvaluatorFactory>;
+  using Ptr = std::shared_ptr<EvaluatorFactory>;
+  using ConstPtr = std::shared_ptr<const EvaluatorFactory>;
 
   EvaluatorFactory() = default;
   virtual ~EvaluatorFactory() = default;
 
   virtual Evaluator::ConstPtr create(const YAML::Node& config) const = 0;
+
+  static std::string getSection()
+  {
+    return "eval";
+  }
 };
 
 }  // namespace reach
 
-#endif  // REACH_CORE_PLUGINS_EVALUATION_EVALUATION_BASE
+#endif  // REACH_CORE_INTERFACES_EVALUATOR_H

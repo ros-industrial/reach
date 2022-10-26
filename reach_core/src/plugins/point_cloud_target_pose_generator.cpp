@@ -1,5 +1,5 @@
-#include "point_cloud_target_pose_generator.h"
-#include <reach_core/utils.h>
+#include <reach_core/interfaces/target_pose_generator.h>
+#include <reach_core/plugin_utils.h>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/PCLPointField.h>
@@ -58,42 +58,52 @@ static Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt, const Eigen::Vec
 
 namespace reach
 {
-PointCloudTargetPoseGenerator::PointCloudTargetPoseGenerator(std::string filename) : filename_(std::move(filename))
+class PointCloudTargetPoseGenerator : public TargetPoseGenerator
 {
-}
+public:
+  PointCloudTargetPoseGenerator(std::string filename) : filename_(std::move(filename))
+  {
+  }
 
-VectorIsometry3d PointCloudTargetPoseGenerator::generate() const
+  VectorIsometry3d generate() const override
+  {
+    // Check if file exists
+    if (!boost::filesystem::exists(filename_))
+      throw std::runtime_error("File '" + filename_ + "' does not exist");
+
+    pcl::PCLPointCloud2 cloud_msg;
+    if (pcl::io::loadPCDFile(filename_, cloud_msg) < 0)
+      throw std::runtime_error("Failed to load point cloud from '" + filename_ + "'");
+
+    if (!hasNormals(cloud_msg))
+      throw std::runtime_error("Point cloud file does not contain normals. Please regenerate the cloud with normal "
+                               "vectors");
+
+    pcl::PointCloud<pcl::PointNormal> cloud;
+    pcl::fromPCLPointCloud2(cloud_msg, cloud);
+
+    VectorIsometry3d target_poses;
+    target_poses.reserve(cloud.size());
+    std::transform(cloud.begin(), cloud.end(), std::back_inserter(target_poses), [](const pcl::PointNormal& pt) {
+      return createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
+    });
+
+    return target_poses;
+  }
+
+private:
+  std::string filename_;
+};
+
+struct PointCloudTargetPoseGeneratorFactory : public TargetPoseGeneratorFactory
 {
-  // Check if file exists
-  if (!boost::filesystem::exists(filename_))
-    throw std::runtime_error("File '" + filename_ + "' does not exist");
-
-  pcl::PCLPointCloud2 cloud_msg;
-  if (pcl::io::loadPCDFile(filename_, cloud_msg) < 0)
-    throw std::runtime_error("Failed to load point cloud from '" + filename_ + "'");
-
-  if (!hasNormals(cloud_msg))
-    throw std::runtime_error("Point cloud file does not contain normals. Please regenerate the cloud with normal "
-                             "vectors");
-
-  pcl::PointCloud<pcl::PointNormal> cloud;
-  pcl::fromPCLPointCloud2(cloud_msg, cloud);
-
-  VectorIsometry3d target_poses;
-  target_poses.reserve(cloud.size());
-  std::transform(cloud.begin(), cloud.end(), std::back_inserter(target_poses), [](const pcl::PointNormal& pt) {
-    return createFrame(pt.getArray3fMap(), pt.getNormalVector3fMap());
-  });
-
-  return target_poses;
-}
-
-TargetPoseGenerator::ConstPtr PointCloudTargetPoseGeneratorFactory::create(const YAML::Node& config) const
-{
-  return boost::make_shared<PointCloudTargetPoseGenerator>(get<std::string>(config, "pcd_file"));
-}
+  using TargetPoseGeneratorFactory::TargetPoseGeneratorFactory;
+  TargetPoseGenerator::ConstPtr create(const YAML::Node& config) const override
+  {
+    return std::make_shared<PointCloudTargetPoseGenerator>(get<std::string>(config, "pcd_file"));
+  }
+};
 
 } // namespace reach
 
-#include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(reach::PointCloudTargetPoseGeneratorFactory, reach::TargetPoseGeneratorFactory)
+EXPORT_TARGET_POSE_GENERATOR_PLUGIN(reach::PointCloudTargetPoseGeneratorFactory, PointCloudTargetPoseGenerator)

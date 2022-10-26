@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
-#define REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
+#ifndef REACH_CORE_INTERFACES_DISPLAY_H
+#define REACH_CORE_INTERFACES_DISPLAY_H
 
 #include <reach_core/reach_database.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 namespace YAML
 {
@@ -29,8 +29,8 @@ namespace reach
 {
 struct Display
 {
-  using Ptr = boost::shared_ptr<Display>;
-  using ConstPtr = boost::shared_ptr<const Display>;
+  using Ptr = std::shared_ptr<Display>;
+  using ConstPtr = std::shared_ptr<const Display>;
 
   Display() = default;
   virtual ~Display() = default;
@@ -44,15 +44,20 @@ struct Display
 
 struct DisplayFactory
 {
-  using Ptr = boost::shared_ptr<DisplayFactory>;
-  using ConstPtr = boost::shared_ptr<const DisplayFactory>;
+  using Ptr = std::shared_ptr<DisplayFactory>;
+  using ConstPtr = std::shared_ptr<const DisplayFactory>;
 
   DisplayFactory() = default;
   virtual ~DisplayFactory() = default;
 
   virtual Display::ConstPtr create(const YAML::Node& config) const = 0;
+
+  static std::string getSection()
+  {
+    return "disp";
+  }
 };
 
 }  // namespace reach
 
-#endif  // REACH_CORE_PLUGINS_DISPLAY_DISPLAY_BASE_H
+#endif  // REACH_CORE_INTERFACES_DISPLAY_H
