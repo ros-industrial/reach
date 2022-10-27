@@ -99,6 +99,7 @@ void ReachStudy::run()
     logger_->printProgress(current_counter.load());
   }
 
+  logger_->printResults(db_->calculateResults());
   logger_->print("Reach study complete");
   display_->showResults(*db_);
 }
