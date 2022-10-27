@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach_ros/utils.h>
+#include "utils.h"
 
-#include <reach_core/reach_database.h>
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/shapes.h>
+#include <reach_core/reach_database.h>
 #include <ros/console.h>
 #include <eigen_conversions/eigen_msg.h>
 
