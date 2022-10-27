@@ -29,28 +29,6 @@
 #include <Eigen/Dense>
 #include <mutex>
 
-namespace boost
-{
-namespace serialization
-{
-template <class Archive>
-inline void serialize(Archive& ar, Eigen::Isometry3d& pose, const unsigned int version)
-{
-  std::vector<double> position(3);
-  Eigen::Map<Eigen::Vector3d> position_map(position.data());
-  position_map = pose.translation();
-
-  std::vector<double> quaternion(4);
-  Eigen::Map<Eigen::Quaterniond> q_map(quaternion.data());
-  q_map = Eigen::Quaterniond(pose.linear());
-
-  ar& BOOST_SERIALIZATION_NVP(position);
-  ar& BOOST_SERIALIZATION_NVP(quaternion);
-}
-
-} // namespace serialization
-} // namespace boost
-
 namespace reach
 {
 //namespace bmi = boost::multi_index;

@@ -20,6 +20,31 @@
 #include <fstream>
 #include <pcl/point_types_conversion.h>
 
+namespace boost
+{
+namespace serialization
+{
+template <class Archive>
+void save(Archive& ar, const Eigen::Isometry3d& pose, const unsigned int /*version*/)
+{
+  std::vector<double> matrix(pose.data(), pose.data() + 16);
+  ar& BOOST_SERIALIZATION_NVP(matrix);
+}
+
+template <class Archive>
+inline void load(Archive& ar, Eigen::Isometry3d& pose, const unsigned int /*version*/)
+{
+  std::vector<double> matrix(16);
+  Eigen::Map<Eigen::Matrix4d> pose_map(matrix.data());
+  ar& BOOST_SERIALIZATION_NVP(matrix);
+  pose.matrix() = pose_map;
+}
+
+}  // namespace serialization
+}  // namespace boost
+
+BOOST_SERIALIZATION_SPLIT_FREE(Eigen::Isometry3d)
+
 namespace reach
 {
 ReachRecord::ReachRecord(const std::string id_, const bool reached_, const Eigen::Isometry3d& goal_,
