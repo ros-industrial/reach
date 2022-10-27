@@ -45,6 +45,28 @@ inline void load(Archive& ar, Eigen::Isometry3d& pose, const unsigned int /*vers
 
 BOOST_SERIALIZATION_SPLIT_FREE(Eigen::Isometry3d)
 
+bool isApprox(const std::map<std::string, double>& lhs, const std::map<std::string, double>& rhs)
+{
+  if (lhs.size() != rhs.size())
+    return false;
+
+  for (auto lhs_it = lhs.begin(); lhs_it != lhs.end(); ++lhs_it)
+  {
+    auto rhs_it = rhs.begin();
+    std::advance(rhs_it, std::distance(lhs.begin(), lhs_it));
+
+    // Ensure the keys match
+    if (lhs_it->first != rhs_it->first)
+      return false;
+
+    // Ensure the values are approximately equal
+    if (std::abs(lhs_it->second - rhs_it->second) > std::numeric_limits<double>::epsilon())
+      return false;
+  }
+
+  return true;
+}
+
 namespace reach
 {
 ReachRecord::ReachRecord(const std::string id_, const bool reached_, const Eigen::Isometry3d& goal_,
@@ -52,6 +74,18 @@ ReachRecord::ReachRecord(const std::string id_, const bool reached_, const Eigen
                          const std::map<std::string, double> goal_state_, const double score_)
   : id(id_), reached(reached_), goal(goal_), seed_state(seed_state_), goal_state(goal_state_), score(score_)
 {
+}
+
+bool ReachRecord::operator==(const ReachRecord& rhs) const
+{
+  const bool ids_match = id == rhs.id;
+  const bool reach_match = reached == rhs.reached;
+  const bool goals_match = goal.isApprox(rhs.goal);
+  const bool goal_states_match = isApprox(goal_state, rhs.goal_state);
+  const bool seed_states_match = isApprox(seed_state, rhs.seed_state);
+  const bool scores_match = std::abs(score - rhs.score) < std::numeric_limits<double>::epsilon();
+
+  return ids_match && reach_match && goals_match && goal_states_match && seed_states_match && scores_match;
 }
 
 ReachDatabase::ReachDatabase(const std::string name) : name_(std::move(name))
@@ -67,6 +101,11 @@ ReachDatabase& ReachDatabase::operator=(const ReachDatabase& rhs)
   name_ = rhs.name_;
   map_ = rhs.map_;
   return *this;
+}
+
+bool ReachDatabase::operator==(const ReachDatabase& rhs) const
+{
+  return name_ == rhs.name_ && map_ == rhs.map_;
 }
 
 std::string ReachDatabase::getName() const

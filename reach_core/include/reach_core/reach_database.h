@@ -50,6 +50,8 @@ public:
               const std::map<std::string, double> seed_state, const std::map<std::string, double> goal_state,
               const double score);
 
+  bool operator==(const ReachRecord& rhs) const;
+
   std::string id;
   bool reached;
   Eigen::Isometry3d goal;
@@ -118,6 +120,8 @@ public:
   ReachDatabase(const std::string name = "reach_study");
   ReachDatabase(const ReachDatabase&);
   ReachDatabase& operator=(const ReachDatabase&);
+
+  bool operator==(const ReachDatabase& rhs) const;
 
   std::string getName() const;
 
