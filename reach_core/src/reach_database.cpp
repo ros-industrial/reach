@@ -88,29 +88,24 @@ bool ReachRecord::operator==(const ReachRecord& rhs) const
   return ids_match && reach_match && goals_match && goal_states_match && seed_states_match && scores_match;
 }
 
-ReachDatabase::ReachDatabase(const std::string name) : name_(std::move(name))
+ReachDatabase::ReachDatabase(const std::string name_) : name(std::move(name_))
 {
 }
 
-ReachDatabase::ReachDatabase(const ReachDatabase& rhs) : name_(rhs.name_), map_(rhs.map_)
+ReachDatabase::ReachDatabase(const ReachDatabase& rhs) : name(rhs.name), map_(rhs.map_)
 {
 }
 
 ReachDatabase& ReachDatabase::operator=(const ReachDatabase& rhs)
 {
-  name_ = rhs.name_;
+  name = rhs.name;
   map_ = rhs.map_;
   return *this;
 }
 
 bool ReachDatabase::operator==(const ReachDatabase& rhs) const
 {
-  return name_ == rhs.name_ && map_ == rhs.map_;
-}
-
-std::string ReachDatabase::getName() const
-{
-  return name_;
+  return name == rhs.name && map_ == rhs.map_;
 }
 
 ReachRecord ReachDatabase::get(const std::string& id) const

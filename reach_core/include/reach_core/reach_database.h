@@ -123,7 +123,7 @@ public:
 
   bool operator==(const ReachDatabase& rhs) const;
 
-  std::string getName() const;
+  std::string name;
 
   /**
    * @brief get returns a ReachRecord message from the database
@@ -162,7 +162,6 @@ public:
   const_iterator max() const;
 
 private:
-  std::string name_;
   std::map<std::string, ReachRecord> map_;
 
   mutable std::mutex mutex_;
@@ -171,7 +170,7 @@ private:
   template <class Archive>
   inline void serialize(Archive& ar, const unsigned int /*version*/)
   {
-    ar& BOOST_SERIALIZATION_NVP(name_);
+    ar& BOOST_SERIALIZATION_NVP(name);
     ar& BOOST_SERIALIZATION_NVP(map_);
   }
 };
