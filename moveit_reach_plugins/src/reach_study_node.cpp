@@ -32,7 +32,10 @@ int main(int argc, char** argv)
 {
   try
   {
+    sleep(3.0);
     ros::init(argc, argv, "reach_study_node");
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
     ros::NodeHandle pnh("~");
 
     // Load the configuration information

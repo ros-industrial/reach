@@ -17,6 +17,8 @@
 #define MOVEIT_REACH_PLUGINS_MOVEIT_REACH_DISPLAY_H
 
 #include <reach_core/interfaces/display.h>
+
+#include <interactive_markers/interactive_marker_server.h>
 #include <ros/node_handle.h>
 #include <ros/publisher.h>
 
@@ -63,6 +65,7 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher scene_pub_;
   ros::Publisher neighbors_pub_;
+  mutable interactive_markers::InteractiveMarkerServer server_;
 };
 
 struct MoveItReachDisplayFactory : public reach::DisplayFactory
