@@ -56,6 +56,9 @@ target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} ${PROJECT_NAME
 add_executable(${PROJECT_NAME}_node src/reach_study_node.cpp)
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} yaml-cpp reach::reach_core)
 
+# Demo
+add_subdirectory(demo)
+
 # ######################################################################################################################
 # INSTALL ##
 # ######################################################################################################################
