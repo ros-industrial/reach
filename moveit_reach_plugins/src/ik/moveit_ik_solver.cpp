@@ -38,12 +38,11 @@ namespace ik
 {
 MoveItIKSolver::MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
                                double dist_threshold, std::string collision_mesh_filename,
-                               std::string collision_mesh_frame, std::vector<std::string> touch_links)
+                               std::vector<std::string> touch_links)
   : model_(model)
   , jmg_(model_->getJointModelGroup(planning_group))
   , distance_threshold_(dist_threshold)
   , collision_mesh_filename_(std::move(collision_mesh_filename))
-  , collision_mesh_frame_(std::move(collision_mesh_frame))
   , touch_links_(std::move(touch_links))
 {
   if (!jmg_)
@@ -51,14 +50,10 @@ MoveItIKSolver::MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std
 
   scene_.reset(new planning_scene::PlanningScene(model_));
 
-  // Check that the input collision mesh frame exists
-  if (!scene_->knowsFrameTransform(collision_mesh_frame_))
-    throw std::runtime_error("Specified collision mesh frame '" + collision_mesh_frame_ + "' does not exist");
-
   // Add the collision object to the planning scene
   const std::string object_name = "reach_object";
   moveit_msgs::CollisionObject obj =
-      utils::createCollisionObject(collision_mesh_filename_, collision_mesh_frame_, object_name);
+      utils::createCollisionObject(collision_mesh_filename_, jmg_->getSolverInstance()->getBaseFrame(), object_name);
   if (!scene_->processCollisionObjectMsg(obj))
     throw std::runtime_error("Failed to add collision mesh to planning scene");
 
@@ -110,24 +105,20 @@ reach::IKSolver::ConstPtr MoveItIKSolverFactory::create(const YAML::Node& config
   auto planning_group = reach::get<std::string>(config, "planning_group");
   auto dist_threshold = reach::get<double>(config, "distance_threshold");
   auto collision_mesh_filename = reach::get<std::string>(config, "collision_mesh_filename");
-  auto collision_mesh_frame = reach::get<std::string>(config, "collision_mesh_frame");
   auto touch_links = reach::get<std::vector<std::string>>(config, "touch_links");
 
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
-  return std::make_shared<MoveItIKSolver>(model, planning_group, dist_threshold, collision_mesh_filename,
-                                          collision_mesh_frame, touch_links);
+  return std::make_shared<MoveItIKSolver>(model, planning_group, dist_threshold, collision_mesh_filename, touch_links);
 }
 
 DiscretizedMoveItIKSolver::DiscretizedMoveItIKSolver(moveit::core::RobotModelConstPtr model,
                                                      const std::string& planning_group, double dist_threshold,
                                                      std::string collision_mesh_filename,
-                                                     std::string collision_mesh_frame,
                                                      std::vector<std::string> touch_links, double dt)
-  : MoveItIKSolver(model, planning_group, dist_threshold, collision_mesh_filename, collision_mesh_frame, touch_links)
-  , dt_(dt)
+  : MoveItIKSolver(model, planning_group, dist_threshold, collision_mesh_filename, touch_links), dt_(dt)
 {
 }
 
@@ -157,7 +148,6 @@ reach::IKSolver::ConstPtr DiscretizedMoveItIKSolverFactory::create(const YAML::N
   auto planning_group = reach::get<std::string>(config, "planning_group");
   auto dist_threshold = reach::get<double>(config, "distance_threshold");
   auto collision_mesh_filename = reach::get<std::string>(config, "collision_mesh_filename");
-  auto collision_mesh_frame = reach::get<std::string>(config, "collision_mesh_frame");
   auto touch_links = reach::get<std::vector<std::string>>(config, "touch_links");
 
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
@@ -173,7 +163,7 @@ reach::IKSolver::ConstPtr DiscretizedMoveItIKSolverFactory::create(const YAML::N
   dt = clamped_dt;
 
   return std::make_shared<DiscretizedMoveItIKSolver>(model, planning_group, dist_threshold, collision_mesh_filename,
-                                                     collision_mesh_frame, touch_links, dt);
+                                                     touch_links, dt);
 }
 
 }  // namespace ik

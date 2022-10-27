@@ -31,23 +31,17 @@ namespace moveit_reach_plugins
 namespace display
 {
 MoveItReachDisplay::MoveItReachDisplay(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
-                                       std::string collision_mesh_filename, std::string collision_mesh_frame,
-                                       double marker_scale)
+                                       std::string collision_mesh_filename, double marker_scale)
   : model_(model)
   , jmg_(model_->getJointModelGroup(planning_group))
   , collision_mesh_filename_(std::move(collision_mesh_filename))
-  , collision_mesh_frame_(std::move(collision_mesh_frame))
   , marker_scale_(marker_scale)
   , scene_(new planning_scene::PlanningScene(model_))
 {
-  // Check that the input collision mesh frame exists
-  if (!scene_->knowsFrameTransform(collision_mesh_frame_))
-    throw std::runtime_error("Specified collision mesh frame '" + collision_mesh_frame_ + "' does not exist");
-
   // Add the collision object to the planning scene
   const std::string object_name = "reach_object";
   moveit_msgs::CollisionObject obj =
-      utils::createCollisionObject(collision_mesh_filename_, collision_mesh_frame_, object_name);
+      utils::createCollisionObject(collision_mesh_filename_, jmg_->getSolverInstance()->getBaseFrame(), object_name);
   if (!scene_->processCollisionObjectMsg(obj))
     throw std::runtime_error("Failed to add collision mesh to planning scene");
 
@@ -93,7 +87,8 @@ void MoveItReachDisplay::showReachNeighborhood(const std::vector<reach::ReachRec
     }
 
     // Create points marker, publish it, and move robot to result state for  given point
-    visualization_msgs::Marker pt_marker = utils::makeMarker(pt_array, collision_mesh_frame_, marker_scale_);
+    visualization_msgs::Marker pt_marker =
+        utils::makeMarker(pt_array, jmg_->getSolverInstance()->getBaseFrame(), marker_scale_);
     neighbors_pub_.publish(pt_marker);
   }
 }
@@ -102,15 +97,13 @@ reach::Display::ConstPtr MoveItReachDisplayFactory::create(const YAML::Node& con
 {
   auto planning_group = reach::get<std::string>(config, "planning_group");
   auto collision_mesh_filename = reach::get<std::string>(config, "collision_mesh_filename");
-  auto collision_mesh_frame = reach::get<std::string>(config, "collision_mesh_frame");
   auto marker_scale = reach::get<double>(config, "marker_scale");
 
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
-  return std::make_shared<MoveItReachDisplay>(model, planning_group, collision_mesh_filename, collision_mesh_frame,
-                                              marker_scale);
+  return std::make_shared<MoveItReachDisplay>(model, planning_group, collision_mesh_filename, marker_scale);
 }
 
 }  // namespace display

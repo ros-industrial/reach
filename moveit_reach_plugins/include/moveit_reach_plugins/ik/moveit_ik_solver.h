@@ -44,8 +44,7 @@ class MoveItIKSolver : public reach::IKSolver
 {
 public:
   MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group, double dist_threshold,
-                 std::string collision_mesh_filename, std::string collision_mesh_frame,
-                 std::vector<std::string> touch_links);
+                 std::string collision_mesh_filename, std::vector<std::string> touch_links);
 
   std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                            const std::map<std::string, double>& seed) const override;
@@ -60,7 +59,6 @@ protected:
   const moveit::core::JointModelGroup* jmg_;
   const double distance_threshold_;
   const std::string collision_mesh_filename_;
-  const std::string collision_mesh_frame_;
   const std::vector<std::string> touch_links_;
 
   planning_scene::PlanningScenePtr scene_;
@@ -76,7 +74,7 @@ class DiscretizedMoveItIKSolver : public MoveItIKSolver
 public:
   DiscretizedMoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
                             double dist_threshold, std::string collision_mesh_filename,
-                            std::string collision_mesh_frame, std::vector<std::string> touch_links, double dt);
+                            std::vector<std::string> touch_links, double dt);
 
   std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                            const std::map<std::string, double>& seed) const override;

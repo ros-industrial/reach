@@ -44,7 +44,7 @@ class DistancePenaltyMoveIt : public reach::Evaluator
 public:
   DistancePenaltyMoveIt(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
                         const double dist_threshold, int exponent, std::string collision_mesh_filename,
-                        std::string collision_mesh_frame, std::vector<std::string> touch_links);
+                        std::vector<std::string> touch_links);
   double calculateScore(const std::map<std::string, double>& pose) const override;
 
 private:
@@ -53,7 +53,6 @@ private:
   const double dist_threshold_;
   const int exponent_;
   const std::string collision_mesh_filename_;
-  const std::string collision_mesh_frame_;
   const std::vector<std::string> touch_links_;
 
   planning_scene::PlanningScenePtr scene_;

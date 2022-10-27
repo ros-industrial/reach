@@ -44,7 +44,7 @@ class MoveItReachDisplay : public reach::Display
 {
 public:
   MoveItReachDisplay(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
-                     std::string collision_mesh_filename, std::string collision_mesh_frame, double marker_scale);
+                     std::string collision_mesh_filename, double marker_scale);
 
   void showEnvironment() const override;
   void updateRobotPose(const std::map<std::string, double>& pose) const override;
@@ -55,7 +55,6 @@ private:
   moveit::core::RobotModelConstPtr model_;
   const moveit::core::JointModelGroup* jmg_;
   const std::string collision_mesh_filename_;
-  const std::string collision_mesh_frame_;
   const double marker_scale_;
 
   planning_scene::PlanningScenePtr scene_;
