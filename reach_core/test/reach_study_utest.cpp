@@ -1,14 +1,15 @@
 #include <reach_core/reach_study.h>
 #include <reach_core/utils.h>
+#include <reach_core/reach_study_comparison.h>
 
 #include <boost/filesystem.hpp>
 #include <gtest/gtest.h>
 #include <random>
 #include <yaml-cpp/yaml.h>
 
-reach::ReachDatabase createDatabase()
+reach::ReachDatabase createDatabase(const std::string& name = "reach_study")
 {
-  reach::ReachDatabase db;
+  reach::ReachDatabase db(name);
 
   std::mt19937 rand_gen(0);
   std::uniform_real_distribution dist(-M_PI, M_PI);
@@ -53,6 +54,69 @@ TEST(ReachStudy, Serialization)
   reach::ReachDatabase load_db;
   ASSERT_NO_THROW(load_db = reach::load(filename));
   ASSERT_EQ(db, load_db);
+}
+
+TEST(ReachStudy, Comparison)
+{
+  const reach::ReachDatabase a = createDatabase("a");
+  reach::ReachDatabase b = a;
+  b.name = "b";
+  const std::vector<std::string> studies = { "a", "b" };
+
+  std::size_t n_reachable =
+      std::count_if(a.begin(), a.end(),
+                    [](const std::pair<const std::string, reach::ReachRecord>& pair) { return pair.second.reached; });
+
+  // a == b
+  {
+    reach::ComparisonResult result = reach::compareDatabases({ a, b });
+
+    // Check that all records are reachable by in both databases
+    std::vector<std::string> reachable_rec_ids = result.getReachability(studies);
+    ASSERT_EQ(reachable_rec_ids.size(), n_reachable);
+
+    // Check that the descriptor returned for each target
+    for (const std::string& id : reachable_rec_ids)
+    {
+      std::string descriptor = result.getReachabilityDescriptor(id);
+      ASSERT_EQ(descriptor, "all");
+
+      std::vector<std::string> reachable_dbs = result.getReachability(id);
+      ASSERT_TRUE(std::equal(studies.begin(), studies.end(), reachable_dbs.begin()));
+    }
+  }
+
+  // a is opposite of b
+  std::for_each(b.begin(), b.end(), [](std::pair<const std::string, reach::ReachRecord>& pair) {
+    pair.second.reached = !pair.second.reached;
+  });
+
+  {
+    reach::ComparisonResult result = reach::compareDatabases({ a, b });
+
+    // Check that no records are reachable by both databases
+    std::vector<std::string> reachable_rec_ids = result.getReachability(studies);
+    ASSERT_EQ(reachable_rec_ids.size(), 0);
+
+    // Check that the descriptor returned for each target
+    for (auto it = a.begin(); it != a.end(); ++it)
+    {
+      std::vector<std::string> reachable_dbs = result.getReachability(it->first);
+      ASSERT_EQ(reachable_dbs.size(), 1);
+
+      std::string descriptor = result.getReachabilityDescriptor(it->first);
+      if (it->second.reached)
+      {
+        ASSERT_EQ(descriptor, "a");
+        ASSERT_EQ(reachable_dbs.front(), "a");
+      }
+      else
+      {
+        ASSERT_EQ(descriptor, "b");
+        ASSERT_EQ(reachable_dbs.front(), "b");
+      }
+    }
+  }
 }
 
 int main(int argc, char** argv)
