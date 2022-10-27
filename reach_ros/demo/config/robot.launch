@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- Load universal robot description format (URDF) -->
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find reach_ros)/demo/model/reach_study.xacro'" />
+
+  <!-- The semantic description that corresponds to the URDF -->
+  <param name="robot_description_semantic" textfile="$(find reach_ros)/demo/model/reach_study.srdf" />
+
+  <!-- Load updated joint limits (override information from URDF) -->
+  <group ns="robot_description_planning">
+    <rosparam command="load" file="$(find reach_ros)/demo/model/motoman_sia20d/config/joint_limits.yaml"/>
+  </group>
+
+  <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
+  <group ns="robot_description_kinematics">
+    <rosparam command="load" file="$(find reach_ros)/demo/model/motoman_sia20d/config/kinematics.yaml"/>
+  </group>
+
+</launch>

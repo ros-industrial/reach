@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<launch>
+    <arg name="rviz" default="true" doc="Launch Rviz"/>
+    <arg name="robot" doc="Launch file that loads URDF, SRDF, and other kinematics-related parameters"/>
+
+    <include file="$(arg robot)"/>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find reach_ros)/launch/reach_study_config.rviz" if="$(arg rviz)"/>
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+</launch>
