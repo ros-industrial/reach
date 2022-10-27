@@ -72,7 +72,7 @@ void ReachStudy::run()
 #pragma omp parallel for num_threads(std::thread::hardware_concurrency())
   for (std::size_t i = 0; i < target_poses_.size(); ++i)
   {
-    const Eigen::Isometry3d& tgt_frame = target_poses_[i];
+    const Eigen::Isometry3d& tgt_frame = target_poses_[i] * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX());
 
     // Get the seed position
     const std::vector<std::string> joint_names = ik_solver_->getJointNames();
