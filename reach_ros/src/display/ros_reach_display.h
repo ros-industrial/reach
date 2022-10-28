@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef REACH_ROS_MOVEIT_REACH_DISPLAY_H
-#define REACH_ROS_MOVEIT_REACH_DISPLAY_H
+#ifndef REACH_ROS_ROS_REACH_DISPLAY_H
+#define REACH_ROS_ROS_REACH_DISPLAY_H
 
 #include <reach_core/interfaces/display.h>
 
@@ -22,31 +22,14 @@
 #include <ros/node_handle.h>
 #include <ros/publisher.h>
 
-namespace moveit
-{
-namespace core
-{
-class RobotModel;
-typedef std::shared_ptr<const RobotModel> RobotModelConstPtr;
-class JointModelGroup;
-}  // namespace core
-}  // namespace moveit
-
-namespace planning_scene
-{
-class PlanningScene;
-typedef std::shared_ptr<PlanningScene> PlanningScenePtr;
-}  // namespace planning_scene
-
 namespace reach_ros
 {
 namespace display
 {
-class MoveItReachDisplay : public reach::Display
+class ROSReachDisplay : public reach::Display
 {
 public:
-  MoveItReachDisplay(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
-                     std::string collision_mesh_filename, double marker_scale);
+  ROSReachDisplay(std::string kinematic_base_frame, std::string collision_mesh_filename, double marker_scale);
 
   void showEnvironment() const override;
   void updateRobotPose(const std::map<std::string, double>& pose) const override;
@@ -54,21 +37,19 @@ public:
   void showReachNeighborhood(const std::vector<reach::ReachRecord>& neighborhood) const override;
 
 private:
-  moveit::core::RobotModelConstPtr model_;
-  const moveit::core::JointModelGroup* jmg_;
-  const std::string collision_mesh_filename_;
+  const std::string kinematic_base_frame_;
   const double marker_scale_;
-
-  planning_scene::PlanningScenePtr scene_;
+  visualization_msgs::Marker collision_mesh_marker_;
 
   // ROS comoponents
   ros::NodeHandle nh_;
-  ros::Publisher scene_pub_;
+  ros::Publisher joint_state_pub_;
+  ros::Publisher mesh_pub_;
   ros::Publisher neighbors_pub_;
   mutable interactive_markers::InteractiveMarkerServer server_;
 };
 
-struct MoveItReachDisplayFactory : public reach::DisplayFactory
+struct ROSReachDisplayFactory : public reach::DisplayFactory
 {
   reach::Display::ConstPtr create(const YAML::Node& config) const override;
 };
@@ -76,4 +57,4 @@ struct MoveItReachDisplayFactory : public reach::DisplayFactory
 }  // namespace display
 }  // namespace reach_ros
 
-#endif  // REACH_ROS_MOVEIT_REACH_DISPLAY_H
+#endif  // REACH_ROS_ROS_REACH_DISPLAY_H

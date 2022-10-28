@@ -23,10 +23,9 @@ evaluator:
       touch_links: []
 
 display:
-  name: MoveItReachDisplay
-  planning_group: manipulator
+  name: ROSReachDisplay
   collision_mesh_filename: package://reach_ros/demo/config/part.ply
-  fixed_frame: base_link
+  kinematic_base_frame: base_link
   marker_scale: 0.05
 
 target_pose_generator:
