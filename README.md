@@ -16,89 +16,115 @@
 
 ![Reach Study Heat Map][2]
 
-## Description
+## Table of Contents
+- [Description](#Description)
+- [Installation](#Installation)
+- [Demo](#Demo)
+- [Usage](#Usage)
+- [Tips](#Tips)
 
+## Description
 The REACH repository is a tool that allows users to visualize and quantitatively evaluate the reach capability of a robot system for a given workpiece.
 See the ROSCon 2019 [presentation](docs/roscon2019_presentation.pdf) and [video](https://vimeo.com/378683038) for a more detailed explanation of the reach study concept and approach.
 
-The framework for the reach study process is outlined in the diagram below:
+### Structure
+`reach_core` is a ROS-independent package that provides the framework for the reach study process, defined in the diagram below:
 
 ![Reach Study Flow Diagram][3]
 
-## Installation
+The `reach_core` package also provides the interface definition for the required reach study functions:
 
+1. [`TargetPoseGenerator`](reach_core/include/reach_core/interfaces/target_pose_generator.h)
+    - Generates Cartesian target poses that the robot should attempt to reach during the reach study
+    - These target poses are expected to be relative to the kinematic base frame of the robot
+    - The z-axis of the target poses is expected to oppose the z-axis of the robot kinematic tip frame
+1. [`IKSolver`](reach_core/include/reach_core/interfaces/ik_solver.h)
+    - Calculates the inverse kinematics solution for the robot at an input 6 degree-of-freedom Cartesian target
+1. [`Evaluator`](reach_core/include/reach_core/interfaces/evaluator.h)
+    - Calculates a numerical "fitness" score of an IK solution (i.e., robot joint pose) at a given Cartesian target pose
+    - Higher values indicate better reachability
+    - Example numerical measures of reachability include manipulability, distance from closest collision, etc.
+1. [`Display`](reach_core/include/reach_core/interfaces/display.h)
+    - Visualizes the robot/reach study environment, target Cartesian poses, IK solutions, and reach study results
+1. [`Logger`](reach_core/include/reach_core/interfaces/logger.h)
+    - Logs messages about the status and progress of the reach study
+
+### Plugins
+The interfaces described above are exposed as plugins using the [`boost_plugin_loader` library](https://github.com/tesseract-robotics/boost_plugin_loader) to support custom implementations.
+
+Several default and dummy plugins have been created in the `reach_core` package.
+Many other ROS1-based plugins have been implemented in the [`reach_ros`](reach_ros) package.
+All of the plugins built in this project are discovered automatically by the plugin loader without additional manual steps.
+
+The plugin loader class finds plugin libraries using two environment variables:
+  - `LD_LIBRARY_PATH`
+    - The plugin loader searches for libraries containing plugins within the directories defined in the `LD_LIBRARY_PATH` environment variable.
+    - When using a ROS-based build tool such as `catkin` or `colcon` this variable is set automatically to include both system level and workspace level folders by sourcing `<devel|install>/setup.bash`
+  - `REACH_PLUGINS`:
+    - The plugin loader then looks for libraries with names defined by the environment variable `REACH_PLUGINS` within the directories specified by the environment variable `LD_LIBRARY_PATH`.
+    - The names of these libraries should not include a prefix (e.g., `lib`) or a suffix (e.g., `.so`) and should be separated by a colon (`:`).
+    - **This variable must be set manually to specify plugin libraries not built in this project**
+
+If custom libraries created outside this project (for example `libmy_custom_reach_plugins.so` and `libcool_reach_plugins.so`) contain REACH plugins, make those plugin libraries visible to the plugin loader by setting the `REACH_PLUGINS` environment variable as follows:
+``` bash
+export REACH_PLUGINS=my_custom_reach_plugins:cool_reach_plugins
 ```
+
+## Installation
+Nominally, the `reach_core` package is ROS-independent, but it is convenient to use the ROS1 dependency management and build tools to build the package, as well as the `reach_ros` package.
+
+First, clone the repository into a `catkin` workspace
+``` bash
 cd ~/catkin_ws/src
 git clone https://github.com/ros-industrial/reach.git
 cd ..
+```
+
+Install the dependencies
+``` bash
+vcs import src < src/reach/dependencies.repos
 rosdep install --from-paths src --ignore-src -r -y
+```
+
+Build the repository
+```
 catkin build
 ```
 
 ## Demo
-
-A simple demonstration of the capability of this repository is provided in the `reach_demo` package.
-See the [instructions](reach_demo/README.md) for details on how to run the demo.
+A simple demonstration of the capability of this repository is provided in the `reach_ros` package.
+See the [instructions](reach_ros/demo/README.md) for details on how to run the demo.
 
 ## Usage
+Use the following steps to run a reach study with a robot using the ROS1 infrastructure and plugins.
 
 1. Create a URDF of your robot system
-1. Create a launch file to load the URDF, SRDF, and other required parameters (e.g. related to kinematics, joint, limits) to the parameter server
+1. Create a launch file to load the URDF, SRDF, and other required parameters (e.g. related to kinematics, joint, limits) to the parameter server (see [this demo example file](reach_ros/demo/config/robot.launch))
 1. Create a mesh model of the workpiece
+    > Note: the origin of this model should align with the kinematic base frame of the robot
 1. Create a point cloud of the target points on the workpiece
     - This point cloud can be generated using a command line tool from PCL 1.8:
       ```
       pcl_mesh_sampling <workpiece_mesh>.ply <output_cloud>.pcd -n_samples <number of samples> -leaf_size <leaf_size> -write_normals true
       ```
-1. Create a configuration YAML file (see example in config directory)
+1. Create a configuration YAML file defining the parameters of the reach study and the configuration of the interface plugins (see [this demo example](reach_ros/demo/config/params.yaml))
 1. Run the setup launch file
     ```
-    roslaunch reach_core setup.launch robot:=<load_robot_parameters>.launch
+    roslaunch reach_ros setup.launch robot:=<load_robot_parameters>.launch
     ```
 1. Run the reach study analysis
     ```
-    roslaunch reach_core start.launch config_file:=<config_file.yaml> config_name:=<arbitrary_config>
+    roslaunch reach_ros start.launch config_file:=<config_file.yaml> config_name:=<arbitrary_config>
     ```
 
-The algorithm searches for alignment of the TCP Z-axis with the pointcloud normals.
+## Tips
+1. Ensure the object mesh and reach target position scales match and are correct (visualize in `rviz`). It is common to be off by a factor of 1000.
+1. If a set of robot links are allowed to collide with the mesh, add their names to the `touch_links` field of the `MoveItIKSolver` plugin in the reach study configuration file.
+1. The selection of IK solver is key to the performance of the reach study. Gradient-based solvers (such as KDL and TRAC-IK) are typically good choices.
+    - Additional constraints (or lack thereof, such as orientation freedom about the tool z-axis) can also be incorporated into the IK solver (via parameters or source code changes) to produce different reach study results
+    - For `MoveIt`-based plugins, the selection of IK solver is defined in the `kinematics.yaml` file
+1. Reach study results are serialized to file and can be loaded using the API in `reach_core` for programmatic analysis or modification
 
-## Hints
-
-1. Ensure the object mesh scale and the point cloud scale match and are correct in RViz. It is common to be off by a factor of 1000.
-1. If it is OK for a robot link to collide with the mesh, add the link to "touch_links" fields in the config file.
-1. A different IK solver may yield better results than the default. A good choice is TracIK. Typically this is configured in kinematics.yaml.
-1. reach_core has some options for programmatically querying the reachability database.
-
-## Architecture and Interfaces
-
-The package is comprised of several packages:
-- `reach_msgs`
-  - Message definitions for the reach study
-- `reach_core`
-  - Core code to operate the reach study
-  - Interfaces for plugins
-    - Inverse kinematics solver
-    - Robot pose evaluator
-    - Reach Display
-- `moveit_reach_plugins`
-  - Implementations of the plugin interfaces built on the MoveIt! planning framework
-
-The REACH core package also provides the interface definition for the required reach study functions:
-
-1. Robot Pose Evaluator
-    - Calculates a numerical score for an input robot pose
-    - Example numerical measures of reachability
-      - Robot manipulability
-      - Distance from closest collision
-1. Inverse Kinematics Solver
-    - Calculates the inverse kinematics solution for the robot at an input 6 degree-of-freedom Cartesian target
-    - Contains an evaluator interface to assign a value to the resulting IK solution
-1. Reach Display
-    - Provides interactive markers for the target positions to display reachability status and visualize the robot goal and seed poses at those targets
-
-These interfaces can be implemented as custom plugins to provide application-specific behavior.
-Provided plugin implementations can be found in the [`moveit_reach_plugins` package](moveit_reach_plugins).
-
-[1]: docs/reach_study.png
-[2]: docs/heat_map_colorized_mesh.png
-[3]: docs/reach_study_flow_diagram.png
+[1]: reach_core/docs/reach_study.png
+[2]: reach_core/docs/heat_map_colorized_mesh.png
+[3]: reach_core/docs/reach_study_flow_diagram.png

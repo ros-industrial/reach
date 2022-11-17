@@ -8,8 +8,8 @@ This package provides a demonstration of the REACH capability for an arbitrary r
 
 Run the demo and view the pre-calculated results:
 ```
-roslaunch reach_core setup.launch robot:=`rospack find reach_ros`/launch/robot.launch
-roslaunch reach_core start.launch config_file:=`rospack find reach_ros`/config/params.yaml config_name:=reach_study
+roslaunch reach_ros setup.launch robot:=`rospack find reach_ros`/launch/robot.launch
+roslaunch reach_ros start.launch config_file:=`rospack find reach_ros`/config/params.yaml config_name:=reach_study
 ```
 
 > Note: the `config_name` parameter controls the name of the folder in which results are saved. By providing a name that already exists in the results

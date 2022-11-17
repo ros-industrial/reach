@@ -1,6 +1,6 @@
-# MoveIt! REACH Plugins
+# REACH ROS Plugins
 
-This package contains the plugin implemenations of REACH kinematics, evaluation, and display interfaces
+This package contains the ROS1-based plugin implemenations of REACH kinematics, evaluation, and display interfaces
 
 ## Evaluation Plugins
 
@@ -60,8 +60,6 @@ Parameters:
 - **`collision_mesh_filename`**
   - The filename (in ROS package URI format) of the reach object mesh to be used to do collision checking
   - Example: `package://<your_package>/<folder>/<filename>.stl
-- **`collision_mesh_frame`**
-  - The name of the TF frame in which the collision mesh of the reach object should be placed
 - **`touch_links`**
   - The names of the robot links with which the reach object mesh is allowed to collide
 - **`exponent`**
@@ -92,8 +90,6 @@ Parameters:
   set to 0.1m, then IK solutions whose distance to nearest collision is less than 0.1m will be invalidated
 - **`collision_mesh_filename`**
   - The file path to the collision mesh model of the workpiece, in the `package://` or 'file://' URI format
-- **`collision_mesh_frame`**
-  - The TF frame of reference of the collision mesh
 - **`touch_links`**
   - The TF links that are allowed to be in contact with the collision mesh
 - **`evaluation_plugin`**
@@ -113,8 +109,6 @@ Parameters:
   set to 0.1m, then IK solutions whose distance to nearest collision is less than 0.1m will be invalidated
 - **`collision_mesh_filename`**
   - The file path to the collision mesh model of the workpiece, in the `package://` or 'file://' URI format
-- **`collision_mesh_frame`**
-  - The TF frame of reference of the collision mesh
 - **`touch_links`**
   - The TF links that are allowed to be in contact with the collision mesh
 - **`evaluation_plugin`**
@@ -124,19 +118,15 @@ Parameters:
 
 ## Display Plugins
 
-### MoveIt! Reach Display
+### ROS Reach Display
 
-This plugin uses the MoveIt! planning environment framework to display the results of the reach study
+This plugin publishes joint state and visualization markers to display the results of the reach study
 
 Parameters:
 
-- **`planning_group`**
-  - Name of the planning group
 - **`collision_mesh_filename`**
   - The file path to the collision mesh model of the workpiece, in the `package://` or 'file://' URI format
-- **`collision_mesh_frame`**
-  - The TF frame of reference of the collision mesh
-- **`fixed_frame`**
-  - The fixed TF frame in which to display the interactive markers
+- **`kinematic_base_frame`**
+  - The base frame of the kinematic tree in which to display the interactive markers
 - **`marker_scale`**
   - The length (in meters) of the arrow markers representing the target Cartesian points
