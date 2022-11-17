@@ -104,6 +104,6 @@ struct PointCloudTargetPoseGeneratorFactory : public TargetPoseGeneratorFactory
   }
 };
 
-} // namespace reach
+}  // namespace reach
 
 EXPORT_TARGET_POSE_GENERATOR_PLUGIN(reach::PointCloudTargetPoseGeneratorFactory, PointCloudTargetPoseGenerator)

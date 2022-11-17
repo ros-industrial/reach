@@ -16,12 +16,6 @@
 #ifndef REACH_CORE_REACH_DATABASE_H
 #define REACH_CORE_REACH_DATABASE_H
 
-//#include <boost/multi_index_container.hpp>
-//#include <boost/multi_index/sequenced_index.hpp>
-//#include <boost/multi_index/ordered_index.hpp>
-//#include <boost/multi_index/indexed_by.hpp>
-//#include <boost/multi_index/member.hpp>
-
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/string.hpp>
@@ -31,17 +25,7 @@
 
 namespace reach
 {
-//namespace bmi = boost::multi_index;
-
-//typedef std::pair<std::string, double> Joint;
-//typedef bmi::multi_index_container<
-//    Joint, bmi::indexed_by<bmi::sequenced<>, bmi::ordered_unique<bmi::member<Joint, std::string, &Joint::first>>>>
-//    JointState;
-///** @brief Typedef for accessing the joint container as a sequenced list */
-//typedef bmi::nth_index<JointState, 0>::type JointStateList;
-///** @brief Typedef for accessing the joint container as a map-style structure */
-//typedef bmi::nth_index<JointState, 1>::type JointStateMap;
-
+/** @brief Reachability data for a single target Cartesian pose */
 class ReachRecord
 {
 public:
@@ -52,11 +36,22 @@ public:
 
   bool operator==(const ReachRecord& rhs) const;
 
+  /** @brief Unique name for the target pose */
   std::string id;
+
+  /** @brief Boolean flag indicating whether the target pose was reachable */
   bool reached;
+
+  /** @brief Cartesian pose of the target */
   Eigen::Isometry3d goal;
+
+  /** @brief Seed state used for the IK solver at this target pose */
   std::map<std::string, double> seed_state;
+
+  /** @brief Robot pose (i.e., IK solution) used to reach this target pose */
   std::map<std::string, double> goal_state;
+
+  /** @brief Reachability score associated with this target pose */
   double score;
 
 private:
@@ -75,13 +70,26 @@ private:
 };
 
 /**
- * @brief The StudyResults struct
+ * @brief Container for the results of a reach study
  */
 class StudyResults
 {
 public:
+  /**
+   * @brief The total pose score for all reachable points
+   * @details This score is generally only significant relative to the score of a different reach study using the same
+   * geometry and target points
+   */
   float total_pose_score = 0.0f;
+
+  /**
+   * @brief The total pose score for all reachable points divided by the percentage of reachable points
+   * @details This score represents the possible score if all points could be made reachable (e.g., by modifying the
+   * robot geometry, etc.)
+   */
   float norm_total_pose_score = 0.0f;
+
+  /** @brief The percentage of all attempted target poses that were reachable */
   float reach_percentage = 0.0f;
 
   inline std::string print() const
@@ -97,16 +105,7 @@ public:
 };
 
 /**
- * @brief The Database class stores information about the robot pose for all of the attempted target poses. The database
- * also saves several key meta-results of the reach study:
- *  - reach_percentage: the percentage of all attempted poses that were reachable
- *  - avg_score: the average pose score for all reachable points (only significant relative to the score of a different
- * reach study)
- *  - norm_avg_score: average pose score divided by the reach percentage
- *  - avg_neighbors: average number of reachable neighbors from any given reachable pose (correlated with the size of
- * the robot's work area from a given pose, assuming the poses on the reach object are evenly distributed)
- *  - avg_joint_distance: average joint distance required to travel to all of any given pose's reachable neighbors
- * (indicative of the robot's ease of movement or "efficiency" moving from one pose to a neighboring pose
+ * @brief Container to store information about the robot poses for all of the attempted target poses
  */
 class ReachDatabase
 {

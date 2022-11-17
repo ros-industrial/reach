@@ -28,7 +28,7 @@ class Node;
 namespace reach
 {
 /**
- * @brief The Evaluator class
+ * @brief Interface for evaluating the "fitness" of a robot joint pose (i.e., IK solution)
  */
 struct Evaluator
 {
@@ -39,13 +39,15 @@ struct Evaluator
   virtual ~Evaluator() = default;
 
   /**
-   * @brief calculateScore
-   * @param pose
-   * @return
+   * @brief Calculates a score representing the "fitness" (i.e., quality of reachability) for a given robot pose.
+   * @details The better the reachability of the pose, the higher the score should be.
    */
   virtual double calculateScore(const std::map<std::string, double>& pose) const = 0;
 };
 
+/**
+ * @brief Plugin interface for generating evaluator interfaces
+ */
 struct EvaluatorFactory
 {
   using Ptr = std::shared_ptr<EvaluatorFactory>;

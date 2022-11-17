@@ -29,7 +29,7 @@ class Node;
 namespace reach
 {
 /**
- * @brief Base class solving IK at a given reach study location
+ * @brief Interface for solving inverse kinematics
  */
 struct IKSolver
 {
@@ -40,12 +40,15 @@ public:
   IKSolver() = default;
   virtual ~IKSolver() = default;
 
+  /** @brief Returns the joint names of the robot */
   virtual std::vector<std::string> getJointNames() const = 0;
 
+  /** @brief Solves IK for a given target pose and seed state */
   virtual std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                                    const std::map<std::string, double>& seed) const = 0;
 };
 
+/** @brief Plugin interface for generating IK solver interfaces */
 struct IKSolverFactory
 {
   using Ptr = std::shared_ptr<IKSolverFactory>;

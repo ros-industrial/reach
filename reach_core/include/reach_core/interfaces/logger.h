@@ -14,6 +14,7 @@ namespace reach
 {
 class StudyResults;
 
+/** @brief Interface for logging reach study status and progress */
 struct Logger
 {
   using Ptr = std::shared_ptr<Logger>;
@@ -27,6 +28,7 @@ struct Logger
   virtual void print(const std::string& message) const = 0;
 };
 
+/** @brief Plugin interface for generating logger interfaces */
 struct LoggerFactory
 {
   using Ptr = std::shared_ptr<LoggerFactory>;

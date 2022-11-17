@@ -28,7 +28,7 @@
 namespace reach
 {
 /**
- * @brief The ReachStudy class
+ * @brief Class for performing reachability analysis
  */
 class ReachStudy
 {
@@ -44,14 +44,39 @@ public:
              Display::ConstPtr display, Logger::ConstPtr logger, const Parameters params,
              const std::string& study_name);
 
+  /** @brief Loads the results of a reach study from file */
   void load(const std::string& filename);
+
+  /** @brief Runs the first iteration of the reach study process */
   void run();
+
+  /** @brief Runs successive iterations of the reach study process */
   void optimize();
+
+  /** @brief Saves the results of the reach study to a file */
   void save(const std::string& filename) const;
 
   StudyResults getResults() const;
   ReachDatabase::ConstPtr getDatabase() const;
 
+  /**
+   * @brief Finds the average number of neighbors that are "recursively" reachable from each target pose and the average
+   * joint distance of the set of neighbors from each target pose
+   *
+   * @details Finding the "recursive" reachability from a given target pose means:
+   *   1. Identifying the neighbors of the target pose within a given radius (defined by a reach study parameter)
+   *   2. For each neighbor, attempt to solve IK for that neighbor using the IK solution of the original pose as the IK
+   * seed
+   *   3. If the neighbor is reachable, repeat this process using the neighbor as the source pose. Continue until a
+   * source pose has no more reachable neighbors
+   *
+   * The result of this function can be a proxy for the motion planning ability of a robot. The larger the average
+   * number of neighbors and greater the average joint distance to those neighbors, the further the robot will be able
+   * to travel away from a given starting location while maintaining a consistent IK configuration.
+   *
+   * @return tuple, where the first element is the average number of neighbors that is "recursively" reachable from each
+   * target pose, and the second element is the average joint distance between the set of neighbors and the target pose
+   */
   std::tuple<double, double> getAverageNeighborsCount() const;
 
 private:

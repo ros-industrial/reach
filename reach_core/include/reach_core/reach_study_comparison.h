@@ -36,4 +36,4 @@ protected:
 ComparisonResult compareDatabases(const std::vector<std::string>& db_files);
 ComparisonResult compareDatabases(const std::vector<ReachDatabase>& dbs);
 
-} // namespace reach
+}  // namespace reach

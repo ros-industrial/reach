@@ -165,4 +165,4 @@ ComparisonResult compareDatabases(const std::vector<ReachDatabase>& dbs)
   return ComparisonResult(db_names, reachability_mask_map);
 }
 
-} // namespace reach
+}  // namespace reach

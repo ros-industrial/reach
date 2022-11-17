@@ -85,10 +85,11 @@ void ReachStudy::run()
       double score;
       std::tie(solution, score) = evaluateIK(tgt_frame, seed_state, ik_solver_, evaluator_);
 
-      ReachRecord msg(std::to_string(i), true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution), score);
+      ReachRecord msg(std::to_string(i), true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution),
+                      score);
       db_->put(msg);
     }
-    catch(const std::exception&)
+    catch (const std::exception&)
     {
       ReachRecord msg(std::to_string(i), false, tgt_frame, seed_state, seed_state, 0.0);
       db_->put(msg);

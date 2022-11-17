@@ -27,6 +27,9 @@ class Node;
 
 namespace reach
 {
+/**
+ * @brief Interface for displaying the state and results of a reach study
+ */
 struct Display
 {
   using Ptr = std::shared_ptr<Display>;
@@ -35,13 +38,25 @@ struct Display
   Display() = default;
   virtual ~Display() = default;
 
+  /** @brief Visualizes the geometry of the robot and its environment in the reach study */
   virtual void showEnvironment() const = 0;
+
+  /**
+   * @brief Updates the visualization to show the input robot pose
+   * @param pose map of joint names to joint values
+   */
   virtual void updateRobotPose(const std::map<std::string, double>& pose) const = 0;
+
+  /** @brief Visualizes a collection of points that are reachable */
   virtual void showReachNeighborhood(const std::vector<ReachRecord>& neighborhood) const = 0;
+
+  /** @brief Visualizes the results of a reach study */
   virtual void showResults(const ReachDatabase& db) const = 0;
-  //  virtual void compareDatabases(const std::map<std::string, ReachDatabase>& dbs) const = 0;
 };
 
+/**
+ * @brief Plugin interface for creating display interfaces
+ */
 struct DisplayFactory
 {
   using Ptr = std::shared_ptr<DisplayFactory>;

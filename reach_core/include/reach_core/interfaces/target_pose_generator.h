@@ -14,14 +14,21 @@ namespace reach
 {
 using VectorIsometry3d = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>>;
 
+/** @brief Interface for generating Cartesian target poses for the reach study */
 struct TargetPoseGenerator
 {
   using Ptr = std::shared_ptr<TargetPoseGenerator>;
   using ConstPtr = std::shared_ptr<const TargetPoseGenerator>;
 
+  /**
+   * @brief Creates a list of Cartesian target poses for the reach study
+   * @details The Cartesian poses should be relative to the robot kinematic base frame, and the pose z-axis should
+   * oppose the orientation of the robot tool z-axis
+   */
   virtual VectorIsometry3d generate() const = 0;
 };
 
+/** @brief Plugin interface for creating target pose generator interfaces */
 struct TargetPoseGeneratorFactory
 {
   using Ptr = std::shared_ptr<TargetPoseGeneratorFactory>;
@@ -38,6 +45,6 @@ struct TargetPoseGeneratorFactory
   }
 };
 
-} // namepsace reach
+}  // namespace reach
 
 #endif  // REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H

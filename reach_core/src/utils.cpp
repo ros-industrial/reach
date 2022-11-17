@@ -189,7 +189,7 @@ void reachNeighborsRecursive(ReachDatabase::ConstPtr db, const ReachRecord& rec,
         //        neighbor.score = score;
 
         // Calculate the joint distance between the seed and new goal states
-        for(const auto& pair : rec.goal_state)
+        for (const auto& pair : rec.goal_state)
         {
           result.joint_distance += std::abs(neighbor.goal_state.at(pair.first) - pair.second);
         }
