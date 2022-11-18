@@ -107,7 +107,7 @@ Use the following steps to run a reach study with a robot using the ROS1 infrast
       ```
       pcl_mesh_sampling <workpiece_mesh>.ply <output_cloud>.pcd -n_samples <number of samples> -leaf_size <leaf_size> -write_normals true
       ```
-1. Create a configuration YAML file defining the parameters of the reach study and the configuration of the interface plugins (see [this demo example](reach_ros/demo/config/params.yaml))
+1. Create a configuration YAML file defining the parameters of the reach study and the configuration of the interface plugins (see [this demo example](reach_ros/demo/config/reach_study.yaml))
 1. Run the setup launch file
     ```
     roslaunch reach_ros setup.launch robot:=<load_robot_parameters>.launch

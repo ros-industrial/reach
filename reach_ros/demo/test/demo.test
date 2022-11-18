@@ -4,7 +4,7 @@
     <arg name="robot" value="$(find reach_ros)/demo/config/robot.launch"/>
   </include>
   <include file="$(find reach_ros)/launch/start.launch">
-    <arg name="config_file" value="$(find reach_ros)/demo/config/params.yaml"/>
+    <arg name="config_file" value="$(find reach_ros)/demo/config/reach_study.yaml"/>
     <arg name="config_name" value="reach_study"/>
     <arg name="results_dir" value="$(find reach_ros)/demo/results"/>
   </include>

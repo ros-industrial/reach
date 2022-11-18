@@ -8,12 +8,12 @@
 
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="robot_description_planning">
-    <rosparam command="load" file="$(find reach_ros)/demo/model/motoman_sia20d/config/joint_limits.yaml"/>
+    <rosparam command="load" file="$(find reach_ros)/demo/model/joint_limits.yaml"/>
   </group>
 
   <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
   <group ns="robot_description_kinematics">
-    <rosparam command="load" file="$(find reach_ros)/demo/model/motoman_sia20d/config/kinematics.yaml"/>
+    <rosparam command="load" file="$(find reach_ros)/demo/model/kinematics.yaml"/>
   </group>
 
 </launch>
