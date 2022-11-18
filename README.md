@@ -127,7 +127,7 @@ Use the following steps to run a reach study with a robot using the ROS1 infrast
     - For `MoveIt`-based plugins, the selection of IK solver is defined in the `kinematics.yaml` file
 1. Reach study results are serialized to file and can be loaded using the API in `reach_core` for programmatic analysis or modification
 
-[1]: reach_core/docs/reach_study.png
+[1]: docs/reach_study.png
 [2]: reach_ros/demo/docs/reach_study_demo.gif
-[3]: reach_core/docs/heat_map_colorized_mesh.png
-[4]: reach_core/docs/reach_study_flow_diagram.png
+[3]: docs/heat_map_colorized_mesh.png
+[4]: docs/reach_study_flow_diagram.png
