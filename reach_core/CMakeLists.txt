@@ -43,7 +43,8 @@ target_link_libraries(
          yaml-cpp
          boost_plugin_loader::boost_plugin_loader
          OpenMP::OpenMP_CXX)
-target_compile_definitions(${PROJECT_NAME} PUBLIC SEARCH_LIBRARIES_ENV="REACH_PLUGINS" PLUGIN_LIBRARIES="${PROJECT_NAME}_plugins:reach_ros_plugins")
+target_compile_definitions(${PROJECT_NAME} PUBLIC SEARCH_LIBRARIES_ENV="REACH_PLUGINS"
+                                                  PLUGIN_LIBRARIES="${PROJECT_NAME}_plugins:reach_ros_plugins")
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 
 # Plugins Library
@@ -91,11 +92,14 @@ install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION include/${PROJECT_NAME})
 # Package configuration
 configure_package(
   NAMESPACE reach
-  DEPENDENCIES
-    "Boost REQUIRED COMPONENTS serialization program_options"
-    "PCL REQUIRED COMPONENTS io search"
-    Eigen3
-    yaml-cpp
-    boost_plugin_loader
-    OpenMP
-  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins ${PROJECT_NAME}_app ${PROJECT_NAME}_data_loader)
+            DEPENDENCIES
+            "Boost REQUIRED COMPONENTS serialization program_options"
+            "PCL REQUIRED COMPONENTS io search"
+            Eigen3
+            yaml-cpp
+            boost_plugin_loader
+            OpenMP
+  TARGETS ${PROJECT_NAME}
+          ${PROJECT_NAME}_plugins
+          ${PROJECT_NAME}_app
+          ${PROJECT_NAME}_data_loader)

@@ -3,8 +3,4 @@ if(CATKIN_ENABLE_TESTING)
   add_rostest(test/demo.test)
 endif()
 
-install(
-  DIRECTORY config
-            model
-            results
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY config model results DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

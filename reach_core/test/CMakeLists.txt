@@ -8,7 +8,8 @@ add_gtest_discover_tests(${PROJECT_NAME}_plugin_utest)
 
 add_executable(${PROJECT_NAME}_utest reach_study_utest.cpp)
 target_link_libraries(${PROJECT_NAME}_utest PRIVATE ${PROJECT_NAME} GTest::GTest GTest::Main)
-target_compile_definitions(${PROJECT_NAME}_utest PRIVATE TEST_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/reach_study.yaml")
+target_compile_definitions(${PROJECT_NAME}_utest
+                           PRIVATE TEST_CONFIG_FILE="${CMAKE_CURRENT_SOURCE_DIR}/reach_study.yaml")
 target_cxx_version(${PROJECT_NAME}_utest PUBLIC VERSION 14)
 add_dependencies(run_tests ${PROJECT_NAME}_utest)
 add_gtest_discover_tests(${PROJECT_NAME}_utest)
