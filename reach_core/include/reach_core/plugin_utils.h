@@ -31,6 +31,14 @@ T get(const YAML::Node& config, const std::string& key)
     throw std::runtime_error(ss.str());
   }
 }
+
+/**
+ * @brief Attempts to resolve a prefix URI in a file name
+ * @detials Supported URIs are `file://` and `package://`
+ * @return The fully resolved filename
+ */
+std::string resolveURI(const std::string filename);
+
 }  // namespace reach
 
 #include <boost_plugin_loader/macros.h>
