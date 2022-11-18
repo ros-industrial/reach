@@ -1,6 +1,6 @@
 # REACH Demo
 
-![Reach Study Demo](docs/reach_study_demo.png)
+![Reach Study Demo](docs/reach_study_demo.gif)
 
 This package provides a demonstration of the REACH capability for an arbitrary robot work cell setup.
 

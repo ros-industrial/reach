@@ -14,7 +14,9 @@
 
 ![Robot Reach Study][1]
 
-![Reach Study Heat Map][2]
+![Reach Study Demo][2]
+
+![Reach Study Heat Map][3]
 
 ## Table of Contents
 - [Description](#Description)
@@ -30,7 +32,7 @@ See the ROSCon 2019 [presentation](docs/roscon2019_presentation.pdf) and [video]
 ### Structure
 `reach_core` is a ROS-independent package that provides the framework for the reach study process, defined in the diagram below:
 
-![Reach Study Flow Diagram][3]
+![Reach Study Flow Diagram][4]
 
 The `reach_core` package also provides the interface definition for the required reach study functions:
 
@@ -126,5 +128,6 @@ Use the following steps to run a reach study with a robot using the ROS1 infrast
 1. Reach study results are serialized to file and can be loaded using the API in `reach_core` for programmatic analysis or modification
 
 [1]: reach_core/docs/reach_study.png
-[2]: reach_core/docs/heat_map_colorized_mesh.png
-[3]: reach_core/docs/reach_study_flow_diagram.png
+[2]: reach_ros/demo/docs/reach_study_demo.gif
+[3]: reach_core/docs/heat_map_colorized_mesh.png
+[4]: reach_core/docs/reach_study_flow_diagram.png
