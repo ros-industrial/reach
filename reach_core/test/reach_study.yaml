@@ -11,7 +11,7 @@ evaluator:
 
 target_pose_generator:
   name: PointCloudTargetPoseGenerator
-  pcd_file: part.pcd
+  pcd_file: package://reach_core/test/part.pcd
 
 display:
   name: NoOpDisplay

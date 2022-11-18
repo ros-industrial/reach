@@ -30,7 +30,7 @@ display:
 
 target_pose_generator:
   name: PointCloudTargetPoseGenerator
-  pcd_file: /home/D10.US.SWRI.ORG/mripperger/ros/icon/src/reach/reach_ros/demo/config/part.pcd
+  pcd_file: package://reach_ros/demo/config/part.pcd
 
 logger:
   name: BoostProgressConsoleLogger

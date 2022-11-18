@@ -61,7 +61,7 @@ namespace reach
 class PointCloudTargetPoseGenerator : public TargetPoseGenerator
 {
 public:
-  PointCloudTargetPoseGenerator(std::string filename) : filename_(std::move(filename))
+  PointCloudTargetPoseGenerator(std::string filename) : filename_(resolveURI(filename))
   {
   }
 
