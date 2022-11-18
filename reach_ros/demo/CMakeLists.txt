@@ -3,4 +3,6 @@ if(CATKIN_ENABLE_TESTING)
   add_rostest(test/demo.test)
 endif()
 
-install(DIRECTORY config model results DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+foreach(dir config model results)
+  install(DIRECTORY ${dir}/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/demo/${dir})
+endforeach()
