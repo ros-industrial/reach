@@ -48,9 +48,10 @@ target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 # Plugins Library
 add_library(
   ${PROJECT_NAME}_plugins SHARED
-  src/plugins/multiplicative_factory.cpp
+  src/plugins/multiplicative_evaluator.cpp
   src/plugins/point_cloud_target_pose_generator.cpp
-  src/plugins/logger.cpp
+  src/plugins/console_logger.cpp
+  src/plugins/boost_progress_console_logger.cpp
   src/plugins/no_op.cpp)
 target_link_libraries(
   ${PROJECT_NAME}_plugins
