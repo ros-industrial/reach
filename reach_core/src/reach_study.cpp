@@ -17,6 +17,7 @@
 #include <reach_core/utils.h>
 #include <reach_core/plugin_utils.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <numeric>
@@ -229,6 +230,8 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   params.step_improvement_threshold = opt_config["step_improvement_threshold"].as<double>();
 
   boost_plugin_loader::PluginLoader loader;
+  std::vector<std::string> plugin_libraries;
+  boost::split(loader.search_libraries, PLUGIN_LIBRARIES, boost::is_any_of(":"), boost::token_compress_on);
   loader.search_libraries_env = SEARCH_LIBRARIES_ENV;
 
   // Load the IK Solver plugin

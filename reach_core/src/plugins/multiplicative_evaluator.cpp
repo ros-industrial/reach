@@ -17,6 +17,7 @@
 #include <reach_core/interfaces/evaluator.h>
 #include <reach_core/plugin_utils.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <yaml-cpp/yaml.h>
 
@@ -49,6 +50,7 @@ public:
   MultiplicativeEvaluatorFactory()
   {
     loader_.search_libraries_env = SEARCH_LIBRARIES_ENV;
+    boost::split(loader_.search_libraries, PLUGIN_LIBRARIES, boost::is_any_of(":"), boost::token_compress_on);
     loader_.search_system_folders = true;
   }
 

@@ -4,6 +4,7 @@
 #include <reach_core/interfaces/target_pose_generator.h>
 #include <reach_core/interfaces/logger.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <gtest/gtest.h>
 
@@ -14,6 +15,7 @@ public:
   PluginTest() : ::testing::Test()
   {
     loader.search_libraries_env = SEARCH_LIBRARIES_ENV;
+    boost::split(loader.search_libraries, PLUGIN_LIBRARIES, boost::is_any_of(":"), boost::token_compress_on);
   }
 
   boost_plugin_loader::PluginLoader loader;
