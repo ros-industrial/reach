@@ -1,11 +1,5 @@
 find_gtest()
 
-add_executable(${PROJECT_NAME}_plugin_utest plugin_utest.cpp)
-target_link_libraries(${PROJECT_NAME}_plugin_utest PRIVATE ${PROJECT_NAME} GTest::GTest GTest::Main)
-target_cxx_version(${PROJECT_NAME}_plugin_utest PUBLIC VERSION 14)
-add_dependencies(run_tests ${PROJECT_NAME}_plugin_utest)
-add_gtest_discover_tests(${PROJECT_NAME}_plugin_utest)
-
 add_executable(${PROJECT_NAME}_utest reach_study_utest.cpp)
 target_link_libraries(${PROJECT_NAME}_utest PRIVATE ${PROJECT_NAME} GTest::GTest GTest::Main)
 target_compile_definitions(${PROJECT_NAME}_utest
@@ -15,7 +9,9 @@ add_dependencies(run_tests ${PROJECT_NAME}_utest)
 add_gtest_discover_tests(${PROJECT_NAME}_utest)
 
 install(
-  TARGETS ${PROJECT_NAME}_plugin_utest ${PROJECT_NAME}_utest
+  TARGETS ${PROJECT_NAME}_utest
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
+
+install(FILES part.pcd reach_study.yaml DESTINATION share/${PROJECT_NAME}/test)
