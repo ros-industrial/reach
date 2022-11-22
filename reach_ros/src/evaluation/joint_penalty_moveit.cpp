@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "joint_penalty_moveit.h"
-#include "../utils.h"
+#include <reach_ros/evaluation/joint_penalty_moveit.h>
+#include <reach_ros/utils.h>
 
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>

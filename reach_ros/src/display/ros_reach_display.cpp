@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ros_reach_display.h"
-#include "../utils.h"
+#include <reach_ros/display/ros_reach_display.h>
+#include <reach_ros/utils.h>
 
 #include <pcl/point_types_conversion.h>
 #include <reach_core/plugin_utils.h>

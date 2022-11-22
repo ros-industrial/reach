@@ -16,6 +16,8 @@ find_package(
              visualization_msgs)
 
 catkin_package(
+  INCLUDE_DIRS
+  include
   LIBRARIES
   ${PROJECT_NAME}_plugins
   CATKIN_DEPENDS
@@ -31,7 +33,7 @@ catkin_package(
 # BUILD ##
 # ######################################################################################################################
 
-include_directories(${catkin_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS} include)
 
 # Plugins
 add_library(

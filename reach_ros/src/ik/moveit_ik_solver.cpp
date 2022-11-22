@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "moveit_ik_solver.h"
-#include "../utils.h"
+#include <reach_ros/ik/moveit_ik_solver.h>
+#include <reach_ros/utils.h>
 
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/planning_scene/planning_scene.h>
