@@ -3,6 +3,7 @@
 
 #include <yaml-cpp/yaml.h>
 #include <boost/core/demangle.hpp>
+#include <Eigen/Geometry>
 
 namespace reach
 {
@@ -38,6 +39,12 @@ T get(const YAML::Node& config, const std::string& key)
  * @return The fully resolved filename
  */
 std::string resolveURI(const std::string filename);
+
+/**
+ * @brief Creates a 6-DOF pose from an origin and normal vector, aligning the pose x-axis as closely as possible with
+ * the unit x-axis
+ */
+Eigen::Isometry3d createFrame(const Eigen::Vector3f& pt, const Eigen::Vector3f& norm);
 
 }  // namespace reach
 
