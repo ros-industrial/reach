@@ -31,8 +31,7 @@ namespace reach_ros
 {
 namespace display
 {
-ROSReachDisplay::ROSReachDisplay(std::string kinematic_base_frame, std::string collision_mesh_filename,
-                                 double marker_scale)
+ROSReachDisplay::ROSReachDisplay(std::string kinematic_base_frame, double marker_scale)
   : kinematic_base_frame_(std::move(kinematic_base_frame))
   , marker_scale_(marker_scale)
   , server_(INTERACTIVE_MARKER_TOPIC)
@@ -40,32 +39,11 @@ ROSReachDisplay::ROSReachDisplay(std::string kinematic_base_frame, std::string c
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(JOINT_STATES_TOPIC, 1, true);
   mesh_pub_ = nh_.advertise<visualization_msgs::Marker>(MESH_MARKER_TOPIC, 1, true);
   neighbors_pub_ = nh_.advertise<visualization_msgs::Marker>(NEIGHBORS_MARKER_TOPIC, 1, true);
-
-  // Create the collision object
-  {
-    collision_mesh_marker_.header.frame_id = kinematic_base_frame_;
-    collision_mesh_marker_.pose.orientation.w = 1.0;
-    collision_mesh_marker_.action = visualization_msgs::Marker::ADD;
-
-    collision_mesh_marker_.type = visualization_msgs::Marker::MESH_RESOURCE;
-    collision_mesh_marker_.mesh_resource = collision_mesh_filename;
-    collision_mesh_marker_.mesh_use_embedded_materials = true;
-
-    // Color
-    collision_mesh_marker_.color.a = 1.0;
-    collision_mesh_marker_.color.r = 0.0;
-    collision_mesh_marker_.color.g = 1.0;
-    collision_mesh_marker_.color.b = 0.0;
-
-    collision_mesh_marker_.scale.x = 1.0;
-    collision_mesh_marker_.scale.y = 1.0;
-    collision_mesh_marker_.scale.z = 1.0;
-  }
 }
 
 void ROSReachDisplay::showEnvironment() const
 {
-  mesh_pub_.publish(collision_mesh_marker_);
+  mesh_pub_.publish(collision_marker_);
 }
 
 void ROSReachDisplay::updateRobotPose(const std::map<std::string, double>& pose) const
@@ -139,13 +117,53 @@ void ROSReachDisplay::showReachNeighborhood(const std::vector<reach::ReachRecord
   }
 }
 
+void ROSReachDisplay::setCollisionMarker(std::string collision_mesh_filename, const std::string collision_mesh_frame)
+{
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = collision_mesh_frame;
+  marker.pose.orientation.w = 1.0;
+  marker.action = visualization_msgs::Marker::ADD;
+
+  marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+  marker.mesh_resource = collision_mesh_filename;
+  marker.mesh_use_embedded_materials = true;
+
+  // Color
+  marker.color.a = 1.0;
+  marker.color.r = 0.0;
+  marker.color.g = 1.0;
+  marker.color.b = 0.0;
+
+  marker.scale.x = 1.0;
+  marker.scale.y = 1.0;
+  marker.scale.z = 1.0;
+
+  // Overwrite the internal member
+  collision_marker_ = marker;
+  showEnvironment();
+}
+
 reach::Display::ConstPtr ROSReachDisplayFactory::create(const YAML::Node& config) const
 {
   auto kinematic_base_frame = reach::get<std::string>(config, "kinematic_base_frame");
-  auto collision_mesh_filename = reach::get<std::string>(config, "collision_mesh_filename");
   auto marker_scale = reach::get<double>(config, "marker_scale");
 
-  return std::make_shared<ROSReachDisplay>(kinematic_base_frame, collision_mesh_filename, marker_scale);
+  auto display = std::make_shared<ROSReachDisplay>(kinematic_base_frame, marker_scale);
+
+  // Optionally add a collision mesh
+  const std::string collision_mesh_filename_key = "collision_mesh_filename";
+  const std::string collision_mesh_frame_key = "collision_mesh_key";
+  if (config[collision_mesh_filename_key])
+  {
+    auto collision_mesh_filename = reach::get<std::string>(config, collision_mesh_filename_key);
+    std::string collision_mesh_frame = config[collision_mesh_frame_key] ?
+                                           reach::get<std::string>(config, collision_mesh_frame_key) :
+                                           kinematic_base_frame;
+
+    display->setCollisionMarker(collision_mesh_filename, collision_mesh_frame);
+  }
+
+  return display;
 }
 
 }  // namespace display

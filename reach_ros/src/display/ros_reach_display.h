@@ -29,17 +29,19 @@ namespace display
 class ROSReachDisplay : public reach::Display
 {
 public:
-  ROSReachDisplay(std::string kinematic_base_frame, std::string collision_mesh_filename, double marker_scale);
+  ROSReachDisplay(std::string kinematic_base_frame, double marker_scale);
 
   void showEnvironment() const override;
   void updateRobotPose(const std::map<std::string, double>& pose) const override;
   void showResults(const reach::ReachDatabase& db) const override;
   void showReachNeighborhood(const std::vector<reach::ReachRecord>& neighborhood) const override;
 
-private:
+  void setCollisionMarker(std::string collision_mesh_filename, const std::string collision_mesh_frame);
+
+protected:
   const std::string kinematic_base_frame_;
   const double marker_scale_;
-  visualization_msgs::Marker collision_mesh_marker_;
+  visualization_msgs::Marker collision_marker_;
 
   // ROS comoponents
   ros::NodeHandle nh_;
