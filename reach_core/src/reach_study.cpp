@@ -21,6 +21,7 @@
 #include <boost/filesystem.hpp>
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <numeric>
+#include <signal.h>
 #include <thread>
 #include <yaml-cpp/yaml.h>
 
@@ -315,6 +316,10 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   logger->printResults(db->calculateResults());
   display->showEnvironment();
   display->showResults(*db);
+
+  auto handleSignal = [](int /*sig*/) { throw std::runtime_error("Reach study temrinated"); };
+  signal(SIGINT, handleSignal);
+  signal(SIGTERM, handleSignal);
 
   if (wait_after_completion)
   {
