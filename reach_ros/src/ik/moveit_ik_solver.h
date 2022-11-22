@@ -43,13 +43,16 @@ namespace ik
 class MoveItIKSolver : public reach::IKSolver
 {
 public:
-  MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group, double dist_threshold,
-                 std::string collision_mesh_filename, std::vector<std::string> touch_links);
+  MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group, double dist_threshold);
 
   std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                            const std::map<std::string, double>& seed) const override;
 
   std::vector<std::string> getJointNames() const override;
+
+  void setTouchLinks(const std::vector<std::string>& touch_links);
+  void addCollisionMesh(const std::string& collision_mesh_filename, const std::string& collision_mesh_frame);
+  std::string getKinematicBaseFrame() const;
 
 protected:
   bool isIKSolutionValid(moveit::core::RobotState* state, const moveit::core::JointModelGroup* jmg,
@@ -58,10 +61,10 @@ protected:
   moveit::core::RobotModelConstPtr model_;
   const moveit::core::JointModelGroup* jmg_;
   const double distance_threshold_;
-  const std::string collision_mesh_filename_;
-  const std::vector<std::string> touch_links_;
 
   planning_scene::PlanningScenePtr scene_;
+
+  static std::string COLLISION_OBJECT_NAME;
 };
 
 struct MoveItIKSolverFactory : public reach::IKSolverFactory
@@ -73,8 +76,7 @@ class DiscretizedMoveItIKSolver : public MoveItIKSolver
 {
 public:
   DiscretizedMoveItIKSolver(moveit::core::RobotModelConstPtr model, const std::string& planning_group,
-                            double dist_threshold, std::string collision_mesh_filename,
-                            std::vector<std::string> touch_links, double dt);
+                            double dist_threshold, double dt);
 
   std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                            const std::map<std::string, double>& seed) const override;
