@@ -21,7 +21,6 @@
 #include <reach/interfaces/evaluator.h>
 
 #include <Eigen/Dense>
-#include <boost/python.hpp>
 #include <map>
 #include <memory>
 #include <pcl/search/kdtree.h>
@@ -38,37 +37,6 @@ static std::map<std::string, T> zip(const std::vector<std::string>& keys, const 
     map[keys[i]] = values.at(i);
   }
   return map;
-}
-
-template <typename KeyT, typename ValueT>
-static std::map<KeyT, ValueT> pythonDictToMap(const boost::python::dict& dict)
-{
-  std::map<KeyT, ValueT> map;
-
-  boost::python::list keys = dict.keys();
-  for (int i = 0; i < boost::python::len(keys); ++i)
-  {
-    const KeyT& key = boost::python::extract<KeyT>(keys[i]);
-    const ValueT& value = boost::python::extract<ValueT>(dict[key]);
-    map.insert({ key, value });
-  }
-
-  return map;
-}
-
-static YAML::Node pythonDictToYAML(const boost::python::dict& dict)
-{
-  YAML::Node config;
-
-  boost::python::list keys = dict.keys();
-  for (int i = 0; i < boost::python::len(keys); ++i)
-  {
-    const std::string key = boost::python::extract<std::string>(keys[i]);
-    const std::string value = boost::python::extract<std::string>(dict[key]);
-    config.force_insert(key, value);
-  }
-
-  return config;
 }
 
 std::tuple<std::vector<double>, double> evaluateIK(const Eigen::Isometry3d& target,

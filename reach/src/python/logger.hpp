@@ -1,0 +1,64 @@
+#pragma once
+
+#include <reach/interfaces/logger.h>
+#include "utils.h"
+
+namespace reach
+{
+Logger::Ptr LoggerFactory::create(const boost::python::dict& pyyaml_config) const
+{
+  return create(pythonDictToYAML(pyyaml_config));
+}
+
+struct LoggerPython : Logger, boost::python::wrapper<Logger>
+{
+  void setMaxProgressFunc(unsigned long max_progress)
+  {
+    this->get_override("setMaxProgress")(max_progress);
+  }
+  void setMaxProgress(unsigned long max_progress) override
+  {
+    return call_and_handle(&LoggerPython::setMaxProgressFunc, this, "setMaxProgress()", max_progress);
+  }
+
+  void printProgressFunc(unsigned long progress) const
+  {
+    this->get_override("printProgress")(progress);
+  }
+  void printProgress(unsigned long progress) const override
+  {
+    return call_and_handle(&LoggerPython::printProgressFunc, this, "printProgress()", progress);
+  }
+
+  void printResultsFunc(const StudyResults& results) const
+  {
+    this->get_override("printResults")(results);
+  }
+  void printResults(const StudyResults& results) const override
+  {
+    return call_and_handle(&LoggerPython::printResultsFunc, this, "printResults()", results);
+  }
+
+  void printFunc(const std::string& msg) const
+  {
+    this->get_override("print")(msg);
+  }
+  void print(const std::string& msg) const override
+  {
+    return call_and_handle(&LoggerPython::printFunc, this, "print()", msg);
+  }
+};
+
+struct LoggerFactoryPython : LoggerFactory, boost::python::wrapper<LoggerFactory>
+{
+  Logger::Ptr createFunc(const YAML::Node& config) const
+  {
+    return this->get_override("create")(config);
+  }
+  Logger::Ptr create(const YAML::Node& config) const override
+  {
+    return call_and_handle(&LoggerFactoryPython::createFunc, this, "LoggerFactory::create", config);
+  }
+};
+
+} // namespace reach
