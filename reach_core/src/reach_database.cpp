@@ -15,8 +15,8 @@
  */
 #include <reach_core/reach_database.h>
 
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 #include <fstream>
 #include <pcl/point_types_conversion.h>
 
@@ -186,16 +186,16 @@ StudyResults ReachDatabase::calculateResults() const
 void save(const ReachDatabase& db, const std::string& filename)
 {
   std::ofstream ofs(filename);
-  boost::archive::binary_oarchive oa(ofs);
-  oa << db;
+  boost::archive::xml_oarchive oa(ofs);
+  oa << BOOST_SERIALIZATION_NVP(db);
 }
 
 ReachDatabase load(const std::string& filename)
 {
   std::ifstream ifs(filename);
-  boost::archive::binary_iarchive ia(ifs);
+  boost::archive::xml_iarchive ia(ifs);
   ReachDatabase db;
-  ia >> db;
+  ia >> BOOST_SERIALIZATION_NVP(db);
   return db;
 }
 
