@@ -46,6 +46,12 @@ MoveItIKSolver::MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std
     throw std::runtime_error("Failed to initialize joint model group for planning group '" + planning_group + "'");
 
   scene_.reset(new planning_scene::PlanningScene(model_));
+
+  ros::NodeHandle nh;
+  scene_pub_ = nh.advertise<moveit_msgs::PlanningScene>("planning_scene", 1, true);
+  moveit_msgs::PlanningScene scene_msg;
+  scene_->getPlanningSceneMsg(scene_msg);
+  scene_pub_.publish(scene_msg);
 }
 
 std::vector<std::vector<double>> MoveItIKSolver::solveIK(const Eigen::Isometry3d& target,
@@ -96,6 +102,10 @@ void MoveItIKSolver::addCollisionMesh(const std::string& collision_mesh_filename
       utils::createCollisionObject(collision_mesh_filename, collision_mesh_frame, COLLISION_OBJECT_NAME);
   if (!scene_->processCollisionObjectMsg(obj))
     throw std::runtime_error("Failed to add collision mesh to planning scene");
+
+  moveit_msgs::PlanningScene scene_msg;
+  scene_->getPlanningSceneMsg(scene_msg);
+  scene_pub_.publish(scene_msg);
 }
 
 void MoveItIKSolver::setTouchLinks(const std::vector<std::string>& touch_links)
