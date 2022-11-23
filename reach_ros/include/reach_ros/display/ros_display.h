@@ -26,10 +26,10 @@ namespace reach_ros
 {
 namespace display
 {
-class ROSReachDisplay : public reach::Display
+class ROSDisplay : public reach::Display
 {
 public:
-  ROSReachDisplay(std::string kinematic_base_frame, double marker_scale);
+  ROSDisplay(std::string kinematic_base_frame, double marker_scale);
 
   void showEnvironment() const override;
   void updateRobotPose(const std::map<std::string, double>& pose) const override;
@@ -51,7 +51,7 @@ protected:
   mutable interactive_markers::InteractiveMarkerServer server_;
 };
 
-struct ROSReachDisplayFactory : public reach::DisplayFactory
+struct ROSDisplayFactory : public reach::DisplayFactory
 {
   reach::Display::ConstPtr create(const YAML::Node& config) const override;
 };

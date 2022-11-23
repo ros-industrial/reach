@@ -46,7 +46,7 @@ add_library(
   # IK Solver
   src/ik/moveit_ik_solver.cpp
   # Display
-  src/display/ros_reach_display.cpp)
+  src/display/ros_display.cpp)
 target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} reach::reach_core)
 
 # Reach study node

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <reach_ros/display/ros_reach_display.h>
+#include <reach_ros/display/ros_display.h>
 #include <reach_ros/utils.h>
 
 #include <pcl/point_types_conversion.h>
@@ -31,7 +31,7 @@ namespace reach_ros
 {
 namespace display
 {
-ROSReachDisplay::ROSReachDisplay(std::string kinematic_base_frame, double marker_scale)
+ROSDisplay::ROSDisplay(std::string kinematic_base_frame, double marker_scale)
   : kinematic_base_frame_(std::move(kinematic_base_frame))
   , marker_scale_(marker_scale)
   , server_(INTERACTIVE_MARKER_TOPIC)
@@ -41,12 +41,12 @@ ROSReachDisplay::ROSReachDisplay(std::string kinematic_base_frame, double marker
   neighbors_pub_ = nh_.advertise<visualization_msgs::Marker>(NEIGHBORS_MARKER_TOPIC, 1, true);
 }
 
-void ROSReachDisplay::showEnvironment() const
+void ROSDisplay::showEnvironment() const
 {
   mesh_pub_.publish(collision_marker_);
 }
 
-void ROSReachDisplay::updateRobotPose(const std::map<std::string, double>& pose) const
+void ROSDisplay::updateRobotPose(const std::map<std::string, double>& pose) const
 {
   sensor_msgs::JointState msg;
   std::transform(pose.begin(), pose.end(), std::back_inserter(msg.name),
@@ -57,7 +57,7 @@ void ROSReachDisplay::updateRobotPose(const std::map<std::string, double>& pose)
   joint_state_pub_.publish(msg);
 }
 
-void ROSReachDisplay::showResults(const reach::ReachDatabase& db) const
+void ROSDisplay::showResults(const reach::ReachDatabase& db) const
 {
   server_.clear();
 
@@ -98,7 +98,7 @@ void ROSReachDisplay::showResults(const reach::ReachDatabase& db) const
   server_.applyChanges();
 }
 
-void ROSReachDisplay::showReachNeighborhood(const std::vector<reach::ReachRecord>& neighborhood) const
+void ROSDisplay::showReachNeighborhood(const std::vector<reach::ReachRecord>& neighborhood) const
 {
   if (!neighborhood.empty())
   {
@@ -117,7 +117,7 @@ void ROSReachDisplay::showReachNeighborhood(const std::vector<reach::ReachRecord
   }
 }
 
-void ROSReachDisplay::setCollisionMarker(std::string collision_mesh_filename, const std::string collision_mesh_frame)
+void ROSDisplay::setCollisionMarker(std::string collision_mesh_filename, const std::string collision_mesh_frame)
 {
   visualization_msgs::Marker marker;
   marker.header.frame_id = collision_mesh_frame;
@@ -143,12 +143,12 @@ void ROSReachDisplay::setCollisionMarker(std::string collision_mesh_filename, co
   showEnvironment();
 }
 
-reach::Display::ConstPtr ROSReachDisplayFactory::create(const YAML::Node& config) const
+reach::Display::ConstPtr ROSDisplayFactory::create(const YAML::Node& config) const
 {
   auto kinematic_base_frame = reach::get<std::string>(config, "kinematic_base_frame");
   auto marker_scale = reach::get<double>(config, "marker_scale");
 
-  auto display = std::make_shared<ROSReachDisplay>(kinematic_base_frame, marker_scale);
+  auto display = std::make_shared<ROSDisplay>(kinematic_base_frame, marker_scale);
 
   // Optionally add a collision mesh
   const std::string collision_mesh_filename_key = "collision_mesh_filename";
@@ -169,4 +169,4 @@ reach::Display::ConstPtr ROSReachDisplayFactory::create(const YAML::Node& config
 }  // namespace display
 }  // namespace reach_ros
 
-EXPORT_DISPLAY_PLUGIN(reach_ros::display::ROSReachDisplayFactory, ROSReachDisplay)
+EXPORT_DISPLAY_PLUGIN(reach_ros::display::ROSDisplayFactory, ROSDisplay)

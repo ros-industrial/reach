@@ -23,7 +23,7 @@ evaluator:
       touch_links: []
 
 display:
-  name: ROSReachDisplay
+  name: ROSDisplay
   collision_mesh_filename: package://reach_ros/demo/config/part.ply
   kinematic_base_frame: base_link
   marker_scale: 0.05
