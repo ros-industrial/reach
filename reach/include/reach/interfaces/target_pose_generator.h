@@ -12,6 +12,15 @@ namespace YAML
 class Node;
 }
 
+namespace boost
+{
+namespace python
+{
+class dict;
+class list;
+}  // namespace python
+}  // namespace boost
+
 namespace reach
 {
 /** @brief Interface for generating Cartesian target poses for the reach study */
@@ -38,6 +47,8 @@ struct TargetPoseGeneratorFactory
   virtual ~TargetPoseGeneratorFactory() = default;
 
   virtual TargetPoseGenerator::ConstPtr create(const YAML::Node& config) const = 0;
+
+  TargetPoseGenerator::ConstPtr create(const boost::python::dict& pyyaml_config) const;
 
   static std::string getSection()
   {

@@ -10,6 +10,14 @@ namespace YAML
 class Node;
 }
 
+namespace boost
+{
+namespace python
+{
+class dict;
+}
+}  // namespace boost
+
 namespace reach
 {
 class ReachResultSummary;
@@ -35,6 +43,8 @@ struct LoggerFactory
   using ConstPtr = std::shared_ptr<const LoggerFactory>;
 
   virtual Logger::Ptr create(const YAML::Node& config) const = 0;
+
+  Logger::Ptr create(const boost::python::dict& pyyaml_config) const;
 
   static std::string getSection()
   {

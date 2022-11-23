@@ -25,6 +25,14 @@ namespace YAML
 class Node;
 }
 
+namespace boost
+{
+namespace python
+{
+class dict;
+}  // namespace python
+}  // namespace boost
+
 namespace reach
 {
 /**
@@ -52,6 +60,8 @@ struct Display
 
   /** @brief Visualizes the results of a reach study */
   virtual void showResults(const ReachResult& db) const = 0;
+
+  void updateRobotPose(const boost::python::dict&) const;
 };
 
 /**
@@ -66,6 +76,8 @@ struct DisplayFactory
   virtual ~DisplayFactory() = default;
 
   virtual Display::ConstPtr create(const YAML::Node& config) const = 0;
+
+  Display::ConstPtr create(const boost::python::dict& pyyaml_config) const;
 
   static std::string getSection()
   {
