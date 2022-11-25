@@ -1,6 +1,8 @@
 #ifndef REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H
 #define REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H
 
+#include <reach_core/reach_database.h>
+
 #include <Eigen/Dense>
 #include <memory>
 #include <vector>
@@ -12,8 +14,6 @@ class Node;
 
 namespace reach
 {
-using VectorIsometry3d = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>>;
-
 /** @brief Interface for generating Cartesian target poses for the reach study */
 struct TargetPoseGenerator
 {

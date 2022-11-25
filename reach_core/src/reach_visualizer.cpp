@@ -18,6 +18,14 @@
 
 namespace reach
 {
+static SearchTreePtr createSearchTree(const ReachDatabase& db)
+{
+  VectorIsometry3d poses;
+  poses.reserve(db.size());
+  std::transform(db.begin(), db.end(), std::back_inserter(poses), [](const ReachRecord& r) { return r.goal; });
+  return createSearchTree(poses);
+}
+
 ReachVisualizer::ReachVisualizer(ReachDatabase db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                                  Display::ConstPtr display, const double neighbor_radius)
   : db_(std::move(db))

@@ -41,13 +41,13 @@ std::tuple<std::vector<double>, double> evaluateIK(const Eigen::Isometry3d& targ
   return std::make_tuple(poses.at(best_idx), best_score);
 }
 
-SearchTreePtr createSearchTree(const ReachDatabase& db)
+SearchTreePtr createSearchTree(const VectorIsometry3d& poses)
 {
   auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  for (auto it = db.cbegin(); it != db.cend(); ++it)
+  for (const Eigen::Isometry3d& pose : poses)
   {
     pcl::PointXYZ pt;
-    pt.getVector3fMap() = it->goal.translation().cast<float>();
+    pt.getVector3fMap() = pose.translation().cast<float>();
     cloud->push_back(pt);
   }
   auto search_tree = pcl::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();

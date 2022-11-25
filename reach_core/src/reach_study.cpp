@@ -36,6 +36,7 @@ ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluat
   , display_(std::move(display))
   , logger_(std::move(logger))
   , target_poses_(target_generator->generate())
+  , search_tree_(createSearchTree(target_poses_))
 {
 }
 
@@ -46,13 +47,13 @@ ReachStudy::ReachStudy(const ReachStudy& rhs)
   , display_(rhs.display_)
   , logger_(rhs.logger_)
   , target_poses_(rhs.target_poses_)
+  , search_tree_(rhs.search_tree_)
 {
 }
 
 void ReachStudy::load(const std::string& filename)
 {
   db_ = reach::load(filename);
-  search_tree_ = createSearchTree(db_);
   display_->showEnvironment();
   display_->showResults(db_);
 }
@@ -131,9 +132,6 @@ void ReachStudy::optimize()
   // Show environment display
   display_->showEnvironment();
   display_->showResults(db_);
-
-  // Create an efficient search tree for doing nearest neighbors search
-  search_tree_ = createSearchTree(db_);
 
   // Create sequential vector to be randomized
   std::vector<std::size_t> rand_vec(db_.size());

@@ -24,6 +24,8 @@
 
 namespace reach
 {
+using VectorIsometry3d = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>>;
+
 /** @brief Reachability data for a single target Cartesian pose */
 class ReachRecord
 {
