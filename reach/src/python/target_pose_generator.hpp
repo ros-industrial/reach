@@ -19,46 +19,30 @@ TargetPoseGenerator::ConstPtr TargetPoseGeneratorFactory::create(const bp::dict&
 
 struct TargetPoseGeneratorPython : TargetPoseGenerator, boost::python::wrapper<TargetPoseGenerator>
 {
-  VectorIsometry3d generateFunc() const
-  {
-    VectorIsometry3d eigen_list;
-
-    bp::list np_list = this->get_override("generate")();
-
-    // Convert the list of 4x4 numpy arrays to VectorIsometry3d
-    for (int i = 0; i < bp::len(np_list); ++i)
-    {
-      Eigen::Isometry3d eigen_mat;
-      bp::numpy::ndarray np_array = bp::numpy::from_object(np_list[i]);
-
-      for (int j = 0; j < 4; ++j)
-      {
-        for (int k = 0; k < 4; ++k)
-        {
-          eigen_mat.matrix()(j, k) = bp::extract<double>(np_array[j][k]);
-        }
-      }
-      eigen_list.push_back(eigen_mat);
-    }
-
-    return eigen_list;
-  }
   VectorIsometry3d generate() const override
   {
-    return call_and_handle(&TargetPoseGeneratorPython::generateFunc, this, "generate()");
+    auto fn = [this]() -> VectorIsometry3d {
+      bp::list np_list = this->get_override("generate")();
+
+      // Convert the list of 4x4 numpy arrays to VectorIsometry3d
+      VectorIsometry3d eigen_list;
+      for (int i = 0; i < bp::len(np_list); ++i)
+      {
+        eigen_list.push_back(toEigen(bp::numpy::from_object(np_list[i])));
+      }
+
+      return eigen_list;
+    };
+
+    return call_and_handle(fn);
   }
 };
 
 struct TargetPoseGeneratorFactoryPython : TargetPoseGeneratorFactory, boost::python::wrapper<TargetPoseGeneratorFactory>
 {
-  TargetPoseGenerator::ConstPtr createFunc(const YAML::Node& config) const
-  {
-    return this->get_override("create")(config);
-  }
   TargetPoseGenerator::ConstPtr create(const YAML::Node& config) const override
   {
-    return call_and_handle(&TargetPoseGeneratorFactoryPython::createFunc, this, "TargetPoseGeneratorFactory::create",
-                           config);
+    return call_and_handle([this, &config]() -> TargetPoseGenerator::ConstPtr { return this->get_override("create")(config); });
   }
 };
 
