@@ -34,7 +34,7 @@ public:
   void showEnvironment() const override;
   void updateRobotPose(const std::map<std::string, double>& pose) const override;
   void showResults(const reach::ReachDatabase& db) const override;
-  void showReachNeighborhood(const std::vector<reach::ReachRecord>& neighborhood) const override;
+  void showReachNeighborhood(const std::map<std::size_t, reach::ReachRecord>& neighborhood) const override;
 
   void setCollisionMarker(std::string collision_mesh_filename, const std::string collision_mesh_frame);
 

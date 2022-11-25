@@ -69,106 +69,34 @@ bool isApprox(const std::map<std::string, double>& lhs, const std::map<std::stri
 
 namespace reach
 {
-ReachRecord::ReachRecord(const std::string id_, const bool reached_, const Eigen::Isometry3d& goal_,
+ReachRecord::ReachRecord(const bool reached_, const Eigen::Isometry3d& goal_,
                          const std::map<std::string, double> seed_state_,
                          const std::map<std::string, double> goal_state_, const double score_)
-  : id(id_), reached(reached_), goal(goal_), seed_state(seed_state_), goal_state(goal_state_), score(score_)
+  : reached(reached_), goal(goal_), seed_state(seed_state_), goal_state(goal_state_), score(score_)
 {
 }
 
 bool ReachRecord::operator==(const ReachRecord& rhs) const
 {
-  const bool ids_match = id == rhs.id;
   const bool reach_match = reached == rhs.reached;
   const bool goals_match = goal.isApprox(rhs.goal);
   const bool goal_states_match = isApprox(goal_state, rhs.goal_state);
   const bool seed_states_match = isApprox(seed_state, rhs.seed_state);
   const bool scores_match = std::abs(score - rhs.score) < std::numeric_limits<double>::epsilon();
 
-  return ids_match && reach_match && goals_match && goal_states_match && seed_states_match && scores_match;
+  return reach_match && goals_match && goal_states_match && seed_states_match && scores_match;
 }
 
-ReachDatabase::ReachDatabase(const std::string name_) : name(std::move(name_))
-{
-}
-
-ReachDatabase::ReachDatabase(const ReachDatabase& rhs) : name(rhs.name), map_(rhs.map_)
-{
-}
-
-ReachDatabase& ReachDatabase::operator=(const ReachDatabase& rhs)
-{
-  name = rhs.name;
-  map_ = rhs.map_;
-  return *this;
-}
-
-bool ReachDatabase::operator==(const ReachDatabase& rhs) const
-{
-  return name == rhs.name && map_ == rhs.map_;
-}
-
-ReachRecord ReachDatabase::get(const std::string& id) const
-{
-  std::lock_guard<std::mutex> lock{ mutex_ };
-  return map_.at(id);
-}
-
-void ReachDatabase::put(const ReachRecord& record)
-{
-  std::lock_guard<std::mutex> lock{ mutex_ };
-  map_[record.id] = record;
-}
-
-std::size_t ReachDatabase::size() const
-{
-  return map_.size();
-}
-
-ReachDatabase::iterator ReachDatabase::begin()
-{
-  return map_.begin();
-}
-
-ReachDatabase::const_iterator ReachDatabase::begin() const
-{
-  return map_.cbegin();
-}
-
-ReachDatabase::iterator ReachDatabase::end()
-{
-  return map_.end();
-}
-
-ReachDatabase::const_iterator ReachDatabase::end() const
-{
-  return map_.cend();
-}
-
-ReachDatabase::iterator ReachDatabase::max()
-{
-  using RecordPair = std::map<std::string, ReachRecord>::value_type;
-  return std::max_element(map_.begin(), map_.end(),
-                          [](const RecordPair& a, const RecordPair& b) { return a.second.score < b.second.score; });
-}
-
-ReachDatabase::const_iterator ReachDatabase::max() const
-{
-  return max();
-}
-
-StudyResults ReachDatabase::calculateResults() const
+StudyResults calculateResults(const ReachDatabase& db)
 {
   unsigned int success = 0, total = 0;
   double score = 0.0;
-  for (std::size_t i = 0; i < this->size(); ++i)
+  for (const ReachRecord& rec : db)
   {
-    ReachRecord msg = get(std::to_string(i));
-
-    if (msg.reached)
+    if (rec.reached)
     {
       success++;
-      score += msg.score;
+      score += rec.score;
     }
 
     total++;
@@ -199,26 +127,29 @@ ReachDatabase load(const std::string& filename)
   return db;
 }
 
-Eigen::MatrixX3f ReachDatabase::computeHeatMapColors() const
+Eigen::MatrixX3f computeHeatMapColors(const ReachDatabase& db)
 {
   // Find the max element
-  ReachDatabase::const_iterator max_it = max();
+  ReachDatabase::const_iterator max_it = std::max_element(
+      db.begin(), db.end(), [](const ReachRecord& a, const ReachRecord& b) {
+        return a.score < b.score;
+      });
 
-  Eigen::MatrixX3f colors(map_.size(), 3);
-  for (auto it = map_.begin(); it != map_.end(); ++it)
+  Eigen::MatrixX3f colors(db.size(), 3);
+  for (auto it = db.begin(); it != db.end(); ++it)
   {
     // Compute the color of the marker as a heatmap from blue to red using HSV space
     const float max_h = 0.75f * 360.0f;  // Corresponds to blue color
-    const float h = max_h - (static_cast<float>(it->second.score / max_it->second.score) * max_h);
+    const float h = max_h - (static_cast<float>(it->score / max_it->score) * max_h);
     const float s = 1.0f;
-    const float v = it->second.reached ? 1.0f : 0.0f;
+    const float v = it->reached ? 1.0f : 0.0f;
 
     // Convert to RGB
     const pcl::PointXYZHSV pt_hsv(h, s, v);
     pcl::PointXYZRGB pt_rgb;
     pcl::PointXYZHSVtoXYZRGB(pt_hsv, pt_rgb);
 
-    Eigen::Index idx = static_cast<Eigen::Index>(std::distance(map_.begin(), it));
+    Eigen::Index idx = static_cast<Eigen::Index>(std::distance(db.begin(), it));
     colors.row(idx) = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
   }
 

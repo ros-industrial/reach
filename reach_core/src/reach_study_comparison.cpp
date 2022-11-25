@@ -1,16 +1,11 @@
 #include <reach_core/reach_study_comparison.h>
 #include <reach_core/reach_database.h>
 
+#include <numeric>
+
 namespace reach
 {
-static std::vector<std::string> getRecordIDs(const ReachDatabase& db)
-{
-  std::vector<std::string> keys;
-  std::transform(db.begin(), db.end(), std::back_inserter(keys), [](const auto& pair) { return pair.first; });
-  return keys;
-}
-
-static std::map<std::size_t, std::string> createMaskNames(const std::set<std::string>& db_names)
+static std::map<std::size_t, std::string> createMaskNames(const std::vector<std::size_t>& db_names)
 {
   // Compute the permuations of databases for comparison
   const std::size_t n_perm = pow(2, db_names.size());
@@ -25,7 +20,7 @@ static std::map<std::size_t, std::string> createMaskNames(const std::set<std::st
     std::string ns_name = "";
     for (std::size_t i = 0; i < db_names.size(); ++i)
     {
-      const std::string db_name = *std::next(db_names.begin(), i);
+      const std::string db_name = std::to_string(*std::next(db_names.begin(), i));
 
       if (((perm_ind >> i) & 1) == 1)
       {
@@ -51,38 +46,22 @@ static bool checkMask(const std::size_t mask, const std::size_t idx)
   return ((mask & (1 << idx)) >> idx) == 1;
 }
 
-ComparisonResult::ComparisonResult(const std::set<std::string> db_names,
+ComparisonResult::ComparisonResult(const std::vector<std::size_t> db_indices,
                                    const std::map<std::string, std::size_t> reachability_mask_map)
-  : db_names_(std::move(db_names))
+  : db_indices_(std::move(db_indices))
   , reachability_mask_map_(std::move(reachability_mask_map))
-  , mask_names_(createMaskNames(db_names_))
+  , mask_names_(createMaskNames(db_indices_))
 {
 }
 
-std::vector<std::string> ComparisonResult::getReachability(const std::vector<std::string>& dbs) const
+std::vector<std::string> ComparisonResult::getReachability(const std::vector<std::size_t>& dbs) const
 {
-  // Convert to a set
-  std::set<std::string> db_set;
-  std::copy(dbs.begin(), dbs.end(), std::inserter(db_set, db_set.begin()));
-
-  // Get the indices of the input study names in the internal member
-  std::vector<std::size_t> db_idx;
-  db_idx.reserve(db_set.size());
-  for (const std::string& db : db_set)
-  {
-    auto it = std::find(db_names_.begin(), db_names_.end(), db);
-    if (it == db_names_.end())
-      throw std::runtime_error("Database '" + db + "' is not known");
-
-    db_idx.push_back(std::distance(db_names_.begin(), it));
-  }
-
   // Loop over all record ids to find the ones that were reachable by all input database names
   std::vector<std::string> ids;
   for (auto it = reachability_mask_map_.begin(); it != reachability_mask_map_.end(); ++it)
   {
     bool all_reachable =
-        std::all_of(db_idx.begin(), db_idx.end(), [&it](const std::size_t idx) { return checkMask(it->second, idx); });
+        std::all_of(db_indices_.begin(), db_indices_.end(), [&it](const std::size_t idx) { return checkMask(it->second, idx); });
     if (all_reachable)
       ids.push_back(it->first);
   }
@@ -90,18 +69,18 @@ std::vector<std::string> ComparisonResult::getReachability(const std::vector<std
   return ids;
 }
 
-std::vector<std::string> ComparisonResult::getReachability(const std::string& target) const
+std::vector<std::size_t> ComparisonResult::getReachability(const std::string& target) const
 {
   const std::size_t mask = reachability_mask_map_.at(target);
-  std::vector<std::string> names;
-  names.reserve(db_names_.size());
-  for (auto it = db_names_.begin(); it != db_names_.end(); ++it)
+  std::vector<std::size_t> db_indices;
+  db_indices.reserve(db_indices_.size());
+  for (auto it = db_indices_.begin(); it != db_indices_.end(); ++it)
   {
-    auto idx = std::distance(db_names_.begin(), it);
+    auto idx = std::distance(db_indices_.begin(), it);
     if (checkMask(mask, idx))
-      names.push_back(*it);
+      db_indices.push_back(*it);
   }
-  return names;
+  return db_indices;
 }
 
 std::string ComparisonResult::getReachabilityDescriptor(const std::string& target) const
@@ -128,41 +107,35 @@ ComparisonResult compareDatabases(const std::vector<ReachDatabase>& dbs)
   if (dbs.empty())
     throw std::runtime_error("Must provide at least one database for comparison");
 
-  // Get the names of all the records in this database
-  const std::vector<std::string> record_ids = getRecordIDs(*dbs.begin());
+  const std::size_t n_records = dbs.front().size();
+
+  // Get the indices of all the records in this database
+  std::vector<std::size_t> record_idxs(n_records);
+  std::iota(record_idxs.begin(), record_idxs.end(), 0);
 
   // Check that all databases have the same records
-  {
-    for (const auto db : dbs)
-    {
-      const std::vector<std::string> other_record_ids = getRecordIDs(db);
-      if (!std::equal(record_ids.begin(), record_ids.end(), other_record_ids.begin()))
-        throw std::runtime_error("Database '" + db.name + "' does not contain all the same records as this database");
-    }
-  }
+  std::all_of(dbs.begin(), dbs.end(), [&n_records](const ReachDatabase& db) { return db.size() == n_records; });
 
   // Iterate over all records in the databases and compare whether or not they were reached in that database
-  std::map<std::string, std::size_t> reachability_mask_map;
-  for (const std::string& id : record_ids)
+  std::map<std::string, ComparisonResult::mask> reachability_mask_map;
+  for (const std::size_t& idx : record_idxs)
   {
     // Create a binary code based on whether the point was reached code LSB is msg.reach boolean of 1st database code <<
     // n is is msg.reach boolean of (n+1)th database
-    std::size_t mask = 0;
+    ComparisonResult::mask mask = 0;
 
     for (auto it = dbs.begin(); it != dbs.end(); ++it)
     {
-      mask += static_cast<char>(it->get(id).reached) << std::distance(dbs.begin(), it);
+      mask += static_cast<char>(it->at(idx).reached) << std::distance(dbs.begin(), it);
     }
 
-    reachability_mask_map[id] = mask;
+    reachability_mask_map[std::to_string(idx)] = mask;
   }
 
   // Get the database names for the output
-  std::set<std::string> db_names;
-  std::transform(dbs.begin(), dbs.end(), std::inserter(db_names, db_names.begin()),
-                 [](const ReachDatabase& db) { return db.name; });
-
-  return ComparisonResult(db_names, reachability_mask_map);
+  std::vector<std::size_t> db_indices(dbs.size());
+  std::iota(db_indices.begin(), db_indices.end(), 0);
+  return ComparisonResult(db_indices, reachability_mask_map);
 }
 
 }  // namespace reach

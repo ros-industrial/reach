@@ -38,8 +38,8 @@ visualization_msgs::Marker makeVisual(const reach::ReachRecord& r, const std::st
                                       const std::string& ns = "reach",
                                       const Eigen::Vector3f& color = { 0.5, 0.5, 0.5 });
 
-visualization_msgs::InteractiveMarker makeInteractiveMarker(const reach::ReachRecord& r, const std::string& frame,
-                                                            const double scale,
+visualization_msgs::InteractiveMarker makeInteractiveMarker(const std::string& id, const reach::ReachRecord& r,
+                                                            const std::string& frame, const double scale,
                                                             const Eigen::Vector3f& rgb_color = { 0.5, 0.5, 0.5 });
 
 visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts, const std::string& frame,

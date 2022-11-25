@@ -32,16 +32,16 @@ class ReachVisualizer
 public:
   using Ptr = boost::shared_ptr<ReachVisualizer>;
 
-  ReachVisualizer(ReachDatabase::Ptr db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
+  ReachVisualizer(ReachDatabase db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                   Display::ConstPtr display, const double neighbor_radius);
 
-  void reSolveIK(const std::string& record_id);
-  void showResult(const std::string& record_id) const;
-  void showSeed(const std::string& record_id) const;
-  void reachNeighbors(const std::string& record_id, const bool recursive = false) const;
+  void reSolveIK(const std::size_t record_idx);
+  void showResult(const std::size_t record_idx) const;
+  void showSeed(const std::size_t record_idx) const;
+  void reachNeighbors(const std::size_t record_idx, const bool recursive = false) const;
 
 protected:
-  ReachDatabase::Ptr db_;
+  ReachDatabase db_;
   IKSolver::ConstPtr solver_;
   Evaluator::ConstPtr evaluator_;
   Display::ConstPtr display_;

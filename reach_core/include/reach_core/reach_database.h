@@ -21,7 +21,6 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>
 #include <Eigen/Dense>
-#include <mutex>
 
 namespace reach
 {
@@ -30,14 +29,11 @@ class ReachRecord
 {
 public:
   ReachRecord() = default;
-  ReachRecord(const std::string id, const bool reached, const Eigen::Isometry3d& goal,
+  ReachRecord(const bool reached, const Eigen::Isometry3d& goal,
               const std::map<std::string, double> seed_state, const std::map<std::string, double> goal_state,
               const double score);
 
   bool operator==(const ReachRecord& rhs) const;
-
-  /** @brief Unique name for the target pose */
-  std::string id;
 
   /** @brief Boolean flag indicating whether the target pose was reachable */
   bool reached;
@@ -60,7 +56,6 @@ private:
   template <class Archive>
   inline void serialize(Archive& ar, const unsigned int /*version*/)
   {
-    ar& BOOST_SERIALIZATION_NVP(id);
     ar& BOOST_SERIALIZATION_NVP(reached);
     ar& BOOST_SERIALIZATION_NVP(goal);
     ar& BOOST_SERIALIZATION_NVP(seed_state);
@@ -107,72 +102,9 @@ public:
 /**
  * @brief Container to store information about the robot poses for all of the attempted target poses
  */
-class ReachDatabase
-{
-  using iterator = std::map<std::string, ReachRecord>::iterator;
-  using const_iterator = std::map<std::string, ReachRecord>::const_iterator;
-
-public:
-  using Ptr = std::shared_ptr<ReachDatabase>;
-  using ConstPtr = std::shared_ptr<const ReachDatabase>;
-
-  ReachDatabase(const std::string name = "reach_study");
-  ReachDatabase(const ReachDatabase&);
-  ReachDatabase& operator=(const ReachDatabase&);
-
-  bool operator==(const ReachDatabase& rhs) const;
-
-  std::string name;
-
-  /**
-   * @brief get returns a ReachRecord message from the database
-   * @param id
-   * @return
-   */
-  ReachRecord get(const std::string& id) const;
-
-  /**
-   * @brief put adds a ReachRecord message to the database
-   * @param record
-   */
-  void put(const ReachRecord& record);
-
-  /**
-   * @brief count counts the number of entries in the database
-   * @return
-   */
-  std::size_t size() const;
-
-  /**
-   * @brief calculateResults calculates the results of the reach study and saves them to internal class members
-   */
-  StudyResults calculateResults() const;
-
-  Eigen::MatrixX3f computeHeatMapColors() const;
-
-  // For loops
-  iterator begin();
-  const_iterator begin() const;
-  iterator end();
-  const_iterator end() const;
-
-  // Max element iterators
-  iterator max();
-  const_iterator max() const;
-
-private:
-  std::map<std::string, ReachRecord> map_;
-
-  mutable std::mutex mutex_;
-
-  friend class boost::serialization::access;
-  template <class Archive>
-  inline void serialize(Archive& ar, const unsigned int /*version*/)
-  {
-    ar& BOOST_SERIALIZATION_NVP(name);
-    ar& BOOST_SERIALIZATION_NVP(map_);
-  }
-};
+using ReachDatabase = std::vector<ReachRecord>;
+StudyResults calculateResults(const ReachDatabase& db);
+Eigen::MatrixX3f computeHeatMapColors(const ReachDatabase& db);
 
 void save(const ReachDatabase& db, const std::string& filename);
 

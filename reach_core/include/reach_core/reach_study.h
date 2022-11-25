@@ -24,6 +24,7 @@
 #include <reach_core/utils.h>
 
 #include <boost/filesystem/path.hpp>
+#include <mutex>
 #include <thread>
 
 namespace reach
@@ -46,6 +47,8 @@ public:
              Display::ConstPtr display, Logger::Ptr logger, Parameters params,
              const std::string& study_name);
 
+  ReachStudy(const ReachStudy&);
+
   /** @brief Loads the results of a reach study from file */
   void load(const std::string& filename);
 
@@ -59,7 +62,7 @@ public:
   void save(const std::string& filename) const;
 
   StudyResults getResults() const;
-  ReachDatabase::ConstPtr getDatabase() const;
+  const ReachDatabase& getDatabase() const;
 
   /**
    * @brief Finds the average number of neighbors that are "recursively" reachable from each target pose and the average
@@ -83,13 +86,15 @@ public:
 
 private:
   Parameters params_;
-  ReachDatabase::Ptr db_;
+  ReachDatabase db_;
 
   // Plugins
   IKSolver::ConstPtr ik_solver_;
   Evaluator::ConstPtr evaluator_;
   Display::ConstPtr display_;
   Logger::Ptr logger_;
+
+  mutable std::mutex mutex_;
 
   const VectorIsometry3d target_poses_;
 

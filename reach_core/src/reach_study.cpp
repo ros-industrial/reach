@@ -31,7 +31,6 @@ ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluat
                        TargetPoseGenerator::ConstPtr target_generator, Display::ConstPtr display,
                        Logger::Ptr logger, Parameters params, const std::string& name)
   : params_(std::move(params))
-  , db_(new ReachDatabase(name))
   , ik_solver_(std::move(ik_solver))
   , evaluator_(std::move(evaluator))
   , display_(std::move(display))
@@ -40,20 +39,30 @@ ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluat
 {
 }
 
+ReachStudy::ReachStudy(const ReachStudy& rhs)
+  : params_(rhs.params_)
+  , ik_solver_(rhs.ik_solver_)
+  , evaluator_(rhs.evaluator_)
+  , display_(rhs.display_)
+  , logger_(rhs.logger_)
+  , target_poses_(rhs.target_poses_)
+{
+}
+
 void ReachStudy::load(const std::string& filename)
 {
-  *db_ = reach::load(filename);
-  search_tree_ = createSearchTree(*db_);
+  db_ = reach::load(filename);
+  search_tree_ = createSearchTree(db_);
   display_->showEnvironment();
-  display_->showResults(*db_);
+  display_->showResults(db_);
 }
 
 void ReachStudy::save(const std::string& filename) const
 {
-  reach::save(*db_, filename);
+  reach::save(db_, filename);
 }
 
-ReachDatabase::ConstPtr ReachStudy::getDatabase() const
+const ReachDatabase& ReachStudy::getDatabase() const
 {
   return db_;
 }
@@ -65,7 +74,9 @@ void ReachStudy::run()
 
   // Show display
   display_->showEnvironment();
-  display_->showResults(*db_);
+  display_->showResults(db_);
+
+  db_.resize(target_poses_.size());
 
   // First loop through all points in point cloud and get IK solution
   std::atomic<unsigned long> current_counter;
@@ -87,14 +98,20 @@ void ReachStudy::run()
       double score;
       std::tie(solution, score) = evaluateIK(tgt_frame, seed_state, ik_solver_, evaluator_);
 
-      ReachRecord msg(std::to_string(i), true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution),
+      ReachRecord msg(true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution),
                       score);
-      db_->put(msg);
+      {
+        std::lock_guard<std::mutex> lock{ mutex_ };
+        db_[i] = msg;
+      }
     }
     catch (const std::exception&)
     {
-      ReachRecord msg(std::to_string(i), false, tgt_frame, seed_state, seed_state, 0.0);
-      db_->put(msg);
+      ReachRecord msg(false, tgt_frame, seed_state, seed_state, 0.0);
+      {
+        std::lock_guard<std::mutex> lock{ mutex_ };
+        db_[i] = msg;
+      }
     }
 
     // Print function progress
@@ -102,9 +119,9 @@ void ReachStudy::run()
     logger_->printProgress(current_counter.load());
   }
 
-  logger_->printResults(db_->calculateResults());
+  logger_->printResults(calculateResults(db_));
   logger_->print("Reach study complete");
-  display_->showResults(*db_);
+  display_->showResults(db_);
 }
 
 void ReachStudy::optimize()
@@ -113,13 +130,13 @@ void ReachStudy::optimize()
 
   // Show environment display
   display_->showEnvironment();
-  display_->showResults(*db_);
+  display_->showResults(db_);
 
   // Create an efficient search tree for doing nearest neighbors search
-  search_tree_ = createSearchTree(*db_);
+  search_tree_ = createSearchTree(db_);
 
   // Create sequential vector to be randomized
-  std::vector<std::size_t> rand_vec(db_->size());
+  std::vector<std::size_t> rand_vec(db_.size());
   std::iota(rand_vec.begin(), rand_vec.end(), 0);
 
   // Iterate
@@ -133,7 +150,7 @@ void ReachStudy::optimize()
     logger_->print("Entering optimization loop " + std::to_string(n_opt));
     logger_->setMaxProgress(target_poses_.size());
 
-    previous_score = db_->calculateResults().norm_total_pose_score;
+    previous_score = calculateResults(db_).norm_total_pose_score;
     current_counter = 0;
 
     // Randomize
@@ -142,21 +159,20 @@ void ReachStudy::optimize()
 #pragma parallel for num_threads(params_.max_threads)
     for (std::size_t i = 0; i < rand_vec.size(); ++i)
     {
-      auto it = db_->begin();
-      std::advance(it, rand_vec[i]);
-      ReachRecord msg = it->second;
+      const ReachRecord& msg = db_[i];
       if (msg.reached)
       {
-        std::vector<ReachRecord> result =
+        std::map<std::size_t, ReachRecord> neighbors =
             reachNeighborsDirect(db_, msg, ik_solver_, evaluator_, params_.radius, search_tree_);
 
         // Replace the old records if the scores of the new records are higher
-        for (const ReachRecord& rec : result)
+        for (auto neighbor = neighbors.begin(); neighbor != neighbors.end(); ++neighbor)
         {
-          const ReachRecord& old_rec = db_->get(rec.id);
-          if (rec.score > old_rec.score)
+          const ReachRecord& old_rec = db_.at(neighbor->first);
+          if (neighbor->second.score > old_rec.score)
           {
-            db_->put(rec);
+            std::lock_guard<std::mutex> lock{ mutex_ };
+            db_[neighbor->first] = neighbor->second;
           }
         }
       }
@@ -167,14 +183,14 @@ void ReachStudy::optimize()
     }
 
     // Recalculate optimized reach study results
-    auto results = db_->calculateResults();
+    auto results = calculateResults(db_);
     logger_->printResults(results);
 
     pct_improve = std::abs((results.norm_total_pose_score - previous_score) / previous_score);
     ++n_opt;
 
     // Show the results
-    display_->showResults(*db_);
+    display_->showResults(db_);
   }
 
   logger_->print("Optimization complete");
@@ -190,13 +206,12 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 
 // Iterate
 #pragma parallel for num_threads(params_.max_threads)
-  for (auto it = db_->begin(); it != db_->end(); ++it)
+  for (auto it = db_.begin(); it != db_.end(); ++it)
   {
-    ReachRecord msg = it->second;
-    if (msg.reached)
+    if (it->reached)
     {
       NeighborReachResult result;
-      reachNeighborsRecursive(db_, msg, ik_solver_, evaluator_, params_.radius, result, search_tree_);
+      reachNeighborsRecursive(db_, *it, ik_solver_, evaluator_, params_.radius, result, search_tree_);
 
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;
@@ -207,7 +222,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
     logger_->printProgress(current_counter.load());
   }
 
-  float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_->size());
+  float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_.size());
   float avg_joint_distance =
       static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
 
@@ -314,10 +329,10 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   }
 
   // Show the results
-  reach::ReachDatabase::ConstPtr db = rs.getDatabase();
-  logger->printResults(db->calculateResults());
+  const reach::ReachDatabase& db = rs.getDatabase();
+  logger->printResults(calculateResults(db));
   display->showEnvironment();
-  display->showResults(*db);
+  display->showResults(db);
 
   auto handleSignal = [](int /*sig*/) { throw std::runtime_error("Reach study temrinated"); };
   signal(SIGINT, handleSignal);

@@ -48,7 +48,7 @@ struct Display
   virtual void updateRobotPose(const std::map<std::string, double>& pose) const = 0;
 
   /** @brief Visualizes a collection of points that are reachable */
-  virtual void showReachNeighborhood(const std::vector<ReachRecord>& neighborhood) const = 0;
+  virtual void showReachNeighborhood(const std::map<std::size_t, ReachRecord>& neighborhood) const = 0;
 
   /** @brief Visualizes the results of a reach study */
   virtual void showResults(const ReachDatabase& db) const = 0;

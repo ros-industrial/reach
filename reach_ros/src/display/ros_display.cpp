@@ -16,7 +16,6 @@
 #include <reach_ros/display/ros_display.h>
 #include <reach_ros/utils.h>
 
-#include <pcl/point_types_conversion.h>
 #include <reach_core/plugin_utils.h>
 #include <sensor_msgs/JointState.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -63,51 +62,34 @@ void ROSDisplay::showResults(const reach::ReachDatabase& db) const
 
   // Create a callback for when a marker is clicked on
   auto show_goal_cb = [this, &db](const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb) {
-    updateRobotPose(db.get(fb->marker_name).goal_state);
+    std::size_t idx = std::strtoul(fb->marker_name.c_str(), nullptr, 10);
+    updateRobotPose(db.at(idx).goal_state);
   };
 
-  // Find the max of the scores
-  double max_score = 0;
-  for (auto it = db.begin(); it != db.end(); ++it)
+  Eigen::MatrixX3f heatmap_colors = reach::computeHeatMapColors(db);
+
+  //  for (auto it = db.cbegin(); it != db.cend(); ++it)
+  for (std::size_t i = 0; i < db.size(); ++i)
   {
-    if (it->second.score > max_score)
-    {
-      max_score = it->second.score;
-    }
-  }
-
-  for (auto it = db.begin(); it != db.end(); ++it)
-  {
-    // Compute the color of the marker as a heatmap from blue to red using HSV space
-    const float max_h = 0.75f * 360.0f;  // Corresponds to blue color
-    const float h = max_h - (static_cast<float>(it->second.score / max_score) * max_h);
-    const float s = 1.0f;
-    const float v = it->second.reached ? 1.0f : 0.0f;
-
-    // Convert to RGB
-    const pcl::PointXYZHSV pt_hsv(h, s, v);
-    pcl::PointXYZRGB pt_rgb;
-    pcl::PointXYZHSVtoXYZRGB(pt_hsv, pt_rgb);
-    const Eigen::Vector3f rgb_color = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
-
-    auto marker = utils::makeInteractiveMarker(it->second, kinematic_base_frame_, marker_scale_, rgb_color);
+    const std::string id = std::to_string(i);
+    auto marker = utils::makeInteractiveMarker(id, db[i], kinematic_base_frame_, marker_scale_, heatmap_colors.row(i));
     server_.insert(std::move(marker));
-    server_.setCallback(it->second.id, show_goal_cb);
+    server_.setCallback(id, show_goal_cb);
   }
 
   server_.applyChanges();
 }
 
-void ROSDisplay::showReachNeighborhood(const std::vector<reach::ReachRecord>& neighborhood) const
+void ROSDisplay::showReachNeighborhood(const std::map<std::size_t, reach::ReachRecord>& neighborhood) const
 {
   if (!neighborhood.empty())
   {
     std::vector<geometry_msgs::Point> pt_array;
 
-    for (const reach::ReachRecord& rec : neighborhood)
+    for (auto it = neighborhood.begin(); it != neighborhood.end(); ++it)
     {
       // Visualize points reached around input point
-      const Eigen::Vector3d& pt = rec.goal.translation();
+      const Eigen::Vector3d& pt = it->second.goal.translation();
       pt_array.push_back(tf2::toMsg(pt));
     }
 

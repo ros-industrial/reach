@@ -18,21 +18,21 @@
 
 namespace reach
 {
-ReachVisualizer::ReachVisualizer(ReachDatabase::Ptr db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
+ReachVisualizer::ReachVisualizer(ReachDatabase db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                                  Display::ConstPtr display, const double neighbor_radius)
-  : db_(db)
+  : db_(std::move(db))
   , solver_(solver)
   , evaluator_(evaluator)
   , display_(display)
-  , search_tree_(createSearchTree(*db_))
+  , search_tree_(createSearchTree(db_))
   , neighbor_radius_(neighbor_radius)
 {
   display_->showEnvironment();
 }
 
-void ReachVisualizer::reSolveIK(const std::string& marker_name)
+void ReachVisualizer::reSolveIK(const std::size_t record_idx)
 {
-  ReachRecord lookup = db_->get(marker_name);
+  ReachRecord lookup = db_.at(record_idx);
 
   // Re-solve IK at the selected marker
   std::vector<double> goal_pose;
@@ -47,32 +47,31 @@ void ReachVisualizer::reSolveIK(const std::string& marker_name)
   display_->updateRobotPose(lookup.goal_state);
 
   // Update the database
-  db_->put(lookup);
+  db_[record_idx] = lookup;
 }
 
-void ReachVisualizer::showResult(const std::string& marker_name) const
+void ReachVisualizer::showResult(const std::size_t record_idx) const
 {
-  ReachRecord lookup = db_->get(marker_name);
+  ReachRecord lookup = db_.at(record_idx);
   display_->updateRobotPose(lookup.goal_state);
 }
 
-void ReachVisualizer::showSeed(const std::string& marker_name) const
+void ReachVisualizer::showSeed(const std::size_t record_idx) const
 {
-  ReachRecord lookup = db_->get(marker_name);
+  ReachRecord lookup = db_.at(record_idx);
   display_->updateRobotPose(lookup.seed_state);
 }
 
-void ReachVisualizer::reachNeighbors(const std::string& record_id, const bool recursive) const
+void ReachVisualizer::reachNeighbors(const std::size_t record_id, const bool recursive) const
 {
-  ReachRecord lookup = db_->get(record_id);
-  std::vector<ReachRecord> result;
+  ReachRecord lookup = db_.at(record_id);
+  std::map<std::size_t, ReachRecord> result;
   if (recursive)
   {
     NeighborReachResult neighbors;
     reachNeighborsRecursive(db_, lookup, solver_, evaluator_, neighbor_radius_, neighbors, search_tree_);
-    result.reserve(neighbors.reached_pts.size());
-    std::transform(neighbors.reached_pts.begin(), neighbors.reached_pts.end(), std::back_inserter(result),
-                   [this](const std::string& name) { return db_->get(name); });
+    std::transform(neighbors.reached_pts.begin(), neighbors.reached_pts.end(), std::inserter(result, result.begin()),
+                   [this](const std::size_t idx) { return std::make_pair(idx, db_.at(idx)); });
   }
   else
   {

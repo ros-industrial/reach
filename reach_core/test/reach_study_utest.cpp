@@ -9,9 +9,9 @@
 #include <random>
 #include <yaml-cpp/yaml.h>
 
-reach::ReachDatabase createDatabase(const std::string& name = "reach_study")
+reach::ReachDatabase createDatabase()
 {
-  reach::ReachDatabase db(name);
+  reach::ReachDatabase db;
 
   std::mt19937 rand_gen(0);
   std::uniform_real_distribution dist(-M_PI, M_PI);
@@ -21,7 +21,6 @@ reach::ReachDatabase createDatabase(const std::string& name = "reach_study")
   for (std::size_t i = 0; i < 200; ++i)
   {
     reach::ReachRecord rec;
-    rec.id = std::to_string(i);
     rec.goal =
         Eigen::Translation3d(Eigen::Vector3d::Random()) * Eigen::AngleAxisd(dist(rand_gen), Eigen::Vector3d::Random());
     rec.score = dist(rand_gen);
@@ -34,7 +33,7 @@ reach::ReachDatabase createDatabase(const std::string& name = "reach_study")
     rec.goal_state = state;
     rec.seed_state = state;
 
-    db.put(rec);
+    db.push_back(rec);
   }
 
   return db;
@@ -94,14 +93,12 @@ TEST(ReachStudy, Serialization)
 
 TEST(ReachStudy, Comparison)
 {
-  const reach::ReachDatabase a = createDatabase("a");
+  const reach::ReachDatabase a = createDatabase();
   reach::ReachDatabase b = a;
-  b.name = "b";
-  const std::vector<std::string> studies = { "a", "b" };
+  const std::vector<std::size_t> studies = { 0, 1 };
 
   std::size_t n_reachable =
-      std::count_if(a.begin(), a.end(),
-                    [](const std::pair<const std::string, reach::ReachRecord>& pair) { return pair.second.reached; });
+      std::count_if(a.cbegin(), a.cend(), [](const reach::ReachRecord& rec) { return rec.reached; });
 
   // a == b
   {
@@ -117,14 +114,14 @@ TEST(ReachStudy, Comparison)
       std::string descriptor = result.getReachabilityDescriptor(id);
       ASSERT_EQ(descriptor, "all");
 
-      std::vector<std::string> reachable_dbs = result.getReachability(id);
+      std::vector<std::size_t> reachable_dbs = result.getReachability(id);
       ASSERT_TRUE(std::equal(studies.begin(), studies.end(), reachable_dbs.begin()));
     }
   }
 
-  // a is opposite of b
-  std::for_each(b.begin(), b.end(), [](std::pair<const std::string, reach::ReachRecord>& pair) {
-    pair.second.reached = !pair.second.reached;
+  // Make b have the opposite reachability of a
+  std::for_each(b.begin(), b.end(), [](reach::ReachRecord& rec) {
+    rec.reached = !rec.reached;
   });
 
   {
@@ -135,21 +132,21 @@ TEST(ReachStudy, Comparison)
     ASSERT_EQ(reachable_rec_ids.size(), 0);
 
     // Check that the descriptor returned for each target
-    for (auto it = a.begin(); it != a.end(); ++it)
+    for (std::size_t i = 0; i < a.size(); ++i)
     {
-      std::vector<std::string> reachable_dbs = result.getReachability(it->first);
+      std::vector<std::size_t> reachable_dbs = result.getReachability(std::to_string(i));
       ASSERT_EQ(reachable_dbs.size(), 1);
 
-      std::string descriptor = result.getReachabilityDescriptor(it->first);
-      if (it->second.reached)
+      std::string descriptor = result.getReachabilityDescriptor(std::to_string(i));
+      if (a[i].reached)
       {
-        ASSERT_EQ(descriptor, "a");
-        ASSERT_EQ(reachable_dbs.front(), "a");
+        ASSERT_EQ(descriptor, "0");
+        ASSERT_EQ(reachable_dbs.front(), 0);
       }
       else
       {
-        ASSERT_EQ(descriptor, "b");
-        ASSERT_EQ(reachable_dbs.front(), "b");
+        ASSERT_EQ(descriptor, "1");
+        ASSERT_EQ(reachable_dbs.front(), 1);
       }
     }
   }

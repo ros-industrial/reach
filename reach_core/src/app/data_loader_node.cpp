@@ -91,7 +91,7 @@ int main(int argc, char** argv)
         const std::string path = files[i].second.string();
 
         reach::ReachDatabase db = reach::load(path);
-        reach::StudyResults res = db.calculateResults();
+        reach::StudyResults res = calculateResults(db);
         std::cout << res.print() << std::endl;
       }
       catch (const std::exception& ex)
