@@ -31,9 +31,8 @@ class ReachRecord
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  ReachRecord(const bool reached, const Eigen::Isometry3d& goal,
-              const std::map<std::string, double> seed_state, const std::map<std::string, double> goal_state,
-              const double score);
+  ReachRecord(const bool reached, const Eigen::Isometry3d& goal, const std::map<std::string, double> seed_state,
+              const std::map<std::string, double> goal_state, const double score);
   ReachRecord() = default;
   ReachRecord(const ReachRecord&) = default;
   ReachRecord& operator=(const ReachRecord&) = default;

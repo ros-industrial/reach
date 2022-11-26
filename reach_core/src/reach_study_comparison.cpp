@@ -60,8 +60,8 @@ std::vector<std::string> ComparisonResult::getReachability(const std::vector<std
   std::vector<std::string> ids;
   for (auto it = reachability_mask_map_.begin(); it != reachability_mask_map_.end(); ++it)
   {
-    bool all_reachable =
-        std::all_of(db_indices_.begin(), db_indices_.end(), [&it](const std::size_t idx) { return checkMask(it->second, idx); });
+    bool all_reachable = std::all_of(db_indices_.begin(), db_indices_.end(),
+                                     [&it](const std::size_t idx) { return checkMask(it->second, idx); });
     if (all_reachable)
       ids.push_back(it->first);
   }

@@ -12,8 +12,7 @@ class ComparisonResult
 public:
   using mask = std::size_t;
 
-  ComparisonResult(const std::vector<std::size_t> db_indices,
-                   const std::map<std::string, mask> reachability_mask_map);
+  ComparisonResult(const std::vector<std::size_t> db_indices, const std::map<std::string, mask> reachability_mask_map);
 
   /** @brief Returns the IDs of the reach study targets that are reachable in all input reach studies */
   std::vector<std::string> getReachability(const std::vector<std::size_t>& dbs) const;

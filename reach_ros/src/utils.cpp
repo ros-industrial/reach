@@ -99,8 +99,9 @@ visualization_msgs::Marker makeVisual(const reach::ReachRecord& r, const std::st
   return marker;
 }
 
-visualization_msgs::InteractiveMarker makeInteractiveMarker(const std::string& id, const reach::ReachRecord& r, const std::string& frame,
-                                                            const double scale, const Eigen::Vector3f& rgb_color)
+visualization_msgs::InteractiveMarker makeInteractiveMarker(const std::string& id, const reach::ReachRecord& r,
+                                                            const std::string& frame, const double scale,
+                                                            const Eigen::Vector3f& rgb_color)
 {
   visualization_msgs::InteractiveMarker m;
   m.header.frame_id = frame;

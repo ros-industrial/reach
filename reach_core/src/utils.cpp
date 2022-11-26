@@ -76,8 +76,8 @@ std::vector<std::size_t> getNeighbors(const ReachRecord& rec, const ReachResult&
   return neighbors;
 }
 
-std::vector<std::size_t> getNeighborsFLANN(const ReachRecord& rec, const ReachResult& db,
-                                           const double radius, SearchTreePtr search_tree)
+std::vector<std::size_t> getNeighborsFLANN(const ReachRecord& rec, const ReachResult& db, const double radius,
+                                           SearchTreePtr search_tree)
 {
   pcl::PointXYZ query(rec.goal.translation().x(), rec.goal.translation().y(), rec.goal.translation().z());
   std::vector<int> indices;
@@ -149,7 +149,7 @@ void reachNeighborsRecursive(const ReachResult& db, const ReachRecord& rec, IKSo
                              SearchTreePtr search_tree)
 {
   // Add the current point to the output list of msg IDs
-//  result.reached_pts.push_back(rec.id);
+  //  result.reached_pts.push_back(rec.id);
 
   // Create vectors for storing reach record messages that lie within radius of current point
   std::vector<std::size_t> neighbors;

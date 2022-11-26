@@ -28,8 +28,8 @@
 namespace reach
 {
 ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator,
-                       TargetPoseGenerator::ConstPtr target_generator, Display::ConstPtr display,
-                       Logger::Ptr logger, Parameters params)
+                       TargetPoseGenerator::ConstPtr target_generator, Display::ConstPtr display, Logger::Ptr logger,
+                       Parameters params)
   : params_(std::move(params))
   , ik_solver_(std::move(ik_solver))
   , evaluator_(std::move(evaluator))
@@ -102,8 +102,7 @@ void ReachStudy::run()
       double score;
       std::tie(solution, score) = evaluateIK(tgt_frame, seed_state, ik_solver_, evaluator_);
 
-      ReachRecord msg(true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution),
-                      score);
+      ReachRecord msg(true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution), score);
       {
         std::lock_guard<std::mutex> lock{ mutex_ };
         active_result->operator[](i) = msg;

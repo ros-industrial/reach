@@ -135,9 +135,7 @@ Eigen::MatrixX3f computeHeatMapColors(const ReachResult& db)
 {
   // Find the max element
   ReachResult::const_iterator max_it = std::max_element(
-      db.begin(), db.end(), [](const ReachRecord& a, const ReachRecord& b) {
-        return a.score < b.score;
-      });
+      db.begin(), db.end(), [](const ReachRecord& a, const ReachRecord& b) { return a.score < b.score; });
 
   Eigen::MatrixX3f colors(db.size(), 3);
   for (auto it = db.begin(); it != db.end(); ++it)

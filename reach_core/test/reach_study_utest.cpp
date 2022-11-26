@@ -121,9 +121,7 @@ TEST(ReachStudy, Comparison)
   }
 
   // Make b have the opposite reachability of a
-  std::for_each(b.begin(), b.end(), [](reach::ReachRecord& rec) {
-    rec.reached = !rec.reached;
-  });
+  std::for_each(b.begin(), b.end(), [](reach::ReachRecord& rec) { rec.reached = !rec.reached; });
 
   {
     reach::ComparisonResult result = reach::compare({ a, b });
