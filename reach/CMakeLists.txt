@@ -5,9 +5,16 @@ find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
-find_package(Python COMPONENTS Interpreter Development)
-find_package(PythonLibs 3.8 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS serialization program_options python numpy)
+option(BUILD_PYTHON "Build Python bindings" ON)
+
+# Python dependencies need to be found first
+if(BUILD_PYTHON)
+  find_package(Python REQUIRED COMPONENTS Interpreter Development)
+  find_package(PythonLibs 3 REQUIRED)
+  find_package(Boost REQUIRED COMPONENTS python numpy)
+endif()
+
+find_package(Boost REQUIRED COMPONENTS serialization program_options)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS io search)
 find_package(yaml-cpp REQUIRED)
@@ -25,6 +32,8 @@ if(OPENMP_FOUND)
   endif()
 endif()
 
+set(TARGETS "")
+
 # Interface library
 add_library(${PROJECT_NAME}_interface INTERFACE)
 target_include_directories(${PROJECT_NAME}_interface INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -39,6 +48,7 @@ target_compile_definitions(
             LOGGER_SECTION="logger"
             TARGET_POSE_GEN_SECTION="pose")
 target_cxx_version(${PROJECT_NAME}_interface INTERFACE VERSION 14)
+list(APPEND TARGETS ${PROJECT_NAME}_interface)
 
 # Reach Study Library
 add_library(
@@ -58,30 +68,7 @@ target_link_libraries(
 target_compile_definitions(${PROJECT_NAME} PUBLIC SEARCH_LIBRARIES_ENV="REACH_PLUGINS"
                                                   PLUGIN_LIBRARIES="${PROJECT_NAME}_plugins:reach_ros_plugins")
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
-
-# Add Python libraries
-Python_add_library(
-  ${PROJECT_NAME}_python
-  MODULE
-  src/python/python_bindings.cpp)
-target_include_directories(${PROJECT_NAME}_python PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                  "$<INSTALL_INTERFACE:include>")
-target_include_directories(${PROJECT_NAME}_python PUBLIC ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS})
-target_link_libraries(
-  ${PROJECT_NAME}_python
-  PUBLIC ${PROJECT_NAME}
-         Eigen3::Eigen
-         Boost::serialization
-         Boost::python
-         Boost::numpy
-         ${PCL_LIBRARIES}
-         ${PYTHON_LIBRARIES}
-         yaml-cpp
-         boost_plugin_loader::boost_plugin_loader
-         OpenMP::OpenMP_CXX)
-set_target_properties(${PROJECT_NAME}_python
-  PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages/${PROJECT_NAME})
-
+list(APPEND TARGETS ${PROJECT_NAME})
 
 # Plugins Library
 add_library(
@@ -98,16 +85,23 @@ target_link_libraries(
          ${PCL_LIBRARIES}
          boost_plugin_loader::boost_plugin_loader)
 target_cxx_version(${PROJECT_NAME}_plugins PUBLIC VERSION 14)
+list(APPEND TARGETS ${PROJECT_NAME}_plugins)
 
 # Reach Study App
 add_executable(${PROJECT_NAME}_app src/app/reach_study.cpp)
 target_link_libraries(${PROJECT_NAME}_app PRIVATE ${PROJECT_NAME} Boost::program_options)
 target_cxx_version(${PROJECT_NAME}_app PUBLIC VERSION 14)
+list(APPEND TARGETS ${PROJECT_NAME}_app)
 
 # Data Loader App
 add_executable(${PROJECT_NAME}_data_loader src/app/data_loader.cpp)
 target_link_libraries(${PROJECT_NAME}_data_loader PRIVATE ${PROJECT_NAME} Boost::program_options)
 target_cxx_version(${PROJECT_NAME}_data_loader PUBLIC VERSION 14)
+list(APPEND TARGETS ${PROJECT_NAME}_data_loader)
+
+if(BUILD_PYTHON)
+  add_subdirectory(src/python)
+endif()
 
 # ######################################################################################################################
 # TEST ##
@@ -129,15 +123,10 @@ install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION include/${PROJECT_NAME})
 configure_package(
   NAMESPACE reach
             DEPENDENCIES
-            "Boost REQUIRED COMPONENTS serialization program_options python numpy"
+            "Boost REQUIRED COMPONENTS serialization program_options"
             "PCL REQUIRED COMPONENTS io search"
             Eigen3
             yaml-cpp
             boost_plugin_loader
             OpenMP
-  TARGETS ${PROJECT_NAME}_interface
-          ${PROJECT_NAME}
-          ${PROJECT_NAME}_plugins
-          ${PROJECT_NAME}_app
-          ${PROJECT_NAME}_data_loader
-          ${PROJECT_NAME}_python)
+  TARGETS ${TARGETS})
