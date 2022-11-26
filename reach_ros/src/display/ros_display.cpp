@@ -61,14 +61,13 @@ void ROSDisplay::showResults(const reach::ReachResult& db) const
   server_.clear();
 
   // Create a callback for when a marker is clicked on
-  auto show_goal_cb = [this, &db](const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb) {
+  auto show_goal_cb = [this, db](const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb) {
     std::size_t idx = std::strtoul(fb->marker_name.c_str(), nullptr, 10);
     updateRobotPose(db.at(idx).goal_state);
   };
 
   Eigen::MatrixX3f heatmap_colors = reach::computeHeatMapColors(db);
 
-  //  for (auto it = db.cbegin(); it != db.cend(); ++it)
   for (std::size_t i = 0; i < db.size(); ++i)
   {
     const std::string id = std::to_string(i);
