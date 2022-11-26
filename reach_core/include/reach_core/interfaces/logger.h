@@ -18,7 +18,7 @@ class StudyResults;
 struct Logger
 {
   using Ptr = std::shared_ptr<Logger>;
-  using ConstPtr = std::shared_ptr<Logger>;
+  using ConstPtr = std::shared_ptr<const Logger>;
 
   virtual void setMaxProgress(unsigned long max_progress) = 0;
   virtual void printProgress(unsigned long progress) const = 0;
@@ -34,7 +34,7 @@ struct LoggerFactory
   using Ptr = std::shared_ptr<LoggerFactory>;
   using ConstPtr = std::shared_ptr<const LoggerFactory>;
 
-  virtual Logger::ConstPtr create(const YAML::Node& config) const = 0;
+  virtual Logger::Ptr create(const YAML::Node& config) const = 0;
 
   static std::string getSection()
   {
