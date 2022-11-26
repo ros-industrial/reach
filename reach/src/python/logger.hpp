@@ -22,7 +22,7 @@ struct LoggerPython : Logger, boost::python::wrapper<Logger>
     return call_and_handle([this, &progress]() {this->get_override("printProgress")(progress);});
   }
 
-  void printResults(const StudyResults& results) const override
+  void printResults(const ReachResultSummary& results) const override
   {
     return call_and_handle([this, &results]() {this->get_override("printResults")(results);});
   }

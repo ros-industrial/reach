@@ -59,14 +59,31 @@ static std::map<KeyT, ValueT> pythonDictToMap(const boost::python::dict& dict)
 
 inline YAML::Node pythonDictToYAML(const boost::python::dict& dict)
 {
-  YAML::Node config;
+  namespace bp = boost::python;
 
-  boost::python::list keys = dict.keys();
-  for (int i = 0; i < boost::python::len(keys); ++i)
+  YAML::Node config;
+  bp::list keys = dict.keys();
+  for (int i = 0; i < bp::len(keys); ++i)
   {
-    const std::string key = boost::python::extract<std::string>{ keys[i] }();
-    const std::string value = boost::python::extract<std::string>{dict[key]}();
-    config.force_insert(key, value);
+    const std::string key = bp::extract<std::string>{ keys[i] }();
+
+    // First check if the key corresponds to a nested dictionary
+    auto dict_extractor = bp::extract<bp::dict>(dict[key]);
+    auto str_extractor = bp::extract<std::string>(dict[key]);
+    auto int_extractor = bp::extract<int>(dict[key]);
+    auto float_extractor = bp::extract<float>(dict[key]);
+
+    if (dict_extractor.check())
+      config[key] = pythonDictToYAML(dict_extractor());
+    else if (str_extractor.check())
+      config[key] = str_extractor();
+    else if (int_extractor.check())
+      config[key] = int_extractor();
+    else if (float_extractor.check())
+      config[key] = float_extractor();
+    else
+      throw std::runtime_error("Unsupported Python value type '" +
+                               bp::extract<std::string>{ dict[key].attr("__class__") }() + "'");
   }
 
   return config;
@@ -86,33 +103,23 @@ inline Eigen::Isometry3d toEigen(const boost::python::numpy::ndarray& arr)
   if (cols != 4)
     throw std::runtime_error("Numpy array has " + std::to_string(cols) + " rather than 4 columns");
 
-  Eigen::Isometry3d pose;
-  for (int i = 0; i < rows; ++i)
-  {
-    for (int j = 0; j < cols; ++j)
-    {
-      pose.matrix()(i, j) = boost::python::extract<double>{ arr[i, j] }();
-    }
-  }
+  if (arr.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
+    throw std::runtime_error("Numpy array dtype must be double");
 
-  return pose;
+  Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> ndarray_map((double*)arr.get_data());
+  return Eigen::Isometry3d(ndarray_map);
 }
 
 inline boost::python::numpy::ndarray fromEigen(const Eigen::Isometry3d& pose)
 {
-  boost::python::tuple shape = boost::python::make_tuple(4, 4);
-  boost::python::numpy::dtype dtype = boost::python::numpy::dtype::get_builtin<double>();
-  boost::python::numpy::ndarray array = boost::python::numpy::zeros(shape, dtype);
+  namespace bp = boost::python;
+  namespace np = boost::python::numpy;
 
-  for (int i = 0; i < 4; ++i)
-  {
-    for (int j = 0; j < 4; ++j)
-    {
-      array[i, j] = pose.matrix()(i, j);
-    }
-  }
+  bp::tuple shape = bp::make_tuple(16);
+  bp::numpy::dtype dtype = np::dtype::get_builtin<double>();
+  bp::tuple stride = bp::make_tuple(sizeof (double));
 
-  return array;
+  return np::from_data(pose.data(), dtype, shape, stride, bp::object()).reshape(bp::make_tuple(4, 4)).transpose();
 }
 
 } // namespace reach

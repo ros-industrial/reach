@@ -24,6 +24,7 @@
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <boost/python.hpp>
 #include <boost/python/converter/builtin_converters.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/numpy.hpp>
 #include <cstdarg>
 #include <yaml-cpp/yaml.h>
@@ -36,13 +37,13 @@ class ReachStudyPython : public ReachStudy
 {
 public:
   ReachStudyPython(const IKSolver* ik_solver, const Evaluator* evaluator, const TargetPoseGenerator* pose_generator,
-                   const Display* display, Logger* logger, const ReachStudy::Parameters params,
-                   const std::string& study_name)
-    : ReachStudy(IKSolver::ConstPtr(std::move(ik_solver), [](const IKSolver*) {}),
-                 Evaluator::ConstPtr(std::move(evaluator), [](const Evaluator*) {}),
-                 TargetPoseGenerator::ConstPtr(std::move(pose_generator), [](const TargetPoseGenerator*) {}),
-                 Display::ConstPtr(std::move(display), [](const Display*) {}),
-                 Logger::Ptr(std::move(logger), [](Logger*) {}), params, study_name)
+                   const Display* display, Logger* logger, ReachStudy::Parameters params)
+    : ReachStudy(IKSolver::ConstPtr(ik_solver, [](const IKSolver*) {}),
+                 Evaluator::ConstPtr(evaluator, [](const Evaluator*) {}),
+                 TargetPoseGenerator::ConstPtr(pose_generator, [](const TargetPoseGenerator*) {}),
+                 Display::ConstPtr(display, [](const Display*) {}),
+                 Logger::Ptr(logger, [](Logger*) {}),
+                 std::move(params))
   {
     std::vector<std::string> python_interface_names;
 
@@ -78,7 +79,7 @@ public:
 
     if (!python_interface_names.empty())
     {
-      this->max_threads_ = 1;
+      params_.max_threads = 1;
 
       logger->print("Detected Python interfaces of the following abstract types:");
       for (const std::string& name : python_interface_names)
@@ -92,6 +93,11 @@ public:
       logger->print("Did not detect any Python interfaces");
     }
   }
+
+  ReachStudyPython(const ReachStudyPython& rhs)
+  : ReachStudy (rhs)
+  {
+  }
 };
 
 BOOST_PYTHON_MODULE(reach_core_python)
@@ -102,7 +108,6 @@ BOOST_PYTHON_MODULE(reach_core_python)
 
   // Wrap boost_plugin_loader::PluginLoader
   {
-    bp::class_<boost::filesystem::path>("Path", bp::init<std::string>());
     bp::class_<boost_plugin_loader::PluginLoader>("PluginLoader")
         .def_readwrite("search_libraries_env", &boost_plugin_loader::PluginLoader::search_libraries_env)
         .def("createIKSolverFactoryInstance", &boost_plugin_loader::PluginLoader::createInstance<IKSolverFactory>)
@@ -113,7 +118,7 @@ BOOST_PYTHON_MODULE(reach_core_python)
         .def("createLoggerFactoryInstance", &boost_plugin_loader::PluginLoader::createInstance<LoggerFactory>);
   }
 
-  // Wrap the IKSolvers
+  // Wrap the IKSolver
   {
     std::vector<std::vector<double>> (IKSolver::*solveIKCpp)(
         const Eigen::Isometry3d&, const std::map<std::string, double>&) const = &IKSolver::solveIK;
@@ -130,7 +135,7 @@ BOOST_PYTHON_MODULE(reach_core_python)
         .def("create", createPython);
   }
 
-  // Wrap the Evaluators
+  // Wrap the Evaluator
   {
     double (Evaluator::*calculateScoreCpp)(const std::map<std::string, double>&) const = &Evaluator::calculateScore;
     double (Evaluator::*calculateScorePython)(const bp::dict&) const;
@@ -145,7 +150,7 @@ BOOST_PYTHON_MODULE(reach_core_python)
         .def("create", createPython);
   }
 
-  // Wrap the TargetPoseGenerators
+  // Wrap the TargetPoseGenerator
   {
     bp::class_<TargetPoseGeneratorPython, boost::noncopyable>("TargetPoseGenerator")
         .def("generate", bp::pure_virtual(&TargetPoseGenerator::generate));
@@ -159,12 +164,10 @@ BOOST_PYTHON_MODULE(reach_core_python)
         .def("create", createFromDict);
   }
 
-  // Wrap the Displays
+  // Wrap the Display
   {
-    bp::class_<ReachDatabase>("ReachDatabase").def("calculateResults", &ReachDatabase::calculateResults);
-
     void (Display::*updateRobotPoseMap)(const std::map<std::string, double>&) const = &Display::updateRobotPose;
-    void (Display::*updateRobotPoseDict)(const boost::python::dict&) const = &Display::updateRobotPose;
+    void (Display::*updateRobotPoseDict)(const bp::dict&) const = &Display::updateRobotPose;
     bp::class_<DisplayPython, boost::noncopyable>("Display")
         .def("showEnvironment", bp::pure_virtual(&Display::showEnvironment))
         .def("updateRobotPose", bp::pure_virtual(updateRobotPoseMap))
@@ -179,10 +182,8 @@ BOOST_PYTHON_MODULE(reach_core_python)
         .def("create", createFromDict);
   }
 
-  // Wrap the Loggers
+  // Wrap the Logger
   {
-    bp::class_<StudyResults>("StudyResults").def("print", &StudyResults::print);
-
     bp::class_<LoggerPython, boost::noncopyable>("Logger")
         .def("setMaxProgress", bp::pure_virtual(&Logger::setMaxProgress))
         .def("printProgress", bp::pure_virtual(&Logger::printProgress))
@@ -196,32 +197,57 @@ BOOST_PYTHON_MODULE(reach_core_python)
         .def("create", createFromDict);
   }
 
-  // Wrap the Parameters
+  // Wrap the datatypes
   {
     bp::class_<ReachStudy::Parameters>("Parameters")
         .def_readwrite("max_steps", &ReachStudy::Parameters::max_steps)
         .def_readwrite("step_improvement_threshold", &ReachStudy::Parameters::step_improvement_threshold)
         .def_readwrite("radius", &ReachStudy::Parameters::radius);
+
+    bp::class_<ReachRecord>("ReachRecord")
+        .def("goal", +[](const ReachRecord& r) -> bp::numpy::ndarray { return fromEigen(r.goal); })
+        .def_readwrite("score", &ReachRecord::score)
+        .def_readwrite("goal_state", &ReachRecord::goal_state)
+        .def_readwrite("seed_state", &ReachRecord::seed_state);
+
+    bp::class_<ReachResult>("ReachResult").def(bp::vector_indexing_suite<ReachResult>());
+    bp::class_<VectorReachResult>("VectorReachResult").def(bp::vector_indexing_suite<VectorReachResult>());
+
+    bp::class_<ReachDatabase>("ReachDatabase")
+        .def_readwrite("results", &ReachDatabase::results)
+        .def("calculateResults", &ReachDatabase::calculateResults)
+        .def("computeHeatMapColors", &ReachDatabase::computeHeatMapColors);
+
+    bp::class_<ReachResultSummary>("ReachResultSummary")
+        .def_readonly("total_pose_score", &ReachResultSummary::total_pose_score)
+        .def_readonly("norm_total_pose_score", &ReachResultSummary::norm_total_pose_score)
+        .def_readonly("reach_percentage", &ReachResultSummary::reach_percentage)
+        .def("__str__", &ReachResultSummary::print);
   }
 
   // Wrap ReachStudy
   {
-    bp::def("runReachStudy", runReachStudy);
-
     bp::class_<ReachStudyPython>("ReachStudy",
                                  bp::init<const IKSolver*, const Evaluator*, const TargetPoseGenerator*, const Display*,
-                                          Logger*, const ReachStudy::Parameters, const std::string&>())
+                                          Logger*, ReachStudy::Parameters>())
         .def("load", &ReachStudyPython::load)
         .def("save", &ReachStudyPython::save)
-        .def("getDatabase", &ReachStudyPython::getDatabase)
+        .def("getDatabase", &ReachStudyPython::getDatabase, bp::return_internal_reference())
         .def("run", &ReachStudyPython::run)
         .def("optimize", &ReachStudyPython::optimize)
         .def("getAverageNeighborsCounts", &ReachStudyPython::getAverageNeighborsCount);
   }
 
+  // Wrap the free functions
+  {
+    bp::def("runReachStudy", runReachStudy);
+    bp::def("save", save);
+    bp::def("load", load);
+    bp::def("calculateResults", calculateResults);
+  }
+
   // Register shared_ptrs
   {
-    bp::register_ptr_to_python<ReachDatabase::ConstPtr>();
     bp::register_ptr_to_python<IKSolver::Ptr>();
     bp::register_ptr_to_python<IKSolver::ConstPtr>();
     bp::register_ptr_to_python<IKSolverFactory::Ptr>();

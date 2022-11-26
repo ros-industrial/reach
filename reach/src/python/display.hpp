@@ -42,12 +42,12 @@ struct DisplayPython : Display, boost::python::wrapper<Display>
     return call_and_handle(fn);
   }
 
-  void showReachNeighborhood(const std::vector<ReachRecord>& neighborhood) const override
+  void showReachNeighborhood(const std::map<std::size_t, ReachRecord>& neighborhood) const override
   {
     return call_and_handle([this, &neighborhood]() { this->get_override("showReachNeighborhood")(neighborhood); });
   }
 
-  void showResults(const ReachDatabase& results) const override
+  void showResults(const ReachResult& results) const override
   {
     return call_and_handle([this, &results]() { this->get_override("showResults")(results); });
   }
