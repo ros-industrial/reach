@@ -44,8 +44,7 @@ public:
   };
 
   ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr pose_generator,
-             Display::ConstPtr display, Logger::Ptr logger, Parameters params,
-             const std::string& study_name);
+             Display::ConstPtr display, Logger::Ptr logger, Parameters params);
 
   ReachStudy(const ReachStudy&);
 

@@ -29,7 +29,7 @@ namespace reach
 {
 ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator,
                        TargetPoseGenerator::ConstPtr target_generator, Display::ConstPtr display,
-                       Logger::Ptr logger, Parameters params, const std::string& name)
+                       Logger::Ptr logger, Parameters params)
   : params_(std::move(params))
   , ik_solver_(std::move(ik_solver))
   , evaluator_(std::move(evaluator))
@@ -302,7 +302,7 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   }
 
   // Initialize the reach study
-  reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, logger, params, config_name);
+  reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, logger, params);
 
   const boost::filesystem::path db_file = results_dir / config_name / "reach.db.xml";
 
