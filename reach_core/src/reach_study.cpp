@@ -29,7 +29,7 @@ namespace reach
 {
 ReachStudy::ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator,
                        TargetPoseGenerator::ConstPtr target_generator, Display::ConstPtr display,
-                       Logger::Ptr logger, const Parameters params, const std::string& name)
+                       Logger::Ptr logger, Parameters params, const std::string& name)
   : params_(std::move(params))
   , db_(new ReachDatabase(name))
   , ik_solver_(std::move(ik_solver))
@@ -71,7 +71,7 @@ void ReachStudy::run()
   std::atomic<unsigned long> current_counter;
   current_counter = 0;
 
-#pragma omp parallel for num_threads(std::thread::hardware_concurrency())
+#pragma omp parallel for num_threads(params_.max_threads)
   for (std::size_t i = 0; i < target_poses_.size(); ++i)
   {
     const Eigen::Isometry3d& tgt_frame = target_poses_[i] * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX());
@@ -139,7 +139,7 @@ void ReachStudy::optimize()
     // Randomize
     std::random_shuffle(rand_vec.begin(), rand_vec.end());
 
-#pragma parallel for num_threads(std::thread::hardware_concurrency())
+#pragma parallel for num_threads(params_.max_threads)
     for (std::size_t i = 0; i < rand_vec.size(); ++i)
     {
       auto it = db_->begin();
@@ -189,7 +189,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
   std::atomic<double> total_joint_distance;
 
 // Iterate
-#pragma parallel for num_threads(std::thread::hardware_concurrency())
+#pragma parallel for num_threads(params_.max_threads)
   for (auto it = db_->begin(); it != db_->end(); ++it)
   {
     ReachRecord msg = it->second;
@@ -229,6 +229,8 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   params.radius = opt_config["radius"].as<double>();
   params.max_steps = opt_config["max_steps"].as<int>();
   params.step_improvement_threshold = opt_config["step_improvement_threshold"].as<double>();
+  if (opt_config["max_threads"])
+    params.max_threads = opt_config["max_threads"].as<std::size_t>();
 
   boost_plugin_loader::PluginLoader loader;
   std::vector<std::string> plugin_libraries;

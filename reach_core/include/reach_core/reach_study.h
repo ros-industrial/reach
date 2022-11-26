@@ -24,6 +24,7 @@
 #include <reach_core/utils.h>
 
 #include <boost/filesystem/path.hpp>
+#include <thread>
 
 namespace reach
 {
@@ -38,10 +39,11 @@ public:
     int max_steps;
     float step_improvement_threshold;
     float radius;
+    std::size_t max_threads = std::thread::hardware_concurrency();
   };
 
   ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr pose_generator,
-             Display::ConstPtr display, Logger::Ptr logger, const Parameters params,
+             Display::ConstPtr display, Logger::Ptr logger, Parameters params,
              const std::string& study_name);
 
   /** @brief Loads the results of a reach study from file */
