@@ -12,7 +12,7 @@ class Node;
 
 namespace reach
 {
-class StudyResults;
+class ReachResultSummary;
 
 /** @brief Interface for logging reach study status and progress */
 struct Logger
@@ -23,7 +23,7 @@ struct Logger
   virtual void setMaxProgress(unsigned long max_progress) = 0;
   virtual void printProgress(unsigned long progress) const = 0;
 
-  virtual void printResults(const StudyResults& results) const = 0;
+  virtual void printResults(const ReachResultSummary& results) const = 0;
 
   virtual void print(const std::string& message) const = 0;
 };

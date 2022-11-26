@@ -18,21 +18,21 @@
 
 namespace reach
 {
-static SearchTreePtr createSearchTree(const ReachDatabase& db)
+static SearchTreePtr createSearchTree(const ReachResult& result)
 {
   VectorIsometry3d poses;
-  poses.reserve(db.size());
-  std::transform(db.begin(), db.end(), std::back_inserter(poses), [](const ReachRecord& r) { return r.goal; });
+  poses.reserve(result.size());
+  std::transform(result.begin(), result.end(), std::back_inserter(poses), [](const ReachRecord& r) { return r.goal; });
   return createSearchTree(poses);
 }
 
-ReachVisualizer::ReachVisualizer(ReachDatabase db, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
+ReachVisualizer::ReachVisualizer(ReachResult result, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                                  Display::ConstPtr display, const double neighbor_radius)
-  : db_(std::move(db))
+  : result_(std::move(result))
   , solver_(solver)
   , evaluator_(evaluator)
   , display_(display)
-  , search_tree_(createSearchTree(db_))
+  , search_tree_(createSearchTree(result_))
   , neighbor_radius_(neighbor_radius)
 {
   display_->showEnvironment();
@@ -40,7 +40,7 @@ ReachVisualizer::ReachVisualizer(ReachDatabase db, IKSolver::ConstPtr solver, Ev
 
 void ReachVisualizer::reSolveIK(const std::size_t record_idx)
 {
-  ReachRecord lookup = db_.at(record_idx);
+  ReachRecord lookup = result_.at(record_idx);
 
   // Re-solve IK at the selected marker
   std::vector<double> goal_pose;
@@ -55,35 +55,35 @@ void ReachVisualizer::reSolveIK(const std::size_t record_idx)
   display_->updateRobotPose(lookup.goal_state);
 
   // Update the database
-  db_[record_idx] = lookup;
+  result_[record_idx] = lookup;
 }
 
 void ReachVisualizer::showResult(const std::size_t record_idx) const
 {
-  ReachRecord lookup = db_.at(record_idx);
+  ReachRecord lookup = result_.at(record_idx);
   display_->updateRobotPose(lookup.goal_state);
 }
 
 void ReachVisualizer::showSeed(const std::size_t record_idx) const
 {
-  ReachRecord lookup = db_.at(record_idx);
+  ReachRecord lookup = result_.at(record_idx);
   display_->updateRobotPose(lookup.seed_state);
 }
 
 void ReachVisualizer::reachNeighbors(const std::size_t record_id, const bool recursive) const
 {
-  ReachRecord lookup = db_.at(record_id);
+  ReachRecord lookup = result_.at(record_id);
   std::map<std::size_t, ReachRecord> result;
   if (recursive)
   {
     NeighborReachResult neighbors;
-    reachNeighborsRecursive(db_, lookup, solver_, evaluator_, neighbor_radius_, neighbors, search_tree_);
+    reachNeighborsRecursive(result_, lookup, solver_, evaluator_, neighbor_radius_, neighbors, search_tree_);
     std::transform(neighbors.reached_pts.begin(), neighbors.reached_pts.end(), std::inserter(result, result.begin()),
-                   [this](const std::size_t idx) { return std::make_pair(idx, db_.at(idx)); });
+                   [this](const std::size_t idx) { return std::make_pair(idx, result_.at(idx)); });
   }
   else
   {
-    result = reachNeighborsDirect(db_, lookup, solver_, evaluator_, neighbor_radius_, search_tree_);
+    result = reachNeighborsDirect(result_, lookup, solver_, evaluator_, neighbor_radius_, search_tree_);
   }
 
   display_->updateRobotPose(lookup.goal_state);

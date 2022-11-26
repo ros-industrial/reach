@@ -50,7 +50,7 @@ struct NoOpDisplay : public Display
   void showEnvironment() const override{};
   void updateRobotPose(const std::map<std::string, double>&) const override{};
   void showReachNeighborhood(const std::map<std::size_t, ReachRecord>&) const override{};
-  void showResults(const ReachDatabase&) const override{};
+  void showResults(const ReachResult&) const override{};
 };
 
 struct NoOpDisplayFactory : public DisplayFactory

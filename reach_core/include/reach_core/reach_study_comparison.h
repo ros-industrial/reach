@@ -34,7 +34,7 @@ protected:
   const std::map<mask, std::string> mask_names_;
 };
 
-ComparisonResult compareDatabases(const std::vector<std::string>& db_files);
-ComparisonResult compareDatabases(const std::vector<ReachDatabase>& dbs);
+ComparisonResult compare(const std::vector<std::string>& db_files);
+ComparisonResult compare(const std::vector<ReachResult>& results);
 
 }  // namespace reach

@@ -9,9 +9,9 @@
 #include <random>
 #include <yaml-cpp/yaml.h>
 
-reach::ReachDatabase createDatabase()
+reach::ReachResult createReachResult()
 {
-  reach::ReachDatabase db;
+  reach::ReachResult result;
 
   std::mt19937 rand_gen(0);
   std::uniform_real_distribution dist(-M_PI, M_PI);
@@ -33,10 +33,10 @@ reach::ReachDatabase createDatabase()
     rec.goal_state = state;
     rec.seed_state = state;
 
-    db.push_back(rec);
+    result.push_back(rec);
   }
 
-  return db;
+  return result;
 }
 
 template <typename PluginT>
@@ -82,7 +82,8 @@ TEST(ReachStudy, ReachStudy)
 
 TEST(ReachStudy, Serialization)
 {
-  const reach::ReachDatabase db = createDatabase();
+  reach::ReachDatabase db;
+  db.results.push_back(createReachResult());
 
   const std::string filename = "/tmp/test.db";
   ASSERT_NO_THROW(reach::save(db, filename));
@@ -93,8 +94,8 @@ TEST(ReachStudy, Serialization)
 
 TEST(ReachStudy, Comparison)
 {
-  const reach::ReachDatabase a = createDatabase();
-  reach::ReachDatabase b = a;
+  const reach::ReachResult a = createReachResult();
+  reach::ReachResult b = a;
   const std::vector<std::size_t> studies = { 0, 1 };
 
   std::size_t n_reachable =
@@ -102,7 +103,7 @@ TEST(ReachStudy, Comparison)
 
   // a == b
   {
-    reach::ComparisonResult result = reach::compareDatabases({ a, b });
+    reach::ComparisonResult result = reach::compare({ a, b });
 
     // Check that all records are reachable by in both databases
     std::vector<std::string> reachable_rec_ids = result.getReachability(studies);
@@ -125,7 +126,7 @@ TEST(ReachStudy, Comparison)
   });
 
   {
-    reach::ComparisonResult result = reach::compareDatabases({ a, b });
+    reach::ComparisonResult result = reach::compare({ a, b });
 
     // Check that no records are reachable by both databases
     std::vector<std::string> reachable_rec_ids = result.getReachability(studies);

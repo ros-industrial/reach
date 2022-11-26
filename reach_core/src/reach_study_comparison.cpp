@@ -88,33 +88,33 @@ std::string ComparisonResult::getReachabilityDescriptor(const std::string& targe
   return mask_names_.at(reachability_mask_map_.at(target));
 }
 
-ComparisonResult compareDatabases(const std::vector<std::string>& db_filenames)
+ComparisonResult compare(const std::vector<std::string>& db_filenames)
 {
   // Load databases to be compared
-  std::vector<ReachDatabase> dbs;
-  dbs.reserve(db_filenames.size());
+  std::vector<ReachResult> results;
+  results.reserve(db_filenames.size());
   for (const std::string& filename : db_filenames)
   {
     ReachDatabase db = reach::load(filename);
-    dbs.push_back(std::move(db));
+    results.push_back(db.results.back());
   }
 
-  return compareDatabases(dbs);
+  return compare(results);
 }
 
-ComparisonResult compareDatabases(const std::vector<ReachDatabase>& dbs)
+ComparisonResult compare(const std::vector<ReachResult>& results)
 {
-  if (dbs.empty())
+  if (results.empty())
     throw std::runtime_error("Must provide at least one database for comparison");
 
-  const std::size_t n_records = dbs.front().size();
+  const std::size_t n_records = results.front().size();
 
   // Get the indices of all the records in this database
   std::vector<std::size_t> record_idxs(n_records);
   std::iota(record_idxs.begin(), record_idxs.end(), 0);
 
   // Check that all databases have the same records
-  std::all_of(dbs.begin(), dbs.end(), [&n_records](const ReachDatabase& db) { return db.size() == n_records; });
+  std::all_of(results.begin(), results.end(), [&n_records](const ReachResult& db) { return db.size() == n_records; });
 
   // Iterate over all records in the databases and compare whether or not they were reached in that database
   std::map<std::string, ComparisonResult::mask> reachability_mask_map;
@@ -124,16 +124,16 @@ ComparisonResult compareDatabases(const std::vector<ReachDatabase>& dbs)
     // n is is msg.reach boolean of (n+1)th database
     ComparisonResult::mask mask = 0;
 
-    for (auto it = dbs.begin(); it != dbs.end(); ++it)
+    for (auto it = results.begin(); it != results.end(); ++it)
     {
-      mask += static_cast<char>(it->at(idx).reached) << std::distance(dbs.begin(), it);
+      mask += static_cast<char>(it->at(idx).reached) << std::distance(results.begin(), it);
     }
 
     reachability_mask_map[std::to_string(idx)] = mask;
   }
 
   // Get the database names for the output
-  std::vector<std::size_t> db_indices(dbs.size());
+  std::vector<std::size_t> db_indices(results.size());
   std::iota(db_indices.begin(), db_indices.end(), 0);
   return ComparisonResult(db_indices, reachability_mask_map);
 }

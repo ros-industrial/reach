@@ -31,7 +31,7 @@ public:
     previous_pct = current_pct;
   }
 
-  void printResults(const StudyResults& results) const override
+  void printResults(const ReachResultSummary& results) const override
   {
     print(results.print());
   }

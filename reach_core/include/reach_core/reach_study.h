@@ -61,7 +61,7 @@ public:
   /** @brief Saves the results of the reach study to a file */
   void save(const std::string& filename) const;
 
-  StudyResults getResults() const;
+  ReachResultSummary getResults() const;
   const ReachDatabase& getDatabase() const;
 
   /**

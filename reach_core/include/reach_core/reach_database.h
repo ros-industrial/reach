@@ -30,10 +30,14 @@ using VectorIsometry3d = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator
 class ReachRecord
 {
 public:
-  ReachRecord() = default;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   ReachRecord(const bool reached, const Eigen::Isometry3d& goal,
               const std::map<std::string, double> seed_state, const std::map<std::string, double> goal_state,
               const double score);
+  ReachRecord() = default;
+  ReachRecord(const ReachRecord&) = default;
+  ReachRecord& operator=(const ReachRecord&) = default;
+  ReachRecord& operator=(ReachRecord&&) = default;
 
   bool operator==(const ReachRecord& rhs) const;
 
@@ -69,7 +73,7 @@ private:
 /**
  * @brief Container for the results of a reach study
  */
-class StudyResults
+class ReachResultSummary
 {
 public:
   /**
@@ -104,9 +108,31 @@ public:
 /**
  * @brief Container to store information about the robot poses for all of the attempted target poses
  */
-using ReachDatabase = std::vector<ReachRecord>;
-StudyResults calculateResults(const ReachDatabase& db);
-Eigen::MatrixX3f computeHeatMapColors(const ReachDatabase& db);
+using ReachResult = std::vector<ReachRecord, Eigen::aligned_allocator<ReachRecord>>;
+using VectorReachResult = std::vector<ReachResult, Eigen::aligned_allocator<ReachResult>>;
+
+ReachResultSummary calculateResults(const ReachResult& db);
+Eigen::MatrixX3f computeHeatMapColors(const ReachResult& db);
+
+class ReachDatabase
+{
+public:
+  /** @brief Results by reach study iteration */
+  VectorReachResult results;
+
+  bool operator==(const ReachDatabase& rhs) const;
+  ReachResultSummary calculateResults() const;
+  Eigen::MatrixX3f computeHeatMapColors() const;
+
+private:
+  friend class boost::serialization::access;
+
+  template <class Archive>
+  inline void serialize(Archive& ar, const unsigned int /*version*/)
+  {
+    ar& BOOST_SERIALIZATION_NVP(results);
+  }
+};
 
 void save(const ReachDatabase& db, const std::string& filename);
 

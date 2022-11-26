@@ -87,7 +87,7 @@ bool ReachRecord::operator==(const ReachRecord& rhs) const
   return reach_match && goals_match && goal_states_match && seed_states_match && scores_match;
 }
 
-StudyResults calculateResults(const ReachDatabase& db)
+ReachResultSummary calculateResults(const ReachResult& db)
 {
   unsigned int success = 0, total = 0;
   double score = 0.0;
@@ -103,7 +103,7 @@ StudyResults calculateResults(const ReachDatabase& db)
   }
   const float pct_success = static_cast<float>(success) / static_cast<float>(total);
 
-  StudyResults results;
+  ReachResultSummary results;
   results.reach_percentage = 100.0f * pct_success;
   results.total_pose_score = score;
   results.norm_total_pose_score = score / pct_success;
@@ -124,13 +124,17 @@ ReachDatabase load(const std::string& filename)
   boost::archive::xml_iarchive ia(ifs);
   ReachDatabase db;
   ia >> BOOST_SERIALIZATION_NVP(db);
+
+  if (db.results.empty())
+    throw std::runtime_error("Database has no results");
+
   return db;
 }
 
-Eigen::MatrixX3f computeHeatMapColors(const ReachDatabase& db)
+Eigen::MatrixX3f computeHeatMapColors(const ReachResult& db)
 {
   // Find the max element
-  ReachDatabase::const_iterator max_it = std::max_element(
+  ReachResult::const_iterator max_it = std::max_element(
       db.begin(), db.end(), [](const ReachRecord& a, const ReachRecord& b) {
         return a.score < b.score;
       });
@@ -154,6 +158,27 @@ Eigen::MatrixX3f computeHeatMapColors(const ReachDatabase& db)
   }
 
   return colors;
+}
+
+bool ReachDatabase::operator==(const ReachDatabase& rhs) const
+{
+  return std::equal(results.begin(), results.end(), rhs.results.begin());
+}
+
+ReachResultSummary ReachDatabase::calculateResults() const
+{
+  if (results.empty())
+    throw std::runtime_error("Database contains no results");
+
+  return reach::calculateResults(results.back());
+}
+
+Eigen::MatrixX3f ReachDatabase::computeHeatMapColors() const
+{
+  if (results.empty())
+    throw std::runtime_error("Database contains no results");
+
+  return reach::computeHeatMapColors(results.back());
 }
 
 }  // namespace reach

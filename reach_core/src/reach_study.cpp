@@ -55,7 +55,7 @@ void ReachStudy::load(const std::string& filename)
 {
   db_ = reach::load(filename);
   display_->showEnvironment();
-  display_->showResults(db_);
+  display_->showResults(db_.results.back());
 }
 
 void ReachStudy::save(const std::string& filename) const
@@ -70,14 +70,17 @@ const ReachDatabase& ReachStudy::getDatabase() const
 
 void ReachStudy::run()
 {
+  // Clear the database results and add an initial empty reach result
+  db_.results.clear();
+  db_.results.push_back(ReachResult{ target_poses_.size() });
+  auto active_result = db_.results.rbegin();
+
   logger_->print("Starting reach study");
   logger_->setMaxProgress(target_poses_.size());
 
   // Show display
   display_->showEnvironment();
-  display_->showResults(db_);
-
-  db_.resize(target_poses_.size());
+  display_->showResults(*active_result);
 
   // First loop through all points in point cloud and get IK solution
   std::atomic<unsigned long> current_counter;
@@ -103,7 +106,7 @@ void ReachStudy::run()
                       score);
       {
         std::lock_guard<std::mutex> lock{ mutex_ };
-        db_[i] = msg;
+        active_result->operator[](i) = msg;
       }
     }
     catch (const std::exception&)
@@ -111,7 +114,7 @@ void ReachStudy::run()
       ReachRecord msg(false, tgt_frame, seed_state, seed_state, 0.0);
       {
         std::lock_guard<std::mutex> lock{ mutex_ };
-        db_[i] = msg;
+        active_result->operator[](i) = msg;
       }
     }
 
@@ -120,21 +123,26 @@ void ReachStudy::run()
     logger_->printProgress(current_counter.load());
   }
 
-  logger_->printResults(calculateResults(db_));
+  logger_->printResults(db_.calculateResults());
   logger_->print("Reach study complete");
-  display_->showResults(db_);
+  display_->showResults(*active_result);
 }
 
 void ReachStudy::optimize()
 {
+  if (db_.results.empty())
+    throw std::runtime_error("Database contains no results to optimize");
+
+  auto active_result = db_.results.rbegin();
+
   logger_->print("Starting optimization");
 
   // Show environment display
   display_->showEnvironment();
-  display_->showResults(db_);
+  display_->showResults(*active_result);
 
   // Create sequential vector to be randomized
-  std::vector<std::size_t> rand_vec(db_.size());
+  std::vector<std::size_t> rand_vec(active_result->size());
   std::iota(rand_vec.begin(), rand_vec.end(), 0);
 
   // Iterate
@@ -145,10 +153,14 @@ void ReachStudy::optimize()
 
   while (pct_improve > params_.step_improvement_threshold && n_opt < params_.max_steps)
   {
+    // Add a new reach result for this iteration of optimization
+    db_.results.push_back(*active_result);
+    active_result = db_.results.rbegin();
+
     logger_->print("Entering optimization loop " + std::to_string(n_opt));
     logger_->setMaxProgress(target_poses_.size());
 
-    previous_score = calculateResults(db_).norm_total_pose_score;
+    previous_score = db_.calculateResults().norm_total_pose_score;
     current_counter = 0;
 
     // Randomize
@@ -157,20 +169,20 @@ void ReachStudy::optimize()
 #pragma parallel for num_threads(params_.max_threads)
     for (std::size_t i = 0; i < rand_vec.size(); ++i)
     {
-      const ReachRecord& msg = db_[i];
+      const ReachRecord& msg = active_result->at(i);
       if (msg.reached)
       {
         std::map<std::size_t, ReachRecord> neighbors =
-            reachNeighborsDirect(db_, msg, ik_solver_, evaluator_, params_.radius, search_tree_);
+            reachNeighborsDirect(*active_result, msg, ik_solver_, evaluator_, params_.radius, search_tree_);
 
         // Replace the old records if the scores of the new records are higher
         for (auto neighbor = neighbors.begin(); neighbor != neighbors.end(); ++neighbor)
         {
-          const ReachRecord& old_rec = db_.at(neighbor->first);
+          const ReachRecord& old_rec = active_result->at(neighbor->first);
           if (neighbor->second.score > old_rec.score)
           {
             std::lock_guard<std::mutex> lock{ mutex_ };
-            db_[neighbor->first] = neighbor->second;
+            active_result->operator[](neighbor->first) = neighbor->second;
           }
         }
       }
@@ -181,14 +193,14 @@ void ReachStudy::optimize()
     }
 
     // Recalculate optimized reach study results
-    auto results = calculateResults(db_);
+    auto results = db_.calculateResults();
     logger_->printResults(results);
 
     pct_improve = std::abs((results.norm_total_pose_score - previous_score) / previous_score);
     ++n_opt;
 
     // Show the results
-    display_->showResults(db_);
+    display_->showResults(*active_result);
   }
 
   logger_->print("Optimization complete");
@@ -196,6 +208,10 @@ void ReachStudy::optimize()
 
 std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 {
+  if (db_.results.empty())
+    throw std::runtime_error("Database contains no results");
+  const ReachResult& active_result = db_.results.back();
+
   logger_->print("Beginning average neighbor count calculation");
 
   std::atomic<unsigned long> current_counter, neighbor_count;
@@ -204,12 +220,12 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 
 // Iterate
 #pragma parallel for num_threads(params_.max_threads)
-  for (auto it = db_.begin(); it != db_.end(); ++it)
+  for (auto it = active_result.begin(); it != active_result.end(); ++it)
   {
     if (it->reached)
     {
       NeighborReachResult result;
-      reachNeighborsRecursive(db_, *it, ik_solver_, evaluator_, params_.radius, result, search_tree_);
+      reachNeighborsRecursive(active_result, *it, ik_solver_, evaluator_, params_.radius, result, search_tree_);
 
       neighbor_count += static_cast<int>(result.reached_pts.size() - 1);
       total_joint_distance = total_joint_distance + result.joint_distance;
@@ -220,7 +236,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
     logger_->printProgress(current_counter.load());
   }
 
-  float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(db_.size());
+  float avg_neighbor_count = static_cast<float>(neighbor_count.load()) / static_cast<float>(active_result.size());
   float avg_joint_distance =
       static_cast<float>(total_joint_distance.load()) / static_cast<float>(neighbor_count.load());
 
@@ -288,23 +304,25 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   // Initialize the reach study
   reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, logger, params, config_name);
 
-  const boost::filesystem::path db_file = results_dir / config_name / "study.db";
-  const boost::filesystem::path opt_db_file = results_dir / config_name / "study_optimized.db";
+  const boost::filesystem::path db_file = results_dir / config_name / "reach.db.xml";
 
-  if (boost::filesystem::exists(opt_db_file))
+  if (boost::filesystem::exists(db_file))
   {
-    // Attempt to load the optimized database first, if it exists
-    rs.load(opt_db_file.string());
-    logger->print("Loaded optimized database");
-  }
-  else if (boost::filesystem::exists(db_file))
-  {
-    // Then try to load the un-optimized database, if it exists
+    // Attempt to load the database first, if it exists
     rs.load(db_file.string());
 
-    logger->print("Loaded un-optimized database");
-    rs.optimize();
-    rs.save((results_dir / config_name / "study_optimized.db").string());
+    if (rs.getDatabase().results.size() == 1)
+    {
+      logger->print("Loaded un-optimized database");
+      rs.optimize();
+
+      // Overwrite the file
+      rs.save(db_file.string());
+    }
+    else
+    {
+      logger->print("Loaded optimized database");
+    }
   }
   else
   {
@@ -316,21 +334,21 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
 
     // Save the preliminary results
     if (!results_dir.empty())
-      rs.save((results_dir / config_name / "study.db").string());
+      rs.save(db_file.string());
 
     // Optimize the reach study
     rs.optimize();
 
     // Save the optimized results
     if (!results_dir.empty())
-      rs.save((results_dir / config_name / "study_optimized.db").string());
+      rs.save(db_file.string());
   }
 
   // Show the results
   const reach::ReachDatabase& db = rs.getDatabase();
-  logger->printResults(calculateResults(db));
+  logger->printResults(db.calculateResults());
   display->showEnvironment();
-  display->showResults(db);
+  display->showResults(db.results.back());
 
   auto handleSignal = [](int /*sig*/) { throw std::runtime_error("Reach study temrinated"); };
   signal(SIGINT, handleSignal);

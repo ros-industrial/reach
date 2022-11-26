@@ -51,7 +51,7 @@ struct Display
   virtual void showReachNeighborhood(const std::map<std::size_t, ReachRecord>& neighborhood) const = 0;
 
   /** @brief Visualizes the results of a reach study */
-  virtual void showResults(const ReachDatabase& db) const = 0;
+  virtual void showResults(const ReachResult& db) const = 0;
 };
 
 /**

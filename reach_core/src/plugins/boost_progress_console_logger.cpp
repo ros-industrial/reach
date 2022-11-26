@@ -30,7 +30,7 @@ public:
       *display_ += progress - display_->count();
   }
 
-  void printResults(const StudyResults& results) const override
+  void printResults(const ReachResultSummary& results) const override
   {
     print(results.print());
   }

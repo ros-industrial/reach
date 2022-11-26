@@ -49,7 +49,7 @@ std::tuple<std::vector<double>, double> evaluateIK(const Eigen::Isometry3d& targ
 using SearchTreePtr = pcl::search::KdTree<pcl::PointXYZ>::Ptr;
 SearchTreePtr createSearchTree(const VectorIsometry3d& poses);
 
-std::map<std::size_t, ReachRecord> reachNeighborsDirect(const ReachDatabase& db, const ReachRecord& rec,
+std::map<std::size_t, ReachRecord> reachNeighborsDirect(const ReachResult& db, const ReachRecord& rec,
                                                         IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                                                         const double radius, SearchTreePtr search_tree = nullptr);
 
@@ -59,7 +59,7 @@ struct NeighborReachResult
   double joint_distance = 0;
 };
 
-void reachNeighborsRecursive(const ReachDatabase& db, const ReachRecord& msg, IKSolver::ConstPtr solver,
+void reachNeighborsRecursive(const ReachResult& db, const ReachRecord& msg, IKSolver::ConstPtr solver,
                              Evaluator::ConstPtr evaluator, const double radius, NeighborReachResult& result,
                              SearchTreePtr search_tree = nullptr);
 

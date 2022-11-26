@@ -56,13 +56,12 @@ SearchTreePtr createSearchTree(const VectorIsometry3d& poses)
   return search_tree;
 }
 
-std::vector<std::size_t> getNeighbors(const ReachRecord& rec, const ReachDatabase& db, const double radius)
+std::vector<std::size_t> getNeighbors(const ReachRecord& rec, const ReachResult& db, const double radius)
 {
   // Create vectors for storing poses and reach record messages that lie within radius of current point
   std::vector<std::size_t> neighbors;
 
   // Iterate through all points in database to find those that lie within radius of current point
-  //  for (auto it = db.cbegin(); it != db.cend(); ++it)
   for (std::size_t i = 0; i < db.size(); ++i)
   {
     const ReachRecord& target = db[i];
@@ -77,7 +76,7 @@ std::vector<std::size_t> getNeighbors(const ReachRecord& rec, const ReachDatabas
   return neighbors;
 }
 
-std::vector<std::size_t> getNeighborsFLANN(const ReachRecord& rec, const ReachDatabase& db,
+std::vector<std::size_t> getNeighborsFLANN(const ReachRecord& rec, const ReachResult& db,
                                            const double radius, SearchTreePtr search_tree)
 {
   pcl::PointXYZ query(rec.goal.translation().x(), rec.goal.translation().y(), rec.goal.translation().z());
@@ -93,7 +92,7 @@ std::vector<std::size_t> getNeighborsFLANN(const ReachRecord& rec, const ReachDa
   return neighbors;
 }
 
-std::map<std::size_t, ReachRecord> reachNeighborsDirect(const ReachDatabase& db, const ReachRecord& rec,
+std::map<std::size_t, ReachRecord> reachNeighborsDirect(const ReachResult& db, const ReachRecord& rec,
                                                         IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                                                         const double radius, SearchTreePtr search_tree)
 {
@@ -145,7 +144,7 @@ std::map<std::size_t, ReachRecord> reachNeighborsDirect(const ReachDatabase& db,
   return neighbors;
 }
 
-void reachNeighborsRecursive(const ReachDatabase& db, const ReachRecord& rec, IKSolver::ConstPtr solver,
+void reachNeighborsRecursive(const ReachResult& db, const ReachRecord& rec, IKSolver::ConstPtr solver,
                              Evaluator::ConstPtr evaluator, const double radius, NeighborReachResult& result,
                              SearchTreePtr search_tree)
 {

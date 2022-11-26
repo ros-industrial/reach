@@ -56,7 +56,7 @@ void ROSDisplay::updateRobotPose(const std::map<std::string, double>& pose) cons
   joint_state_pub_.publish(msg);
 }
 
-void ROSDisplay::showResults(const reach::ReachDatabase& db) const
+void ROSDisplay::showResults(const reach::ReachResult& db) const
 {
   server_.clear();
 
