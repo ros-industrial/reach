@@ -100,6 +100,27 @@ public:
   }
 };
 
+void runReachStudyPython1(const bp::dict& config)
+{
+  runReachStudy(pythonDictToYAML(config));
+}
+
+void runReachStudyPython2(const bp::dict& config, const std::string& config_name)
+{
+  runReachStudy(pythonDictToYAML(config), config_name);
+}
+
+void runReachStudyPython3(const bp::dict& config, const std::string& config_name, const std::string& results_dir)
+{
+  runReachStudy(pythonDictToYAML(config), config_name, results_dir);
+}
+
+void runReachStudyPython4(const bp::dict& config, const std::string& config_name, const std::string& results_dir,
+                          bool wait_after_completion)
+{
+  runReachStudy(pythonDictToYAML(config), config_name, results_dir, wait_after_completion);
+}
+
 BOOST_PYTHON_MODULE(reach_core_python)
 {
   Py_Initialize();
@@ -240,10 +261,13 @@ BOOST_PYTHON_MODULE(reach_core_python)
 
   // Wrap the free functions
   {
-    bp::def("runReachStudy", runReachStudy);
-    bp::def("save", save);
-    bp::def("load", load);
-    bp::def("calculateResults", calculateResults);
+    bp::def("runReachStudy", &runReachStudyPython1);
+    bp::def("runReachStudy", &runReachStudyPython2);
+    bp::def("runReachStudy", &runReachStudyPython3);
+    bp::def("runReachStudy", &runReachStudyPython4);
+    bp::def("save", &save);
+    bp::def("load", &load);
+    bp::def("calculateResults", &calculateResults);
   }
 
   // Register shared_ptrs
