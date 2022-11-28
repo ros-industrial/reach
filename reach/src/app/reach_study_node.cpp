@@ -16,31 +16,39 @@
 #include <reach/reach_study.h>
 
 #include <boost/filesystem.hpp>
-#include <ros/ros.h>
+#include <boost/program_options.hpp>
 #include <yaml-cpp/yaml.h>
-
-template <typename T>
-T get(const ros::NodeHandle& nh, const std::string& key)
-{
-  T val;
-  if (!nh.getParam(key, val))
-    throw std::runtime_error("Failed to get '" + key + "' parameter");
-  return val;
-}
 
 int main(int argc, char** argv)
 {
   try
   {
-    ros::init(argc, argv, "reach_study_node");
-    ros::AsyncSpinner spinner(1);
-    spinner.start();
-    ros::NodeHandle pnh("~");
+    namespace bpo = boost::program_options;
+    bpo::options_description desc("Allowed options");
+    // clang-format off
+    desc.add_options()
+      ("help", "produce help message")
+      ("config-file", bpo::value<std::string>()->required(), "configuration file")
+      ("config-name", bpo::value<std::string>()->required(), "reach study configuration name")
+      ("results-dir", bpo::value<std::string>()->required(), "reach study results directory")
+    ;
+    // clang-format on
+
+    bpo::variables_map vm;
+    bpo::store(bpo::parse_command_line(argc, argv, desc), vm);
+
+    if (vm.count("help"))
+    {
+      std::cout << desc << std::endl;
+      return 1;
+    }
+
+    bpo::notify(vm);
 
     // Load the configuration information
-    const YAML::Node config = YAML::LoadFile(get<std::string>(pnh, "config_file"));
-    const std::string config_name = get<std::string>(pnh, "config_name");
-    const boost::filesystem::path results_dir(get<std::string>(pnh, "results_dir"));
+    const YAML::Node& config = YAML::LoadFile(vm["config-file"].as<std::string>());
+    const std::string config_name = vm["config-name"].as<std::string>();
+    boost::filesystem::path results_dir(vm["results-dir"].as<std::string>());
 
     // Run the reach study
     reach::runReachStudy(config, config_name, results_dir, true);

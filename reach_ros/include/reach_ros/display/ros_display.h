@@ -16,7 +16,7 @@
 #ifndef REACH_ROS_ROS_REACH_DISPLAY_H
 #define REACH_ROS_ROS_REACH_DISPLAY_H
 
-#include <reach_core/interfaces/display.h>
+#include <reach/interfaces/display.h>
 
 #include <interactive_markers/interactive_marker_server.h>
 #include <ros/node_handle.h>

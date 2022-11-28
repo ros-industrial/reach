@@ -16,7 +16,7 @@
 #ifndef REACH_ROS_IK_MOVEIT_IK_SOLVER_H
 #define REACH_ROS_IK_MOVEIT_IK_SOLVER_H
 
-#include <reach_core/interfaces/ik_solver.h>
+#include <reach/interfaces/ik_solver.h>
 #include <ros/publisher.h>
 #include <vector>
 

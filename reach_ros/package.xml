@@ -16,7 +16,7 @@
   <depend>moveit_core</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
-  <depend>reach_core</depend>
+  <depend>reach</depend>
   <depend>sensor_msgs</depend>
   <depend>visualization_msgs</depend>  
   <exec_depend>joint_state_publisher</exec_depend>

@@ -18,7 +18,7 @@
 
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/planning_scene/planning_scene.h>
-#include <reach_core/plugin_utils.h>
+#include <reach/plugin_utils.h>
 #include <yaml-cpp/yaml.h>
 
 namespace reach_ros

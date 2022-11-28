@@ -18,7 +18,7 @@
 
 #include <Eigen/Dense>
 
-#include <reach_core/interfaces/evaluator.h>
+#include <reach/interfaces/evaluator.h>
 
 namespace moveit
 {

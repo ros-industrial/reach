@@ -19,7 +19,7 @@
 #include <moveit/common_planning_interface_objects/common_objects.h>
 #include <moveit/robot_model/joint_model_group.h>
 #include <numeric>
-#include <reach_core/plugin_utils.h>
+#include <reach/plugin_utils.h>
 #include <yaml-cpp/yaml.h>
 
 static std::vector<Eigen::Index> getJacobianRowSubset(const YAML::Node& config, const std::string& key = "jacobian_row_"

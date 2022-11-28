@@ -16,7 +16,7 @@
 #include <reach_ros/display/ros_display.h>
 #include <reach_ros/utils.h>
 
-#include <reach_core/plugin_utils.h>
+#include <reach/plugin_utils.h>
 #include <sensor_msgs/JointState.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <yaml-cpp/yaml.h>

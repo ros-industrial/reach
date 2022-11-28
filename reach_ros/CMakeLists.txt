@@ -3,7 +3,7 @@ project(reach_ros)
 
 add_compile_options(-std=c++14)
 
-find_package(reach_core REQUIRED)
+find_package(reach REQUIRED)
 
 find_package(
   catkin REQUIRED
@@ -47,7 +47,7 @@ add_library(
   src/ik/moveit_ik_solver.cpp
   # Display
   src/display/ros_display.cpp)
-target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} reach::reach_core)
+target_link_libraries(${PROJECT_NAME}_plugins ${catkin_LIBRARIES} reach::reach)
 
 # Reach study node
 add_executable(${PROJECT_NAME}_node src/reach_study_node.cpp)
@@ -55,7 +55,7 @@ target_link_libraries(
   ${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   yaml-cpp
-  reach::reach_core)
+  reach::reach)
 
 # Demo
 add_subdirectory(demo)

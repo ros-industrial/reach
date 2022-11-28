@@ -18,7 +18,7 @@
 
 #include <moveit/robot_model/joint_model_group.h>
 #include <moveit/common_planning_interface_objects/common_objects.h>
-#include <reach_core/plugin_utils.h>
+#include <reach/plugin_utils.h>
 #include <yaml-cpp/yaml.h>
 
 namespace reach_ros

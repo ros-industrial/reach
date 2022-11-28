@@ -30,31 +30,31 @@ The REACH repository is a tool that allows users to visualize and quantitatively
 See the ROSCon 2019 [presentation](docs/roscon2019_presentation.pdf) and [video](https://vimeo.com/378683038) for a more detailed explanation of the reach study concept and approach.
 
 ### Structure
-`reach_core` is a ROS-independent package that provides the framework for the reach study process, defined in the diagram below:
+`reach` is a ROS-independent package that provides the framework for the reach study process, defined in the diagram below:
 
 ![Reach Study Flow Diagram][4]
 
-The `reach_core` package also provides the interface definition for the required reach study functions:
+The `reach` package also provides the interface definition for the required reach study functions:
 
-1. [`TargetPoseGenerator`](reach_core/include/reach_core/interfaces/target_pose_generator.h)
+1. [`TargetPoseGenerator`](reach/include/reach/interfaces/target_pose_generator.h)
     - Generates Cartesian target poses that the robot should attempt to reach during the reach study
     - These target poses are expected to be relative to the kinematic base frame of the robot
     - The z-axis of the target poses is expected to oppose the z-axis of the robot kinematic tip frame
-1. [`IKSolver`](reach_core/include/reach_core/interfaces/ik_solver.h)
+1. [`IKSolver`](reach/include/reach/interfaces/ik_solver.h)
     - Calculates the inverse kinematics solution for the robot at an input 6 degree-of-freedom Cartesian target
-1. [`Evaluator`](reach_core/include/reach_core/interfaces/evaluator.h)
+1. [`Evaluator`](reach/include/reach/interfaces/evaluator.h)
     - Calculates a numerical "fitness" score of an IK solution (i.e., robot joint pose) at a given Cartesian target pose
     - Higher values indicate better reachability
     - Example numerical measures of reachability include manipulability, distance from closest collision, etc.
-1. [`Display`](reach_core/include/reach_core/interfaces/display.h)
+1. [`Display`](reach/include/reach/interfaces/display.h)
     - Visualizes the robot/reach study environment, target Cartesian poses, IK solutions, and reach study results
-1. [`Logger`](reach_core/include/reach_core/interfaces/logger.h)
+1. [`Logger`](reach/include/reach/interfaces/logger.h)
     - Logs messages about the status and progress of the reach study
 
 ### Plugins
 The interfaces described above are exposed as plugins using the [`boost_plugin_loader` library](https://github.com/tesseract-robotics/boost_plugin_loader) to support custom implementations.
 
-Several default and dummy plugins have been created in the `reach_core` package.
+Several default and dummy plugins have been created in the `reach` package.
 Many other ROS1-based plugins have been implemented in the [`reach_ros`](reach_ros) package.
 All of the plugins built in this project are discovered automatically by the plugin loader without additional manual steps.
 
@@ -73,7 +73,7 @@ export REACH_PLUGINS=my_custom_reach_plugins:cool_reach_plugins
 ```
 
 ## Installation
-Nominally, the `reach_core` package is ROS-independent, but it is convenient to use the ROS1 dependency management and build tools to build the package, as well as the `reach_ros` package.
+Nominally, the `reach` package is ROS-independent, but it is convenient to use the ROS1 dependency management and build tools to build the package, as well as the `reach_ros` package.
 
 First, clone the repository into a `catkin` workspace
 ``` bash
@@ -125,7 +125,7 @@ Use the following steps to run a reach study with a robot using the ROS1 infrast
 1. The selection of IK solver is key to the performance of the reach study. Gradient-based solvers (such as KDL and TRAC-IK) are typically good choices.
     - Additional constraints (or lack thereof, such as orientation freedom about the tool z-axis) can also be incorporated into the IK solver (via parameters or source code changes) to produce different reach study results
     - For `MoveIt`-based plugins, the selection of IK solver is defined in the `kinematics.yaml` file
-1. Reach study results are serialized to file and can be loaded using the API in `reach_core` for programmatic analysis or modification
+1. Reach study results are serialized to file and can be loaded using the API in `reach` for programmatic analysis or modification
 
 [1]: docs/reach_study.png
 [2]: reach_ros/demo/docs/reach_study_demo.gif

@@ -16,7 +16,7 @@
 #ifndef REACH_ROS_EVALUATION_JOINT_PENALTY_MOVEIT_H
 #define REACH_ROS_EVALUATION_JOINT_PENALTY_MOVEIT_H
 
-#include <reach_core/interfaces/evaluator.h>
+#include <reach/interfaces/evaluator.h>
 
 namespace moveit
 {
