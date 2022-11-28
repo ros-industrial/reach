@@ -20,14 +20,11 @@
 #include <reach/interfaces/ik_solver.h>
 #include <reach/interfaces/evaluator.h>
 
-#include <atomic>
 #include <Eigen/Dense>
 #include <map>
 #include <memory>
 #include <pcl/search/kdtree.h>
 #include <vector>
-#include <yaml-cpp/node/node.h>
-#include <yaml-cpp/exceptions.h>
 
 namespace reach
 {
