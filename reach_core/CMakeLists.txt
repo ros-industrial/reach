@@ -28,7 +28,7 @@ add_library(
   ${PROJECT_NAME} SHARED
   src/utils.cpp
   src/plugin_utils.cpp
-  src/reach_database.cpp
+  src/types.cpp
   src/reach_visualizer.cpp
   src/reach_study.cpp
   src/reach_study_comparison.cpp)

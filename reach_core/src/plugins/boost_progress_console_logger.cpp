@@ -1,5 +1,5 @@
 #include <reach_core/interfaces/logger.h>
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 
 #include <boost/progress.hpp>
 #include <iostream>

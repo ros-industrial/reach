@@ -16,7 +16,7 @@
 #ifndef REACH_CORE_STUDY_VISUALIZER_H
 #define REACH_CORE_STUDY_VISUALIZER_H
 
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 #include <reach_core/interfaces/display.h>
 #include <reach_core/interfaces/ik_solver.h>
 #include <reach_core/utils.h>

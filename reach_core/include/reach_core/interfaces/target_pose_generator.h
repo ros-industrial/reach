@@ -1,7 +1,7 @@
 #ifndef REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H
 #define REACH_CORE_INTERFACES_TARGET_POSE_GENERATOR_H
 
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 
 #include <Eigen/Dense>
 #include <memory>

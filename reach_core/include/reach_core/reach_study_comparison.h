@@ -1,6 +1,6 @@
 #pragma once
 
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 
 #include <map>
 #include <vector>

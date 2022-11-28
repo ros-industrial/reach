@@ -16,7 +16,7 @@
 #ifndef REACH_UTILS_GENERAL_UTILS_H
 #define REACH_UTILS_GENERAL_UTILS_H
 
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 #include <reach_core/interfaces/ik_solver.h>
 #include <reach_core/interfaces/evaluator.h>
 

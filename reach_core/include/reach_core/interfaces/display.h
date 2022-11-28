@@ -16,7 +16,7 @@
 #ifndef REACH_CORE_INTERFACES_DISPLAY_H
 #define REACH_CORE_INTERFACES_DISPLAY_H
 
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 
 #include <memory>
 

@@ -18,7 +18,7 @@
 #include <geometric_shapes/mesh_operations.h>
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/shapes.h>
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 #include <ros/console.h>
 #include <eigen_conversions/eigen_msg.h>
 

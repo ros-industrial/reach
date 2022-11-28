@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef REACH_CORE_REACH_DATABASE_H
-#define REACH_CORE_REACH_DATABASE_H
+#ifndef REACH_CORE_TYPES_H
+#define REACH_CORE_TYPES_H
 
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/map.hpp>
@@ -139,4 +139,4 @@ ReachDatabase load(const std::string& filename);
 
 }  // namespace reach
 
-#endif  // REACH_CORE_REACH_DATABASE_H
+#endif  // REACH_CORE_TYPES_H

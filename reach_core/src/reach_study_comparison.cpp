@@ -1,5 +1,5 @@
 #include <reach_core/reach_study_comparison.h>
-#include <reach_core/reach_database.h>
+#include <reach_core/types.h>
 
 #include <numeric>
 
