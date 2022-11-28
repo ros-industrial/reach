@@ -83,7 +83,7 @@ public:
    */
   std::tuple<double, double> getAverageNeighborsCount() const;
 
-private:
+protected:
   Parameters params_;
   ReachDatabase db_;
 
