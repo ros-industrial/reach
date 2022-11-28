@@ -121,7 +121,7 @@ void runReachStudyPython4(const bp::dict& config, const std::string& config_name
   runReachStudy(pythonDictToYAML(config), config_name, results_dir, wait_after_completion);
 }
 
-BOOST_PYTHON_MODULE(reach_core_python)
+BOOST_PYTHON_MODULE(MODULE_NAME)
 {
   Py_Initialize();
   PyEval_InitThreads();

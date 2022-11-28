@@ -10,7 +10,10 @@ target_link_libraries(
           Boost::python
           Boost::numpy
           ${PYTHON_LIBRARIES})
+target_compile_definitions(${PROJECT_NAME}_python PRIVATE MODULE_NAME=${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME}_python
-  PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages)
+  PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages
+    OUTPUT_NAME ${PROJECT_NAME})
 
 list(APPEND TARGETS ${PROJECT_NAME}_python PARENT_SCOPE)
