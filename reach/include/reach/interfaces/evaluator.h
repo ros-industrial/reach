@@ -60,7 +60,7 @@ struct EvaluatorFactory
 
   static std::string getSection()
   {
-    return "eval";
+    return EVALUATOR_SECTION;
   }
 };
 

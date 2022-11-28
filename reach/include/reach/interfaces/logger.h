@@ -38,7 +38,7 @@ struct LoggerFactory
 
   static std::string getSection()
   {
-    return "logger";
+    return LOGGER_SECTION;
   }
 };
 

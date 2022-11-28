@@ -61,7 +61,7 @@ struct IKSolverFactory
 
   static std::string getSection()
   {
-    return "ik";
+    return IK_SOLVER_SECTION;
   }
 };
 

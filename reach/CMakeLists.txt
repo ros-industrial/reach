@@ -23,6 +23,21 @@ if(OPENMP_FOUND)
   endif()
 endif()
 
+# Interface library
+add_library(${PROJECT_NAME}_interface INTERFACE)
+target_include_directories(${PROJECT_NAME}_interface INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                                                               "$<INSTALL_INTERFACE:include>")
+target_include_directories(${PROJECT_NAME}_interface INTERFACE ${PCL_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME}_interface INTERFACE Eigen3::Eigen Boost::serialization yaml-cpp)
+target_compile_definitions(
+  ${PROJECT_NAME}_interface
+  INTERFACE DISPLAY_SECTION="disp"
+            EVALUATOR_SECTION="eval"
+            IK_SOLVER_SECTION="ik"
+            LOGGER_SECTION="logger"
+            TARGET_POSE_GEN_SECTION="pose")
+target_cxx_version(${PROJECT_NAME}_interface INTERFACE VERSION 14)
+
 # Reach Study Library
 add_library(
   ${PROJECT_NAME} SHARED
@@ -32,16 +47,11 @@ add_library(
   src/reach_visualizer.cpp
   src/reach_study.cpp
   src/reach_study_comparison.cpp)
-target_include_directories(${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                                                  "$<INSTALL_INTERFACE:include>")
-target_include_directories(${PROJECT_NAME} PUBLIC ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 target_link_libraries(
   ${PROJECT_NAME}
-  PUBLIC Eigen3::Eigen
-         Boost::serialization
-         ${PCL_LIBRARIES}
-         yaml-cpp
+  PUBLIC ${PROJECT_NAME}_interface
          boost_plugin_loader::boost_plugin_loader
+         ${PCL_LIBRARIES}
          OpenMP::OpenMP_CXX)
 target_compile_definitions(${PROJECT_NAME} PUBLIC SEARCH_LIBRARIES_ENV="REACH_PLUGINS"
                                                   PLUGIN_LIBRARIES="${PROJECT_NAME}_plugins:reach_ros_plugins")
@@ -99,7 +109,8 @@ configure_package(
             yaml-cpp
             boost_plugin_loader
             OpenMP
-  TARGETS ${PROJECT_NAME}
+  TARGETS ${PROJECT_NAME}_interface
+          ${PROJECT_NAME}
           ${PROJECT_NAME}_plugins
           ${PROJECT_NAME}_app
           ${PROJECT_NAME}_data_loader)

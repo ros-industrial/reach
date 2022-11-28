@@ -69,7 +69,7 @@ struct DisplayFactory
 
   static std::string getSection()
   {
-    return "disp";
+    return DISPLAY_SECTION;
   }
 };
 

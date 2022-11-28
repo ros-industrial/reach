@@ -41,7 +41,7 @@ struct TargetPoseGeneratorFactory
 
   static std::string getSection()
   {
-    return "pose";
+    return TARGET_POSE_GEN_SECTION;
   }
 };
 
