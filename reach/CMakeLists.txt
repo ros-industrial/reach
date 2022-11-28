@@ -100,6 +100,7 @@ target_cxx_version(${PROJECT_NAME}_data_loader PUBLIC VERSION 14)
 list(APPEND TARGETS ${PROJECT_NAME}_data_loader)
 
 if(BUILD_PYTHON)
+  message(STATUS "Building Python bindings")
   add_subdirectory(src/python)
 endif()
 
