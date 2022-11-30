@@ -150,9 +150,9 @@ double ManipulabilityMoveIt::calculateScore(const Eigen::MatrixXd& jacobian_sing
 reach::Evaluator::ConstPtr ManipulabilityMoveItFactory::create(const YAML::Node& config) const
 {
   auto planning_group = reach::get<std::string>(config, "planning_group");
-
   std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
 
+  utils::initROS();
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
@@ -168,9 +168,9 @@ double ManipulabilityRatio::calculateScore(const Eigen::MatrixXd& jacobian_singu
 reach::Evaluator::ConstPtr ManipulabilityRatioFactory::create(const YAML::Node& config) const
 {
   auto planning_group = reach::get<std::string>(config, "planning_group");
-
   std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
 
+  utils::initROS();
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
@@ -197,14 +197,13 @@ double ManipulabilityScaled::calculateScore(const Eigen::MatrixXd& jacobian_sing
 reach::Evaluator::ConstPtr ManipulabilityScaledFactory::create(const YAML::Node& config) const
 {
   auto planning_group = reach::get<std::string>(config, "planning_group");
-
   std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
+  std::vector<std::string> excluded_links = getExcludedLinks(config);
 
+  utils::initROS();
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
-
-  std::vector<std::string> excluded_links = getExcludedLinks(config);
 
   return std::make_shared<ManipulabilityScaled>(model, planning_group, jacobian_row_subset, excluded_links);
 }

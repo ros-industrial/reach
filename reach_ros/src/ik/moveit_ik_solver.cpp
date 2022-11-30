@@ -123,6 +123,7 @@ reach::IKSolver::ConstPtr MoveItIKSolverFactory::create(const YAML::Node& config
   auto planning_group = reach::get<std::string>(config, "planning_group");
   auto dist_threshold = reach::get<double>(config, "distance_threshold");
 
+  utils::initROS();
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
@@ -186,6 +187,7 @@ reach::IKSolver::ConstPtr DiscretizedMoveItIKSolverFactory::create(const YAML::N
   auto planning_group = reach::get<std::string>(config, "planning_group");
   auto dist_threshold = reach::get<double>(config, "distance_threshold");
 
+  utils::initROS();
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");

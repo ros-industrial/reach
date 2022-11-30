@@ -19,7 +19,7 @@
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/shapes.h>
 #include <reach/types.h>
-#include <ros/console.h>
+#include <ros/ros.h>
 #include <eigen_conversions/eigen_msg.h>
 
 const static double ARROW_SCALE_RATIO = 6.0;
@@ -164,6 +164,19 @@ std::vector<double> transcribeInputMap(const std::map<std::string, double>& inpu
   }
 
   return joints;
+}
+
+void initROS(const std::string& node_name)
+{
+  if (!ros::isInitialized())
+  {
+    ROS_INFO_STREAM("Initializing ROS node");
+    int argc = 0;
+    ros::init(argc, nullptr, node_name);
+
+    static ros::AsyncSpinner spinner(1);
+    spinner.start();
+  }
 }
 
 }  // namespace utils

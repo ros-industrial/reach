@@ -70,6 +70,7 @@ reach::Evaluator::ConstPtr JointPenaltyMoveItFactory::create(const YAML::Node& c
 {
   auto planning_group = reach::get<std::string>(config, "planning_group");
 
+  utils::initROS();
   moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");

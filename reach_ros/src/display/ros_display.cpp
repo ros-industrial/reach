@@ -35,6 +35,7 @@ ROSDisplay::ROSDisplay(std::string kinematic_base_frame, double marker_scale)
   , marker_scale_(marker_scale)
   , server_(INTERACTIVE_MARKER_TOPIC)
 {
+  utils::initROS();
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(JOINT_STATES_TOPIC, 1, true);
   mesh_pub_ = nh_.advertise<visualization_msgs::Marker>(MESH_MARKER_TOPIC, 1, true);
   neighbors_pub_ = nh_.advertise<visualization_msgs::Marker>(NEIGHBORS_MARKER_TOPIC, 1, true);

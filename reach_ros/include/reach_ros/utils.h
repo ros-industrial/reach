@@ -48,6 +48,17 @@ visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& p
 std::vector<double> transcribeInputMap(const std::map<std::string, double>& input,
                                        const std::vector<std::string>& joint_names);
 
+/**
+ * @brief Conditionally initializes ROS using an arbitary node name
+ * @details In the case that ROS-enabled plugins are created and invoked in a non-ROS enabled process, ROS must be
+ * initialized for the plugins to access the ROS parameter server and publish data. This function should be invoked in a
+ * plugin factory or interface before attempting to utilize ROS components such that the process creating the plugin
+ * factory or interface becomes a ROS node
+ *
+ * Note: this function first checks if ROS has already been initialized before calling ros::init
+ */
+void initROS(const std::string& node_name = "reach_study_plugin_node");
+
 }  // namespace utils
 }  // namespace reach_ros
 
