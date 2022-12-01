@@ -26,6 +26,7 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
 namespace boost
 {
 namespace python
@@ -38,6 +39,7 @@ class list;
 class dict;
 }  // namespace python
 }  // namespace boost
+#endif
 
 namespace reach
 {
@@ -60,7 +62,9 @@ public:
   virtual std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d& target,
                                                    const std::map<std::string, double>& seed) const = 0;
 
+#ifdef BUILD_PYTHON
   boost::python::list solveIK(const boost::python::numpy::ndarray& target, const boost::python::dict& seed) const;
+#endif
 };
 
 /** @brief Plugin interface for generating IK solver interfaces */
@@ -74,12 +78,14 @@ struct IKSolverFactory
 
   virtual IKSolver::ConstPtr create(const YAML::Node& config) const = 0;
 
-  IKSolver::ConstPtr create(const boost::python::dict& pyyaml_config) const;
-
   static std::string getSection()
   {
     return IK_SOLVER_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  IKSolver::ConstPtr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach

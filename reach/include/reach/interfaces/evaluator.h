@@ -25,6 +25,7 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
 namespace boost
 {
 namespace python
@@ -32,6 +33,7 @@ namespace python
 class dict;
 }
 }  // namespace boost
+#endif
 
 namespace reach
 {
@@ -52,7 +54,9 @@ struct Evaluator
    */
   virtual double calculateScore(const std::map<std::string, double>& pose) const = 0;
 
+#ifdef BUILD_PYTHON
   double calculateScore(const boost::python::dict& pose) const;
+#endif
 };
 
 /**
@@ -68,11 +72,14 @@ struct EvaluatorFactory
 
   virtual Evaluator::ConstPtr create(const YAML::Node& config) const = 0;
 
-  Evaluator::ConstPtr create(const boost::python::dict& pyyaml_config) const;
   static std::string getSection()
   {
     return EVALUATOR_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  Evaluator::ConstPtr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach

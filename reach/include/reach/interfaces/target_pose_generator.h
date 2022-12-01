@@ -12,6 +12,7 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
 namespace boost
 {
 namespace python
@@ -20,6 +21,7 @@ class dict;
 class list;
 }  // namespace python
 }  // namespace boost
+#endif
 
 namespace reach
 {
@@ -48,12 +50,14 @@ struct TargetPoseGeneratorFactory
 
   virtual TargetPoseGenerator::ConstPtr create(const YAML::Node& config) const = 0;
 
-  TargetPoseGenerator::ConstPtr create(const boost::python::dict& pyyaml_config) const;
-
   static std::string getSection()
   {
     return TARGET_POSE_GEN_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  TargetPoseGenerator::ConstPtr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach

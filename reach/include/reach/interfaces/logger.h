@@ -10,13 +10,15 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
 namespace boost
 {
 namespace python
 {
 class dict;
-}
+}  // namespace python
 }  // namespace boost
+#endif
 
 namespace reach
 {
@@ -44,12 +46,14 @@ struct LoggerFactory
 
   virtual Logger::Ptr create(const YAML::Node& config) const = 0;
 
-  Logger::Ptr create(const boost::python::dict& pyyaml_config) const;
-
   static std::string getSection()
   {
     return LOGGER_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  Logger::Ptr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach
