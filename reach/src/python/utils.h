@@ -42,7 +42,7 @@ auto call_and_handle(Function func)
 }
 
 template <typename KeyT, typename ValueT>
-static std::map<KeyT, ValueT> pythonDictToMap(const boost::python::dict& dict)
+std::map<KeyT, ValueT> toMap(const boost::python::dict& dict)
 {
   std::map<KeyT, ValueT> map;
 
@@ -57,36 +57,49 @@ static std::map<KeyT, ValueT> pythonDictToMap(const boost::python::dict& dict)
   return map;
 }
 
-inline YAML::Node pythonDictToYAML(const boost::python::dict& dict)
+inline YAML::Node toYAML(const boost::python::object& obj)
 {
   namespace bp = boost::python;
 
-  YAML::Node config;
-  bp::list keys = dict.keys();
-  for (int i = 0; i < bp::len(keys); ++i)
+  auto dict_extractor = bp::extract<bp::dict>(obj);
+  auto list_extractor = bp::extract<bp::list>(obj);
+  auto str_extractor = bp::extract<std::string>(obj);
+  auto int_extractor = bp::extract<int>(obj);
+  auto float_extractor = bp::extract<float>(obj);
+
+  if (dict_extractor.check())
   {
-    const std::string key = bp::extract<std::string>{ keys[i] }();
+    YAML::Node node(YAML::NodeType::Map);
+    bp::dict dict = dict_extractor();
+    bp::list keys = dict.keys();
+    for (int i = 0; i < bp::len(keys); ++i)
+    {
+      const std::string key = bp::extract<std::string>{ keys[i] }();
+      node[key] = toYAML(dict[key]);
+    }
 
-    // First check if the key corresponds to a nested dictionary
-    auto dict_extractor = bp::extract<bp::dict>(dict[key]);
-    auto str_extractor = bp::extract<std::string>(dict[key]);
-    auto int_extractor = bp::extract<int>(dict[key]);
-    auto float_extractor = bp::extract<float>(dict[key]);
-
-    if (dict_extractor.check())
-      config[key] = pythonDictToYAML(dict_extractor());
-    else if (str_extractor.check())
-      config[key] = str_extractor();
-    else if (int_extractor.check())
-      config[key] = int_extractor();
-    else if (float_extractor.check())
-      config[key] = float_extractor();
-    else
-      throw std::runtime_error("Unsupported Python value type '" +
-                               bp::extract<std::string>{ dict[key].attr("__class__") }() + "'");
+    return node;
   }
+  else if (list_extractor.check())
+  {
+    YAML::Node node(YAML::NodeType::Sequence);
+    bp::list list = list_extractor();
+    for (bp::ssize_t i = 0; i < bp::len(list); ++i)
+    {
+      node[i] = toYAML(list[i]);
+    }
 
-  return config;
+    return node;
+  }
+  else if (str_extractor.check())
+    return YAML::Node(str_extractor());
+  else if (int_extractor.check())
+    return YAML::Node(int_extractor());
+  else if (float_extractor.check())
+    return YAML::Node(float_extractor());
+
+  throw std::runtime_error("Unsupported Python value type '" +
+                           bp::extract<std::string>{ obj.attr("__class__").attr("__name__") }() + "'");
 }
 
 inline Eigen::Isometry3d toEigen(const boost::python::numpy::ndarray& arr)

@@ -14,7 +14,7 @@ namespace reach
 {
 TargetPoseGenerator::ConstPtr TargetPoseGeneratorFactory::create(const bp::dict& pyyaml_config) const
 {
-  return create(pythonDictToYAML(pyyaml_config));
+  return create(toYAML(pyyaml_config));
 }
 
 struct TargetPoseGeneratorPython : TargetPoseGenerator, boost::python::wrapper<TargetPoseGenerator>

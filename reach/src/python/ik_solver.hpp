@@ -15,12 +15,12 @@ boost::python::list IKSolver::solveIK(const boost::python::numpy::ndarray& targe
                                       const boost::python::dict& seed) const
 {
   Eigen::Isometry3d cpp_target = toEigen(target);
-  std::map<std::string, double> cpp_seed = pythonDictToMap<std::string, double>(seed);
+  std::map<std::string, double> cpp_seed = toMap<std::string, double>(seed);
 
   std::vector<std::vector<double>> cpp_solution = solveIK(cpp_target, cpp_seed);
 
   boost::python::list solution;
-  for (std::vector<double> inner : cpp_solution)
+  for (const std::vector<double>& inner : cpp_solution)
   {
     solution.append(inner);
   }
@@ -30,7 +30,7 @@ boost::python::list IKSolver::solveIK(const boost::python::numpy::ndarray& targe
 
 IKSolver::ConstPtr IKSolverFactory::create(const boost::python::dict& pyyaml_config) const
 {
-  return create(pythonDictToYAML(pyyaml_config));
+  return create(toYAML(pyyaml_config));
 }
 
 struct IKSolverPython : IKSolver, boost::python::wrapper<IKSolver>

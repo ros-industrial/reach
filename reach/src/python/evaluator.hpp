@@ -12,12 +12,12 @@ namespace reach
 {
 double Evaluator::calculateScore(const bp::dict& pose) const
 {
-  return calculateScore(pythonDictToMap<std::string, double>(pose));
+  return calculateScore(toMap<std::string, double>(pose));
 }
 
 Evaluator::ConstPtr EvaluatorFactory::create(const bp::dict& pyyaml_config) const
 {
-  return create(pythonDictToYAML(pyyaml_config));
+  return create(toYAML(pyyaml_config));
 }
 
 struct EvaluatorPython : Evaluator, boost::python::wrapper<Evaluator>

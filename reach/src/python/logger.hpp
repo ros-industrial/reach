@@ -7,7 +7,7 @@ namespace reach
 {
 Logger::Ptr LoggerFactory::create(const boost::python::dict& pyyaml_config) const
 {
-  return create(pythonDictToYAML(pyyaml_config));
+  return create(toYAML(pyyaml_config));
 }
 
 struct LoggerPython : Logger, boost::python::wrapper<Logger>
