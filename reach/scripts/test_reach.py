@@ -68,7 +68,7 @@ class PyLogger(reach.Logger):
 
 class ReachStudyFixture(unittest.TestCase):
     def test_run_reach_study(self):
-        config_file = '../test/reach_study.yaml'
+        config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../test/reach_study.yaml')
         with open(config_file, 'r') as file:
             config = yaml.safe_load(file)
 
@@ -111,7 +111,7 @@ class ReachStudyFixture(unittest.TestCase):
 
     def test_run_reach_study_mixed(self):
         # Load the file
-        config_file = '../test/reach_study.yaml'
+        config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../test/reach_study.yaml')
         with open(config_file, 'r') as file:
             config = yaml.safe_load(file)
 
