@@ -119,6 +119,30 @@ void runReachStudyPython4(const bp::dict& config, const std::string& config_name
   runReachStudy(toYAML(config), config_name, results_dir, wait_after_completion);
 }
 
+bp::list normalizeScoresPython(const ReachResult& result, bool use_full_range)
+{
+  auto norm_scores = normalizeScores(result, use_full_range);
+  bp::list out;
+  for (const auto& v : norm_scores)
+    out.append(v);
+  return out;
+}
+
+np::ndarray computeHeatMapColorsPython1(const ReachResult& result, bool use_full_color_range)
+{
+  return fromEigen<float, Eigen::Dynamic, 3>(computeHeatMapColors(result, use_full_color_range));
+}
+
+np::ndarray computeHeatMapColorsPython2(const bp::list& scores)
+{
+  std::vector<float> scores_v;
+  scores_v.reserve(bp::len(scores));
+  for (bp::ssize_t i = 0; i < bp::len(scores); ++i)
+    scores_v.push_back(bp::extract<float>{ scores[i] }());
+
+  return fromEigen<float, Eigen::Dynamic, 3>(computeHeatMapColors(scores_v));
+}
+
 BOOST_PYTHON_MODULE(MODULE_NAME)
 {
   Py_Initialize();
@@ -228,7 +252,8 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
             "goal", +[](const ReachRecord& r) -> bp::numpy::ndarray { return fromEigen(r.goal); })
         .def_readwrite("score", &ReachRecord::score)
         .def_readwrite("goal_state", &ReachRecord::goal_state)
-        .def_readwrite("seed_state", &ReachRecord::seed_state);
+        .def_readwrite("seed_state", &ReachRecord::seed_state)
+        .def_readwrite("reached", &ReachRecord::reached);
 
     bp::class_<ReachResult>("ReachResult").def(bp::vector_indexing_suite<ReachResult>());
     bp::class_<VectorReachResult>("VectorReachResult").def(bp::vector_indexing_suite<VectorReachResult>());
@@ -266,6 +291,9 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
     bp::def("save", &save);
     bp::def("load", &load);
     bp::def("calculateResults", &calculateResults);
+    bp::def("normalizeScores", &normalizeScoresPython);
+    bp::def("computeHeatMapColors", &computeHeatMapColorsPython1);
+    bp::def("computeHeatMapColors", &computeHeatMapColorsPython2);
   }
 
   // Register shared_ptrs
