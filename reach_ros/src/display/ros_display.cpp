@@ -30,9 +30,10 @@ namespace reach_ros
 {
 namespace display
 {
-ROSDisplay::ROSDisplay(std::string kinematic_base_frame, double marker_scale)
+ROSDisplay::ROSDisplay(std::string kinematic_base_frame, double marker_scale, bool use_full_color_range)
   : kinematic_base_frame_(std::move(kinematic_base_frame))
   , marker_scale_(marker_scale)
+  , use_full_color_range_(use_full_color_range)
   , server_(INTERACTIVE_MARKER_TOPIC)
 {
   utils::initROS();
@@ -67,7 +68,7 @@ void ROSDisplay::showResults(const reach::ReachResult& db) const
     updateRobotPose(db.at(idx).goal_state);
   };
 
-  Eigen::MatrixX3f heatmap_colors = reach::computeHeatMapColors(db);
+  Eigen::MatrixX3f heatmap_colors = reach::computeHeatMapColors(db, use_full_color_range_);
 
   for (std::size_t i = 0; i < db.size(); ++i)
   {
@@ -130,7 +131,12 @@ reach::Display::ConstPtr ROSDisplayFactory::create(const YAML::Node& config) con
   auto kinematic_base_frame = reach::get<std::string>(config, "kinematic_base_frame");
   auto marker_scale = reach::get<double>(config, "marker_scale");
 
-  auto display = std::make_shared<ROSDisplay>(kinematic_base_frame, marker_scale);
+  // Optionally set the 'use_full_color_range' parameter
+  bool use_fcr = false;
+  if (config["use_full_color_range"])
+    use_fcr = reach::get<bool>(config, "use_full_color_range");
+
+  auto display = std::make_shared<ROSDisplay>(kinematic_base_frame, marker_scale, use_fcr);
 
   // Optionally add a collision mesh
   const std::string collision_mesh_filename_key = "collision_mesh_filename";

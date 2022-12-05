@@ -126,6 +126,16 @@ The markers are interactive:
     - This works by publishing a `sensor_msgs/JointState` message to the `reach_joints` topic, which is a source topic for the `joint_state_publisher`
   - Right-clicking on the marker will bring up a context menu that displays the score of the reach target
 
+The markers are colorized with a heat-map, where red represents the highest scores (i.e., hottest) and blue represents the lowest scores (i.e., coldest).
+Unreachable points are colorized black. There are two methods for computing the values for the heat map:
+  1. By default, the values for the heat map are computed as the ratio of the individual scores to the maximum score.
+  Thus if the scores of the reach study are all fairly consistent and close to the maximum, then the colors of the markers will be mostly red (with the target with the maximum score being the deepest hue of red).
+  If the scores of the reach study targets differ greatly, more variation in color will be seen.
+  Usually this method produces the most meaningful display.
+  1. The values can also be computed using the "full color range", where the scores are fully normalized before colorization.
+  The lowest score (regardless of value) is always displayed as the deepest hue of blue and the the highest score is always shown as the deepest hue of red.
+  This is valuable for highlighting differences in reachability but can be misleading due to the normalization of the scores.
+
 Parameters:
 
 - **`collision_mesh_filename`**
@@ -134,3 +144,5 @@ Parameters:
   - The base frame of the kinematic tree in which to display the interactive markers
 - **`marker_scale`**
   - The length (in meters) of the arrow markers representing the target Cartesian points
+- **`use_full_color_range`** (optional, default: False)
+  - Colorize the heat map using the full range of colors (such that the target with the lowest score is the deepest hue of blue, and the target with the highest score is the deepest hue of red)
