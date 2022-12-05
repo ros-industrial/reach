@@ -111,7 +111,7 @@ using ReachResult = std::vector<ReachRecord, Eigen::aligned_allocator<ReachRecor
 using VectorReachResult = std::vector<ReachResult, Eigen::aligned_allocator<ReachResult>>;
 
 ReachResultSummary calculateResults(const ReachResult& db);
-Eigen::MatrixX3f computeHeatMapColors(const ReachResult& db);
+Eigen::MatrixX3f computeHeatMapColors(const ReachResult& db, bool use_full_color_range = false);
 
 class ReachDatabase
 {
