@@ -131,44 +131,58 @@ ReachDatabase load(const std::string& filename)
   return db;
 }
 
-Eigen::MatrixX3f computeHeatMapColors(const ReachResult& db, bool use_full_color_range)
+Eigen::MatrixX3f computeHeatMapColors(const std::vector<float>& scores)
 {
-  // Find the max element
-  ReachResult::const_iterator max_it = std::max_element(
-      db.begin(), db.end(), [](const ReachRecord& a, const ReachRecord& b) { return a.score < b.score; });
-
-  // Find the min element
-  float min_score = std::numeric_limits<float>::infinity();
-  for (const ReachRecord& r : db)
-    if (r.reached && r.score < min_score)
-      min_score = r.score;
-
   // Compute the color of the marker as a heatmap from blue to red using HSV space
   const float max_h = 0.75f * 360.0f;  // Corresponds to blue color
 
-  Eigen::MatrixX3f colors(db.size(), 3);
-  for (auto it = db.begin(); it != db.end(); ++it)
+  Eigen::MatrixX3f colors(scores.size(), 3);
+  for (std::size_t i = 0; i < scores.size(); ++i)
   {
-    float norm_score = 0.0;
-    if (use_full_color_range)
-      norm_score = static_cast<float>((it->score - min_score) / (max_it->score - min_score));
-    else
-      norm_score = static_cast<float>(it->score / max_it->score);
+    // Convert to RGB (note: constructor seems to have strange behavior, so set HSV individually)
+    pcl::PointXYZHSV pt_hsv;
+    pt_hsv._PointXYZHSV::h = max_h - max_h * scores[i];
+    pt_hsv._PointXYZHSV::s = 1.0f;
+    pt_hsv._PointXYZHSV::v = scores[i] > std::numeric_limits<float>::epsilon() ? 1.0f : 0.0f;
 
-    float h = max_h - max_h * norm_score;
-    const float s = 1.0f;
-    const float v = it->reached ? 1.0f : 0.0f;
-
-    // Convert to RGB
-    const pcl::PointXYZHSV pt_hsv(h, s, v);
     pcl::PointXYZRGB pt_rgb;
     pcl::PointXYZHSVtoXYZRGB(pt_hsv, pt_rgb);
 
-    Eigen::Index idx = static_cast<Eigen::Index>(std::distance(db.begin(), it));
+    Eigen::Index idx = static_cast<Eigen::Index>(i);
     colors.row(idx) = pt_rgb.getRGBVector3i().cast<float>() / 255.0f;
   }
 
   return colors;
+}
+
+std::vector<float> normalizeScores(const ReachResult& result, bool use_full_range)
+{
+  // Find the max element
+  auto max_it = std::max_element(result.begin(), result.end(),
+                                 [](const ReachRecord& a, const ReachRecord& b) { return a.score < b.score; });
+
+  // Find the min element
+  float min_score = std::numeric_limits<float>::infinity();
+  for (auto it = result.begin(); it != result.end(); ++it)
+    if (it->reached && it->score < min_score)
+      min_score = it->score;
+
+  std::vector<float> scores;
+  scores.reserve(result.size());
+
+  std::transform(result.begin(), result.end(), std::back_inserter(scores), [&](const ReachRecord& r) {
+    if (use_full_range)
+      return static_cast<float>((r.score - min_score) / (max_it->score - min_score));
+    else
+      return static_cast<float>(r.score / max_it->score);
+  });
+
+  return scores;
+}
+
+Eigen::MatrixX3f computeHeatMapColors(const ReachResult& result, bool use_full_color_range)
+{
+  return computeHeatMapColors(normalizeScores(result, use_full_color_range));
 }
 
 bool ReachDatabase::operator==(const ReachDatabase& rhs) const
@@ -184,12 +198,12 @@ ReachResultSummary ReachDatabase::calculateResults() const
   return reach::calculateResults(results.back());
 }
 
-Eigen::MatrixX3f ReachDatabase::computeHeatMapColors() const
+Eigen::MatrixX3f ReachDatabase::computeHeatMapColors(bool use_full_color_range) const
 {
   if (results.empty())
     throw std::runtime_error("Database contains no results");
 
-  return reach::computeHeatMapColors(results.back());
+  return reach::computeHeatMapColors(results.back(), use_full_color_range);
 }
 
 }  // namespace reach

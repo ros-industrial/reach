@@ -111,7 +111,30 @@ using ReachResult = std::vector<ReachRecord, Eigen::aligned_allocator<ReachRecor
 using VectorReachResult = std::vector<ReachResult, Eigen::aligned_allocator<ReachResult>>;
 
 ReachResultSummary calculateResults(const ReachResult& db);
-Eigen::MatrixX3f computeHeatMapColors(const ReachResult& db, bool use_full_color_range = false);
+
+/**
+ * @brief Returns a vector of normalized reach target scores
+ * @details If use_full_range is false (default), the individual scores are divided by the maximum
+ * score. If use_full_range is true, the individual scores are fully normalized on [0, 1]
+ */
+std::vector<float> normalizeScores(const ReachResult& result, bool use_full_range);
+
+/**
+ * @brief Computes the colors for a heat map based on the input scores
+ * @param scores Vector of reach target scores in the range [0, 1]
+ * @return An array of RGB colors on [0, 1] for each channel
+ */
+Eigen::MatrixX3f computeHeatMapColors(const std::vector<float>& scores);
+
+/**
+ * @brief Computes heat map colors for the reach targets in a reach study result
+ * @details The heat map colors range from deep blue for the lowest score (i.e., coldest) to deep red for the highest
+ * score (i.e., hottest). If use_full_color_range is false (default), the individual scores are divided by the maximum
+ * score before colorization. If use_full_color_range is true, the individual scores are fully normalized on [0, 1]
+ * before colorization
+ * @return An array of RGB colors on [0, 1] for each channel
+ */
+Eigen::MatrixX3f computeHeatMapColors(const ReachResult& result, bool use_full_color_range);
 
 class ReachDatabase
 {
@@ -121,7 +144,7 @@ public:
 
   bool operator==(const ReachDatabase& rhs) const;
   ReachResultSummary calculateResults() const;
-  Eigen::MatrixX3f computeHeatMapColors() const;
+  Eigen::MatrixX3f computeHeatMapColors(bool use_full_color_range = false) const;
 
 private:
   friend class boost::serialization::access;
