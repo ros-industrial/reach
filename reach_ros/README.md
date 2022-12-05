@@ -120,7 +120,11 @@ Parameters:
 
 ### ROS Reach Display
 
-This plugin publishes joint state and visualization markers to display the results of the reach study
+This plugin publishes joint state and visualization markers to display the results of the reach study.
+The markers are interactive:
+  - Left-clicking on a marker will change the robot position to the IK solution
+    - This works by publishing a `sensor_msgs/JointState` message to the `reach_joints` topic, which is a source topic for the `joint_state_publisher`
+  - Right-clicking on the marker will bring up a context menu that displays the score of the reach target
 
 Parameters:
 

@@ -107,6 +107,22 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const std::string& i
   m.header.frame_id = frame;
   m.name = id;
 
+  // Create a menu entry to display the score
+  {
+    visualization_msgs::MenuEntry entry;
+    entry.command_type = visualization_msgs::MenuEntry::FEEDBACK;
+    entry.id = 1;
+    entry.parent_id = 0;
+
+    std::stringstream ss;
+    ss.setf(std::ios::fixed);
+    ss.precision(4);
+    ss << "Score: " << r.score;
+    entry.title = ss.str();
+
+    m.menu_entries.push_back(entry);
+  }
+
   // Control
   visualization_msgs::InteractiveMarkerControl control;
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
