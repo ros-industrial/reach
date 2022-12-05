@@ -84,7 +84,6 @@ cd ..
 
 Install the dependencies
 ``` bash
-vcs import src < src/reach/dependencies.repos
 rosdep install --from-paths src --ignore-src -r -y
 ```
 
