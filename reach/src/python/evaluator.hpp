@@ -1,7 +1,7 @@
 #pragma once
 
 #include <reach/interfaces/evaluator.h>
-#include "utils.h"
+#include "utils.hpp"
 
 #include <boost/python.hpp>
 #include <yaml-cpp/yaml.h>

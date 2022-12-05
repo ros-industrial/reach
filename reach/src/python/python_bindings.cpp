@@ -19,7 +19,7 @@
 #include "ik_solver.hpp"
 #include "logger.hpp"
 #include "target_pose_generator.hpp"
-#include "utils.h"
+#include "utils.hpp"
 
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <boost/python.hpp>

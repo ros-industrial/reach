@@ -1,7 +1,7 @@
 #pragma once
 
 #include <reach/interfaces/logger.h>
-#include "utils.h"
+#include "utils.hpp"
 
 namespace reach
 {

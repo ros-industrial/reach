@@ -1,7 +1,7 @@
 #pragma once
 
 #include <reach/interfaces/target_pose_generator.h>
-#include "utils.h"
+#include "utils.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
