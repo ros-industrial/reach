@@ -102,12 +102,21 @@ inline YAML::Node toYAML(const boost::python::object& obj)
                            bp::extract<std::string>{ obj.attr("__class__").attr("__name__") }() + "'");
 }
 
-inline Eigen::Isometry3d toEigen(const boost::python::numpy::ndarray& arr)
+template <typename T, Eigen::Index Rows, Eigen::Index Cols>
+Eigen::Matrix<T, Rows, Cols> toEigen(const boost::python::numpy::ndarray& arr)
 {
   int n_dims = arr.get_nd();
   if (n_dims != 2)
     throw std::runtime_error("Numpy array has more than 2 dimensions (" + std::to_string(n_dims) + ")");
 
+  if (arr.get_dtype() != boost::python::numpy::dtype::get_builtin<T>())
+    throw std::runtime_error("Numpy array dtype must be " + boost::core::demangle(typeid(T).name()));
+
+  return Eigen::Map<Eigen::Matrix<T, Rows, Cols, Eigen::RowMajor>>((T*)arr.get_data());
+}
+
+inline Eigen::Isometry3d toEigen(const boost::python::numpy::ndarray& arr)
+{
   const Py_intptr_t* dims = arr.get_shape();
   Py_intptr_t rows = dims[0];
   Py_intptr_t cols = dims[1];
@@ -116,23 +125,33 @@ inline Eigen::Isometry3d toEigen(const boost::python::numpy::ndarray& arr)
   if (cols != 4)
     throw std::runtime_error("Numpy array has " + std::to_string(cols) + " rather than 4 columns");
 
-  if (arr.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
-    throw std::runtime_error("Numpy array dtype must be double");
-
-  Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> ndarray_map((double*)arr.get_data());
-  return Eigen::Isometry3d(ndarray_map);
+  return Eigen::Isometry3d(toEigen<double, 4, 4>(arr));
 }
 
-inline boost::python::numpy::ndarray fromEigen(const Eigen::Isometry3d& pose)
+template <typename T, Eigen::Index Rows, Eigen::Index Cols>
+boost::python::numpy::ndarray fromEigen(const Eigen::Matrix<T, Rows, Cols>& mat)
 {
   namespace bp = boost::python;
   namespace np = boost::python::numpy;
 
-  bp::tuple shape = bp::make_tuple(16);
-  bp::numpy::dtype dtype = np::dtype::get_builtin<double>();
-  bp::tuple stride = bp::make_tuple(sizeof(double));
+  const Eigen::Index rows = mat.rows();
+  const Eigen::Index cols = mat.cols();
 
-  return np::from_data(pose.data(), dtype, shape, stride, bp::object()).reshape(bp::make_tuple(4, 4)).transpose();
+  bp::tuple shape = bp::make_tuple(rows * cols);
+  bp::numpy::dtype dtype = np::dtype::get_builtin<T>();
+  bp::tuple stride = bp::make_tuple(sizeof(T));
+
+  // Construct an ndarray "map" to the data in the array
+  auto arr =
+      np::from_data(mat.data(), dtype, shape, stride, bp::object()).reshape(bp::make_tuple(cols, rows)).transpose();
+
+  // Return a copy of the array in case the input object goes out of scope later
+  return arr.copy();
+}
+
+inline boost::python::numpy::ndarray fromEigen(const Eigen::Isometry3d& pose)
+{
+  return fromEigen<double, 4, 4>(pose.matrix());
 }
 
 }  // namespace reach
