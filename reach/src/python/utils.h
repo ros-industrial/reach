@@ -16,7 +16,7 @@ inline void print_py_error(std::stringstream& ss)
     PyErr_Print();
     boost::python::object sys(boost::python::handle<>(PyImport_ImportModule("sys")));
     boost::python::object err = sys.attr("stderr");
-    std::string err_text = boost::python::extract<std::string>{err.attr("getvalue")}();
+    std::string err_text = boost::python::extract<std::string>{ err.attr("getvalue") }();
     ss << err_text << std::endl;
   }
   catch (...)
@@ -130,9 +130,9 @@ inline boost::python::numpy::ndarray fromEigen(const Eigen::Isometry3d& pose)
 
   bp::tuple shape = bp::make_tuple(16);
   bp::numpy::dtype dtype = np::dtype::get_builtin<double>();
-  bp::tuple stride = bp::make_tuple(sizeof (double));
+  bp::tuple stride = bp::make_tuple(sizeof(double));
 
   return np::from_data(pose.data(), dtype, shape, stride, bp::object()).reshape(bp::make_tuple(4, 4)).transpose();
 }
 
-} // namespace reach
+}  // namespace reach

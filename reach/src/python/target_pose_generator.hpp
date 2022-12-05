@@ -42,7 +42,8 @@ struct TargetPoseGeneratorFactoryPython : TargetPoseGeneratorFactory, boost::pyt
 {
   TargetPoseGenerator::ConstPtr create(const YAML::Node& config) const override
   {
-    return call_and_handle([this, &config]() -> TargetPoseGenerator::ConstPtr { return this->get_override("create")(config); });
+    return call_and_handle(
+        [this, &config]() -> TargetPoseGenerator::ConstPtr { return this->get_override("create")(config); });
   }
 };
 

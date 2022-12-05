@@ -41,8 +41,7 @@ public:
     : ReachStudy(IKSolver::ConstPtr(ik_solver, [](const IKSolver*) {}),
                  Evaluator::ConstPtr(evaluator, [](const Evaluator*) {}),
                  TargetPoseGenerator::ConstPtr(pose_generator, [](const TargetPoseGenerator*) {}),
-                 Display::ConstPtr(display, [](const Display*) {}),
-                 Logger::Ptr(logger, [](Logger*) {}),
+                 Display::ConstPtr(display, [](const Display*) {}), Logger::Ptr(logger, [](Logger*) {}),
                  std::move(params))
   {
     std::vector<std::string> python_interface_names;
@@ -94,8 +93,7 @@ public:
     }
   }
 
-  ReachStudyPython(const ReachStudyPython& rhs)
-  : ReachStudy (rhs)
+  ReachStudyPython(const ReachStudyPython& rhs) : ReachStudy(rhs)
   {
   }
 };
@@ -226,7 +224,8 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
         .def_readwrite("radius", &ReachStudy::Parameters::radius);
 
     bp::class_<ReachRecord>("ReachRecord")
-        .def("goal", +[](const ReachRecord& r) -> bp::numpy::ndarray { return fromEigen(r.goal); })
+        .def(
+            "goal", +[](const ReachRecord& r) -> bp::numpy::ndarray { return fromEigen(r.goal); })
         .def_readwrite("score", &ReachRecord::score)
         .def_readwrite("goal_state", &ReachRecord::goal_state)
         .def_readwrite("seed_state", &ReachRecord::seed_state);
@@ -248,9 +247,8 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
 
   // Wrap ReachStudy
   {
-    bp::class_<ReachStudyPython>("ReachStudy",
-                                 bp::init<const IKSolver*, const Evaluator*, const TargetPoseGenerator*, const Display*,
-                                          Logger*, ReachStudy::Parameters>())
+    bp::class_<ReachStudyPython>("ReachStudy", bp::init<const IKSolver*, const Evaluator*, const TargetPoseGenerator*,
+                                                        const Display*, Logger*, ReachStudy::Parameters>())
         .def("load", &ReachStudyPython::load)
         .def("save", &ReachStudyPython::save)
         .def("getDatabase", &ReachStudyPython::getDatabase, bp::return_internal_reference())

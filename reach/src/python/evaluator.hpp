@@ -44,7 +44,7 @@ struct EvaluatorFactoryPython : EvaluatorFactory, boost::python::wrapper<Evaluat
 {
   Evaluator::ConstPtr create(const YAML::Node& config) const override
   {
-    return call_and_handle([this, &config]() -> Evaluator::ConstPtr {return this->get_override("create")(config);});
+    return call_and_handle([this, &config]() -> Evaluator::ConstPtr { return this->get_override("create")(config); });
   }
 };
 
