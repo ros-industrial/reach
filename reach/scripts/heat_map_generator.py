@@ -1,25 +1,9 @@
 import argparse
-from matplotlib.colors import hsv_to_rgb
 import numpy as np
 import open3d as o3d
 import os.path
-from reach import ReachDatabase, load
+from reach import ReachDatabase, load, computeHeatMapColors, normalizeScores
 from scipy.interpolate import RBFInterpolator
-
-
-def colorize(scores: np.ndarray) -> np.ndarray:
-    """ Convert score values to RGB colors via HSV. If the score is zero, the HSV value of the color is set to zero
-    (i.e. black); otherwise it is set to full value (i.e. 1.0). Returned colors range from red (h = 0) to blue
-    (h = 0.75), where red represents the highest scores (i.e. hottest)
-    """
-    max_h = 0.75
-
-    h = max_h - scores * max_h
-    s = np.ones_like(scores)
-    v = np.zeros_like(scores)
-    v[np.where(scores > 0)] = 1.0
-
-    return hsv_to_rgb(np.vstack([h, s, v]).T)
 
 
 def main():
@@ -46,11 +30,7 @@ def main():
 
     # Loop over records in database to extract point position and scores into Numpy array
     positions = np.array([r.goal()[0:3, 3] for r in res])
-    scores = np.array([r.score for r in res])
-    if args.full_color_range:
-        scores = (scores - np.min(scores)) / (np.max(scores) - np.min(scores))
-    else:
-        scores = np.array(scores) / np.max(scores)
+    scores = normalizeScores(res, args.full_color_range)
 
     # Calculate the RBF
     rbf = RBFInterpolator(y=positions, d=scores, kernel=args.kernel, epsilon=args.epsilon,
@@ -67,7 +47,7 @@ def main():
     vert_scores = np.clip(vert_scores, a_min=0.0, a_max=1.0)
 
     # Colorize the mesh vertices
-    mesh.vertex_colors = o3d.utility.Vector3dVector(colorize(vert_scores))
+    mesh.vertex_colors = o3d.utility.Vector3dVector(computeHeatMapColors(vert_scores.tolist()))
 
     # Visualize the output
     o3d.visualization.draw_geometries([mesh], mesh_show_wireframe=False)
