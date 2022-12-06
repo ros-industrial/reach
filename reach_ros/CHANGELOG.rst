@@ -2,8 +2,8 @@
 Changelog for package reach_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2022-12-06)
+------------------
 * Install reach_ros headers (`#40 <https://github.com/marip8/reach/issues/40>`_)
 * Added Python interface (`#38 <https://github.com/ros-industrial/reach/issues/38>`_)
 * Updated to later version of plugin loader (`#39 <https://github.com/ros-industrial/reach/issues/39>`_)

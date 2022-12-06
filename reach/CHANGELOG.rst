@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2022-12-06)
+------------------
 * Added Python interface (`#38 <https://github.com/ros-industrial/reach/issues/38>`_)
 * Updated to later version of plugin loader (`#39 <https://github.com/ros-industrial/reach/issues/39>`_)
 * Refactored repository into ROS-independent core package and ROS-based plugin implementation package (`#37 <https://github.com/ros-industrial/reach/issues/37>`_)
