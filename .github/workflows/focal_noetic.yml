@@ -53,7 +53,7 @@ jobs:
           CI_NAME: focal
           OS_NAME: ubuntu
           OS_CODE_NAME: focal
-          ROS_REPO: main
+          UPSTREAM_WORKSPACE: dependencies.repos
           PREFIX: ${{ github.repository }}_
           CMAKE_ARGS: '-DENABLE_TESTING=ON -DENABLE_RUN_TESTING=OFF'
           BEFORE_RUN_TARGET_TEST_EMBED: 'ici_with_unset_variables source $BASEDIR/${PREFIX}target_ws/install/setup.bash'
