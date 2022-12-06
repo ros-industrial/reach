@@ -17,6 +17,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   ROS_DISTRO: noetic
+  PREFIX: ${{ github.repository }}_
 
 jobs:
   ci:
@@ -56,9 +57,11 @@ jobs:
           UPSTREAM_WORKSPACE: dependencies.repos
           PREFIX: ${{ github.repository }}_
           CMAKE_ARGS: '-DENABLE_TESTING=ON -DENABLE_RUN_TESTING=OFF'
-          BEFORE_RUN_TARGET_TEST_EMBED: 'ici_with_unset_variables source $BASEDIR/${PREFIX}target_ws/install/setup.bash'
           DOCKER_IMAGE: 'ros:${{ env.ROS_DISTRO }}'
           DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
+          AFTER_INSTALL_TARGET_DEPENDENCIES: 'python3 -m pip install -r reach/requirements.txt -qq'
+          BEFORE_RUN_TARGET_TEST_EMBED: 'ici_with_unset_variables source $BASEDIR/${PREFIX}target_ws/install/setup.bash'
+          AFTER_RUN_TARGET_TEST: 'rosenv python3 -m pytest -v'
 
       - name: Push post-build Docker
         if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
