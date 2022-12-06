@@ -73,13 +73,13 @@ target_link_libraries(
          boost_plugin_loader::boost_plugin_loader)
 target_cxx_version(${PROJECT_NAME}_plugins PUBLIC VERSION 14)
 
-# Reach Study Node
-add_executable(${PROJECT_NAME}_app src/app/reach_study_node.cpp)
+# Reach Study App
+add_executable(${PROJECT_NAME}_app src/app/reach_study.cpp)
 target_link_libraries(${PROJECT_NAME}_app PRIVATE ${PROJECT_NAME} Boost::program_options)
 target_cxx_version(${PROJECT_NAME}_app PUBLIC VERSION 14)
 
-# Data Loader Node
-add_executable(${PROJECT_NAME}_data_loader src/app/data_loader_node.cpp)
+# Data Loader App
+add_executable(${PROJECT_NAME}_data_loader src/app/data_loader.cpp)
 target_link_libraries(${PROJECT_NAME}_data_loader PRIVATE ${PROJECT_NAME} Boost::program_options)
 target_cxx_version(${PROJECT_NAME}_data_loader PUBLIC VERSION 14)
 
