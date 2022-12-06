@@ -103,6 +103,7 @@ list(APPEND TARGETS ${PROJECT_NAME}_data_loader)
 if(BUILD_PYTHON)
   message("Building Python bindings")
   add_subdirectory(src/python)
+  install(DIRECTORY scripts/ DESTINATION bin)
 endif()
 
 # ######################################################################################################################
