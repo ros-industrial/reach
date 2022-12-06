@@ -2,6 +2,13 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added Python interface (`#38 <https://github.com/ros-industrial/reach/issues/38>`_)
+* Updated to later version of plugin loader (`#39 <https://github.com/ros-industrial/reach/issues/39>`_)
+* Refactored repository into ROS-independent core package and ROS-based plugin implementation package (`#37 <https://github.com/ros-industrial/reach/issues/37>`_)
+* Contributors: Michael Ripperger, Collin Thornton
+
 0.2.2 (2022-08-24)
 ------------------
 * Create nested results directories if they do not exist (`#34 <https://github.com/marip8/reach/issues/34>`_)

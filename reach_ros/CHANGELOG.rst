@@ -2,6 +2,14 @@
 Changelog for package reach_ros
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Install reach_ros headers (`#40 <https://github.com/marip8/reach/issues/40>`_)
+* Added Python interface (`#38 <https://github.com/ros-industrial/reach/issues/38>`_)
+* Updated to later version of plugin loader (`#39 <https://github.com/ros-industrial/reach/issues/39>`_)
+* Refactored repository into ROS-independent core package and ROS-based plugin implementation package (`#37 <https://github.com/ros-industrial/reach/issues/37>`_)
+* Contributors: Michael Ripperger, Collin Thornton
+
 0.2.2 (2022-08-24)
 ------------------
 
