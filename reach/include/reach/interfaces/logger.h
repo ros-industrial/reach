@@ -10,6 +10,16 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
+namespace boost
+{
+namespace python
+{
+class dict;
+}  // namespace python
+}  // namespace boost
+#endif
+
 namespace reach
 {
 class ReachResultSummary;
@@ -40,6 +50,10 @@ struct LoggerFactory
   {
     return LOGGER_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  Logger::Ptr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach

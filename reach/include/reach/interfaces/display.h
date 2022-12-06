@@ -25,6 +25,16 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
+namespace boost
+{
+namespace python
+{
+class dict;
+}  // namespace python
+}  // namespace boost
+#endif
+
 namespace reach
 {
 /**
@@ -52,6 +62,10 @@ struct Display
 
   /** @brief Visualizes the results of a reach study */
   virtual void showResults(const ReachResult& db) const = 0;
+
+#ifdef BUILD_PYTHON
+  void updateRobotPose(const boost::python::dict&) const;
+#endif
 };
 
 /**
@@ -71,6 +85,10 @@ struct DisplayFactory
   {
     return DISPLAY_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  Display::ConstPtr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach

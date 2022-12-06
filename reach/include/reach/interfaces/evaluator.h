@@ -25,6 +25,16 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
+namespace boost
+{
+namespace python
+{
+class dict;
+}
+}  // namespace boost
+#endif
+
 namespace reach
 {
 /**
@@ -43,6 +53,10 @@ struct Evaluator
    * @details The better the reachability of the pose, the higher the score should be.
    */
   virtual double calculateScore(const std::map<std::string, double>& pose) const = 0;
+
+#ifdef BUILD_PYTHON
+  double calculateScore(const boost::python::dict& pose) const;
+#endif
 };
 
 /**
@@ -62,6 +76,10 @@ struct EvaluatorFactory
   {
     return EVALUATOR_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  Evaluator::ConstPtr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach

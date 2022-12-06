@@ -12,6 +12,16 @@ namespace YAML
 class Node;
 }
 
+#ifdef BUILD_PYTHON
+namespace boost
+{
+namespace python
+{
+class dict;
+}  // namespace python
+}  // namespace boost
+#endif
+
 namespace reach
 {
 /** @brief Interface for generating Cartesian target poses for the reach study */
@@ -43,6 +53,10 @@ struct TargetPoseGeneratorFactory
   {
     return TARGET_POSE_GEN_SECTION;
   }
+
+#ifdef BUILD_PYTHON
+  TargetPoseGenerator::ConstPtr create(const boost::python::dict& pyyaml_config) const;
+#endif
 };
 
 }  // namespace reach
