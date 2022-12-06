@@ -18,7 +18,6 @@ namespace boost
 namespace python
 {
 class dict;
-class list;
 }  // namespace python
 }  // namespace boost
 #endif
