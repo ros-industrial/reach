@@ -1,0 +1,36 @@
+optimization:
+  radius: 0.2
+  max_steps: 10
+  step_improvement_threshold: 0.01
+
+ik_solver:
+  name: MoveItIKSolver
+  distance_threshold: 0.0
+  planning_group: manipulator
+  collision_mesh_filename: package://reach_ros/demo/config/part.ply
+  touch_links: []
+
+evaluator:
+  name: MultiplicativeEvaluator
+  plugins:
+    - name: ManipulabilityMoveIt
+      planning_group: manipulator
+    - name: DistancePenaltyMoveIt
+      planning_group: manipulator
+      distance_threshold: 0.025
+      exponent: 2
+      collision_mesh_filename: package://reach_ros/demo/config/part.ply
+      touch_links: []
+
+display:
+  name: ROSDisplay
+  collision_mesh_filename: package://reach_ros/demo/config/part.ply
+  kinematic_base_frame: base_link
+  marker_scale: 0.05
+
+target_pose_generator:
+  name: PointCloudTargetPoseGenerator
+  pcd_file: package://reach_ros/demo/config/part.pcd
+
+logger:
+  name: BoostProgressConsoleLogger

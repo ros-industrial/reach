@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <node name="plugin_test" pkg="moveit_reach_plugins" type="ik_plugin_test" output="screen">
-    <rosparam command="load" file="$(find moveit_reach_plugins)/test/config.yaml"/>
-  </node>
-</launch>

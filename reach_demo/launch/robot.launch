@@ -1,9 +1,0 @@
-<?xml version="1.0" ?>
-<launch>
-  <!-- Load the URDF and SRDF of the robot -->
-  <!-- For a given MoveIt! configuration package, a launch file is already provided to do this (planning_context.launch) -->
-  <!-- In the case of this demo, we have re-created this launch file for our customized reach study URDF -->
-  <include file="$(find reach_demo)/launch/planning_context.launch">
-    <arg name="load_robot_description" value="true"/>
-  </include>
-</launch>

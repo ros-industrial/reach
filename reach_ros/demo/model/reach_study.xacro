@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<robot name="reach_study" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find reach_ros)/demo/model/motoman_sia20d/motoman_sia20d_macro.xacro" />
+  <xacro:motoman_sia20d prefix=""/>
+
+  <link name="tcp"/>
+  <joint name="tool0_to_tcp" type="fixed">
+    <parent link="tool0"/>
+    <child link="tcp"/>
+    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+  </joint>
+</robot>

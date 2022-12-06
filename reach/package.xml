@@ -1,20 +1,25 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>reach</name>
   <version>0.2.2</version>
-  <description>The reach metapackage</description>
+  <description>The reach package</description>
 
-  <maintainer email="michael.ripperger@swri.org">mripperger</maintainer>
-  <author email="michael.ripperger@swri.org">mripperger</author>
   <license>Apache 2.0</license>
+  <author email="michael.ripperger@swri.org">Michael Ripperger</author>
+  <maintainer email="michael.ripperger@swri.org">Michael Ripperger</maintainer>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>cmake</buildtool_depend>
 
-  <run_depend>reach_msgs</run_depend>
-  <run_depend>reach_core</run_depend>
+  <depend>boost</depend>
+  <depend>eigen</depend>
+  <depend>ros_industrial_cmake_boilerplate</depend>
+  <depend>boost_plugin_loader</depend>
+  <depend>libpcl-all-dev</depend>
+  <depend>libomp-dev</depend>
+  <depend>yaml-cpp</depend>
+  <test_depend>gtest</test_depend>
 
   <export>
-    <metapackage />
+    <build_type>cmake</build_type>
   </export>
-
 </package>

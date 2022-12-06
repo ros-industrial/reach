@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="config_name" default="reach_study"/>
+  <include file="$(find reach_ros)/launch/setup.launch">
+    <arg name="robot" value="$(find reach_ros)/demo/config/robot.launch"/>
+  </include>
+  <include file="$(find reach_ros)/launch/start.launch">
+    <arg name="config_file" value="$(find reach_ros)/demo/config/reach_study.yaml"/>
+    <arg name="config_name" value="$(arg config_name)"/>
+    <arg name="results_dir" value="$(find reach_ros)/demo/results"/>
+  </include>
+</launch>

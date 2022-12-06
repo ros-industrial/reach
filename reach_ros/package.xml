@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>reach_ros</name>
+  <version>0.2.2</version>
+  <description>The reach_ros package</description>
+
+  <maintainer email="mripperger@swri.org">mripperger</maintainer>
+  <author email="mripperger@swri.org">mripperger</author>
+
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>eigen_conversions</depend>
+  <depend>interactive_markers</depend>
+  <depend>moveit_core</depend>
+  <depend>moveit_msgs</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>reach</depend>
+  <depend>sensor_msgs</depend>
+  <depend>visualization_msgs</depend>  
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <test_depend>rostest</test_depend>
+</package>
