@@ -75,10 +75,10 @@ export REACH_PLUGINS=my_custom_reach_plugins:cool_reach_plugins
 ## Installation
 Nominally, the `reach` package is ROS-independent, but it is convenient to use the ROS1 dependency management and build tools to build the package, as well as the `reach_ros` package.
 
-First, clone the repository into a `catkin` workspace
+First, clone the repository into a `colcon` workspace
 ``` bash
-cd ~/catkin_ws/src
-git clone https://github.com/ros-industrial/reach.git
+cd ~/colcon_ws/src
+git clone https://github.com/ros-industrial/reach.git -b ros2
 cd ..
 ```
 
@@ -86,11 +86,13 @@ Install the dependencies
 ``` bash
 vcs import src < src/reach/dependencies.repos
 rosdep install --from-paths src --ignore-src -r -y
+colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
+colcon mixin update default
 ```
 
 Build the repository
 ```
-catkin build
+colcon build --symlink-install --mixin rel-with-deb-info compile-commands ccache
 ```
 
 ## Demo
