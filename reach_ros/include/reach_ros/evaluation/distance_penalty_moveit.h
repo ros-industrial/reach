@@ -17,7 +17,7 @@
 #define REACH_ROS_EVALUATION_DISTANCE_PENALTY_MOVEIT_H
 
 #include <reach/interfaces/evaluator.h>
-#include <moveit_msgs/PlanningScene.h>
+#include <moveit_msgs/msg/planning_scene.hpp>
 
 namespace moveit
 {

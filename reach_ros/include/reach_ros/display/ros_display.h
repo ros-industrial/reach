@@ -18,9 +18,10 @@
 
 #include <reach/interfaces/display.h>
 
-#include <interactive_markers/interactive_marker_server.h>
-#include <ros/node_handle.h>
-#include <ros/publisher.h>
+#include <rclcpp/publisher.hpp>
+#include <interactive_markers/interactive_marker_server.hpp>
+#include <visualization_msgs/msg/interactive_marker_feedback.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 
 namespace reach_ros
 {
@@ -42,14 +43,13 @@ protected:
   const std::string kinematic_base_frame_;
   const double marker_scale_;
   const bool use_full_color_range_;
-  visualization_msgs::Marker collision_marker_;
+  visualization_msgs::msg::Marker collision_marker_;
 
   // ROS comoponents
-  ros::NodeHandle nh_;
-  ros::Publisher joint_state_pub_;
-  ros::Publisher mesh_pub_;
-  ros::Publisher neighbors_pub_;
-  mutable interactive_markers::InteractiveMarkerServer server_;
+  rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr  joint_state_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr  mesh_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr  neighbors_pub_;
+  std::shared_ptr<interactive_markers::InteractiveMarkerServer> server_;
 };
 
 struct ROSDisplayFactory : public reach::DisplayFactory

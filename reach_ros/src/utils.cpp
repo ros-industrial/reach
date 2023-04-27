@@ -19,7 +19,6 @@
 #include <geometric_shapes/shape_operations.h>
 #include <geometric_shapes/shapes.h>
 #include <reach/types.h>
-#include <ros/ros.h>
 #include <eigen_conversions/eigen_msg.h>
 
 const static double ARROW_SCALE_RATIO = 6.0;
@@ -29,21 +28,21 @@ namespace reach_ros
 {
 namespace utils
 {
-moveit_msgs::CollisionObject createCollisionObject(const std::string& mesh_filename, const std::string& parent_link,
+moveit_msgs::msg::CollisionObject createCollisionObject(const std::string& mesh_filename, const std::string& parent_link,
                                                    const std::string& object_name)
 {
   // Create a CollisionObject message for the reach object
-  moveit_msgs::CollisionObject obj;
+  moveit_msgs::msg::CollisionObject obj;
   obj.header.frame_id = parent_link;
   obj.id = object_name;
   shapes::ShapeMsg shape_msg;
   shapes::Mesh* mesh = shapes::createMeshFromResource(mesh_filename);
   shapes::constructMsgFromShape(mesh, shape_msg);
-  obj.meshes.push_back(boost::get<shape_msgs::Mesh>(shape_msg));
+  obj.meshes.push_back(boost::get<shape_msgs::msg::Mesh>(shape_msg));
   obj.operation = obj.ADD;
 
   // Assign a default pose to the mesh
-  geometry_msgs::Pose pose;
+  geometry_msgs::msg::Pose pose;
   pose.position.x = pose.position.y = pose.position.z = 0.0;
   pose.orientation.x = pose.orientation.y = pose.orientation.z = 0.0;
   pose.orientation.w = 1.0;
@@ -52,18 +51,18 @@ moveit_msgs::CollisionObject createCollisionObject(const std::string& mesh_filen
   return obj;
 }
 
-visualization_msgs::Marker makeVisual(const reach::ReachRecord& r, const std::string& frame, const double scale,
+visualization_msgs::msg::Marker makeVisual(const reach::ReachRecord& r, const std::string& frame, const double scale,
                                       const std::string& ns, const Eigen::Vector3f& color)
 {
   static int idx = 0;
 
-  visualization_msgs::Marker marker;
+  visualization_msgs::msg::Marker marker;
   marker.header.frame_id = frame;
-  marker.header.stamp = ros::Time::now();
+  marker.header.stamp = node->get_clock()->now();
   marker.ns = ns;
   marker.id = idx++;
-  marker.type = visualization_msgs::Marker::ARROW;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::msg::Marker::ARROW;
+  marker.action = visualization_msgs::msg::Marker::ADD;
 
   // Transform arrow such that arrow x-axis points along goal pose z-axis (Rviz convention)
   // convert msg parameter goal to Eigen matrix
@@ -74,8 +73,7 @@ visualization_msgs::Marker makeVisual(const reach::ReachRecord& r, const std::st
   Eigen::Isometry3d goal_eigen = r.goal * rot_flip_normal * rot_x_to_z;
 
   // Convert back to geometry_msgs pose
-  geometry_msgs::Pose msg;
-  tf::poseEigenToMsg(goal_eigen, msg);
+  geometry_msgs::msg::Pose msg = tf2::toMsg(goal_eigen);
   marker.pose = msg;
 
   marker.scale.x = scale;
@@ -99,18 +97,18 @@ visualization_msgs::Marker makeVisual(const reach::ReachRecord& r, const std::st
   return marker;
 }
 
-visualization_msgs::InteractiveMarker makeInteractiveMarker(const std::string& id, const reach::ReachRecord& r,
+visualization_msgs::msg::InteractiveMarker makeInteractiveMarker(const std::string& id, const reach::ReachRecord& r,
                                                             const std::string& frame, const double scale,
                                                             const Eigen::Vector3f& rgb_color)
 {
-  visualization_msgs::InteractiveMarker m;
+  visualization_msgs::msg::InteractiveMarker m;
   m.header.frame_id = frame;
   m.name = id;
 
   // Create a menu entry to display the score
   {
-    visualization_msgs::MenuEntry entry;
-    entry.command_type = visualization_msgs::MenuEntry::FEEDBACK;
+    visualization_msgs::msg::MenuEntry entry;
+    entry.command_type = visualization_msgs::msg::MenuEntry::FEEDBACK;
     entry.id = 1;
     entry.parent_id = 0;
 
@@ -124,8 +122,8 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const std::string& i
   }
 
   // Control
-  visualization_msgs::InteractiveMarkerControl control;
-  control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+  visualization_msgs::msg::InteractiveMarkerControl control;
+  control.interaction_mode = visualization_msgs::msg::InteractiveMarkerControl::BUTTON;
   control.always_visible = true;
 
   // Visuals
@@ -136,15 +134,15 @@ visualization_msgs::InteractiveMarker makeInteractiveMarker(const std::string& i
   return m;
 }
 
-visualization_msgs::Marker makeMarker(const std::vector<geometry_msgs::Point>& pts, const std::string& frame,
+visualization_msgs::msg::Marker makeMarker(const std::vector<geometry_msgs::msg::Point>& pts, const std::string& frame,
                                       const double scale, const std::string& ns)
 {
-  visualization_msgs::Marker marker;
+  visualization_msgs::msg::Marker marker;
   marker.header.frame_id = frame;
-  marker.header.stamp = ros::Time::now();
+  marker.header.stamp = node->get_clock()->now();
   marker.ns = ns;
-  marker.type = visualization_msgs::Marker::POINTS;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.type = visualization_msgs::msg::Marker::POINTS;
+  marker.action = visualization_msgs::msg::Marker::ADD;
 
   marker.scale.x = marker.scale.y = marker.scale.z = scale / NEIGHBOR_MARKER_SCALE_RATIO;
 
@@ -182,18 +180,6 @@ std::vector<double> transcribeInputMap(const std::map<std::string, double>& inpu
   return joints;
 }
 
-void initROS(const std::string& node_name)
-{
-  if (!ros::isInitialized())
-  {
-    ROS_INFO_STREAM("Initializing ROS node");
-    int argc = 0;
-    ros::init(argc, nullptr, node_name);
-
-    static ros::AsyncSpinner spinner(1);
-    spinner.start();
-  }
-}
 
 }  // namespace utils
 }  // namespace reach_ros

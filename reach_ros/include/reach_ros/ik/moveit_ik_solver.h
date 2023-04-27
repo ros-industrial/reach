@@ -17,9 +17,11 @@
 #define REACH_ROS_IK_MOVEIT_IK_SOLVER_H
 
 #include <reach/interfaces/ik_solver.h>
-#include <ros/publisher.h>
+#include <rclcpp/publisher.hpp>
 #include <vector>
-
+#include <moveit_msgs/msg/planning_scene.hpp>
+ #include <functional>
+ 
 namespace moveit
 {
 namespace core
@@ -64,7 +66,7 @@ protected:
   const double distance_threshold_;
 
   planning_scene::PlanningScenePtr scene_;
-  ros::Publisher scene_pub_;
+  rclcpp::Publisher<moveit_msgs::msg::PlanningScene>::SharedPtr scene_pub_;
 
   static std::string COLLISION_OBJECT_NAME;
 };

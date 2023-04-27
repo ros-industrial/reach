@@ -42,7 +42,7 @@ DistancePenaltyMoveIt::DistancePenaltyMoveIt(moveit::core::RobotModelConstPtr mo
 
   // Add the collision mesh object to the planning scene
   const std::string object_name = "reach_object";
-  moveit_msgs::CollisionObject obj =
+  moveit_msgs::msg::CollisionObject obj =
       utils::createCollisionObject(collision_mesh_filename_, jmg_->getSolverInstance()->getBaseFrame(), object_name);
   if (!scene_->processCollisionObjectMsg(obj))
     throw std::runtime_error("Failed to add collision mesh to planning scene");
@@ -71,7 +71,7 @@ reach::Evaluator::ConstPtr DistancePenaltyMoveItFactory::create(const YAML::Node
   auto touch_links = reach::get<std::vector<std::string>>(config, "touch_links");
 
   utils::initROS();
-  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::node, "robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 

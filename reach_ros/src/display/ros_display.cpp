@@ -17,8 +17,7 @@
 #include <reach_ros/utils.h>
 
 #include <reach/plugin_utils.h>
-#include <sensor_msgs/JointState.h>
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <yaml-cpp/yaml.h>
 
 const static std::string JOINT_STATES_TOPIC = "reach_joints";
@@ -34,36 +33,36 @@ ROSDisplay::ROSDisplay(std::string kinematic_base_frame, double marker_scale, bo
   : kinematic_base_frame_(std::move(kinematic_base_frame))
   , marker_scale_(marker_scale)
   , use_full_color_range_(use_full_color_range)
-  , server_(INTERACTIVE_MARKER_TOPIC)
 {
   utils::initROS();
-  joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(JOINT_STATES_TOPIC, 1, true);
-  mesh_pub_ = nh_.advertise<visualization_msgs::Marker>(MESH_MARKER_TOPIC, 1, true);
-  neighbors_pub_ = nh_.advertise<visualization_msgs::Marker>(NEIGHBORS_MARKER_TOPIC, 1, true);
+  server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, reach_ros::utils::node);
+  joint_state_pub_ = reach_ros::utils::node->create_publisher<sensor_msgs::msg::JointState>(JOINT_STATES_TOPIC, 1);
+  mesh_pub_ = reach_ros::utils::node->create_publisher<visualization_msgs::msg::Marker>(MESH_MARKER_TOPIC, 1);
+  neighbors_pub_ = reach_ros::utils::node->create_publisher<visualization_msgs::msg::Marker>(NEIGHBORS_MARKER_TOPIC, 1);
 }
 
 void ROSDisplay::showEnvironment() const
 {
-  mesh_pub_.publish(collision_marker_);
+  mesh_pub_->publish(collision_marker_);
 }
 
 void ROSDisplay::updateRobotPose(const std::map<std::string, double>& pose) const
 {
-  sensor_msgs::JointState msg;
+  sensor_msgs::msg::JointState msg;
   std::transform(pose.begin(), pose.end(), std::back_inserter(msg.name),
                  [](const std::pair<const std::string, double>& pair) { return pair.first; });
   std::transform(pose.begin(), pose.end(), std::back_inserter(msg.position),
                  [](const std::pair<const std::string, double>& pair) { return pair.second; });
 
-  joint_state_pub_.publish(msg);
+  joint_state_pub_->publish(msg);
 }
 
 void ROSDisplay::showResults(const reach::ReachResult& db) const
 {
-  server_.clear();
+  server_->clear();
 
   // Create a callback for when a marker is clicked on
-  auto show_goal_cb = [this, db](const visualization_msgs::InteractiveMarkerFeedbackConstPtr& fb) {
+  auto show_goal_cb = [this, db](const visualization_msgs::msg::InteractiveMarkerFeedback::ConstPtr& fb) {
     std::size_t idx = std::strtoul(fb->marker_name.c_str(), nullptr, 10);
     updateRobotPose(db.at(idx).goal_state);
   };
@@ -74,18 +73,18 @@ void ROSDisplay::showResults(const reach::ReachResult& db) const
   {
     const std::string id = std::to_string(i);
     auto marker = utils::makeInteractiveMarker(id, db[i], kinematic_base_frame_, marker_scale_, heatmap_colors.row(i));
-    server_.insert(std::move(marker));
-    server_.setCallback(id, show_goal_cb);
+    server_->insert(std::move(marker));
+    server_->setCallback(id, show_goal_cb);
   }
 
-  server_.applyChanges();
+  server_->applyChanges();
 }
 
 void ROSDisplay::showReachNeighborhood(const std::map<std::size_t, reach::ReachRecord>& neighborhood) const
 {
   if (!neighborhood.empty())
   {
-    std::vector<geometry_msgs::Point> pt_array;
+    std::vector<geometry_msgs::msg::Point> pt_array;
 
     for (auto it = neighborhood.begin(); it != neighborhood.end(); ++it)
     {
@@ -95,19 +94,19 @@ void ROSDisplay::showReachNeighborhood(const std::map<std::size_t, reach::ReachR
     }
 
     // Create points marker, publish it, and move robot to result state for  given point
-    visualization_msgs::Marker pt_marker = utils::makeMarker(pt_array, kinematic_base_frame_, marker_scale_);
-    neighbors_pub_.publish(pt_marker);
+    visualization_msgs::msg::Marker pt_marker = utils::makeMarker(pt_array, kinematic_base_frame_, marker_scale_);
+    neighbors_pub_->publish(pt_marker);
   }
 }
 
 void ROSDisplay::setCollisionMarker(std::string collision_mesh_filename, const std::string collision_mesh_frame)
 {
-  visualization_msgs::Marker marker;
+  visualization_msgs::msg::Marker marker;
   marker.header.frame_id = collision_mesh_frame;
   marker.pose.orientation.w = 1.0;
-  marker.action = visualization_msgs::Marker::ADD;
+  marker.action = visualization_msgs::msg::Marker::ADD;
 
-  marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+  marker.type = visualization_msgs::msg::Marker::MESH_RESOURCE;
   marker.mesh_resource = collision_mesh_filename;
   marker.mesh_use_embedded_materials = true;
 

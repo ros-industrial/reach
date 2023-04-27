@@ -153,7 +153,7 @@ reach::Evaluator::ConstPtr ManipulabilityMoveItFactory::create(const YAML::Node&
   std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
 
   utils::initROS();
-  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::node, "robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
@@ -171,7 +171,7 @@ reach::Evaluator::ConstPtr ManipulabilityRatioFactory::create(const YAML::Node& 
   std::vector<Eigen::Index> jacobian_row_subset = getJacobianRowSubset(config);
 
   utils::initROS();
-  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::node, "robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
@@ -201,7 +201,7 @@ reach::Evaluator::ConstPtr ManipulabilityScaledFactory::create(const YAML::Node&
   std::vector<std::string> excluded_links = getExcludedLinks(config);
 
   utils::initROS();
-  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel("robot_description");
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::node, "robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
