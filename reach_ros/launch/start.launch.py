@@ -28,19 +28,19 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'robot_description_file_path',
-            description='Path to the robot_description URDF file', default_value='/home/best_mr/ws_reach/src/reach/reach_ros/demo/model/reach_study.xacro'),
+            description='Path to the robot_description URDF file'),
         DeclareLaunchArgument(
             'robot_description_semantic_config_path',
-            description='The semantic description that corresponds to the URDF', default_value='/home/best_mr/ws_reach/src/reach/reach_ros/demo/model/reach_study.srdf'),
+            description='The semantic description that corresponds to the URDF'),
         DeclareLaunchArgument(
             'robot_description_kinematics_path',
-            description='Load default settings for kinematics; these settings are overridden by settings in a node\'s namespace', default_value='/home/best_mr/ws_reach/src/reach/reach_ros/demo/model/kinematics.yaml'),
+            description='Load default settings for kinematics; these settings are overridden by settings in a node\'s namespace'),
         DeclareLaunchArgument(
             'robot_description_joints_limits_path',
-            description='Load updated joint limits (override information from URDF)', default_value='/home/best_mr/ws_reach/src/reach/reach_ros/demo/model/joint_limits.yaml'),
+            description='Load updated joint limits (override information from URDF)'),
         DeclareLaunchArgument(
             'config_file_path',
-            description='YAML configuration file for the reach study', default_value='/home/best_mr/ws_reach/src/reach/reach_ros/demo/config/reach_study.yaml'),
+            description='YAML configuration file for the reach study'),
         DeclareLaunchArgument(
             'config_name',
             description='Arbitrary configuration name for the reach study', default_value="reach_study"),
