@@ -8,8 +8,8 @@ This package provides a demonstration of the REACH capability for an arbitrary r
 
 Run the demo and view the pre-calculated results:
 ```
-roslaunch reach_ros setup.launch robot:=`rospack find reach_ros`/demo/config/robot.launch
-roslaunch reach_ros start.launch config_file:=`rospack find reach_ros`/demo/config/reach_study.yaml config_name:=reach_study results_dir:=`rospack find reach_ros`/demo/results
+ros2 launch reach_ros setup.launch.py robot_description_file_path:='PATH_TO_PACKAGE/reach_ros/demo/model/reach_study.xacro'
+ros2 launch reach_ros start.launch.py  robot_description_file_path:='PATH_TO_PACKAGE/reach_ros/demo/model/reach_study.xacro' robot_description_semantic_config_path:='PATH_TO_PACKAGE/reach_ros/demo/model/reach_study.srdf' robot_description_kinematics_path:='PATH_TO_PACKAGE/reach_ros/demo/model/kinematics.yaml' robot_description_joints_limits_path:='PATH_TO_PACKAGE/reach_ros/demo/model/joint_limits.yaml' config_file_path:='PATH_TO_PACKAGE/reach_ros/demo/config/reach_study.yaml' config_name:='reach_study' results_dir_path:='/tmp'
 ```
 
 > Note: the `config_name` parameter controls the name of the folder in which results are saved. By providing a name that already exists in the results

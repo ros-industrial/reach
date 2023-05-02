@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 project(reach_ros)
 
 add_compile_options(-std=c++17)
+set(CMAKE_CXX_FLAGS -rdynamic)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(reach REQUIRED)
 
@@ -23,8 +25,7 @@ set(INCLUDE_DIRS include)
 include_directories(${INCLUDE_DIRS})
 
 # Plugins
-add_library(
-  ${PROJECT_NAME}_plugins
+add_library(${PROJECT_NAME}_plugins SHARED
   src/utils.cpp
   # Evaluator
   src/evaluation/manipulability_moveit.cpp
@@ -72,17 +73,19 @@ ament_target_dependencies(${PROJECT_NAME}_node PUBLIC
 target_link_libraries(${PROJECT_NAME}_node PRIVATE reach::reach PUBLIC ${PROJECT_NAME}_plugins)
 
 # Demo
-#add_subdirectory(demo)
+add_subdirectory(demo)
 
 # ######################################################################################################################
 # INSTALL ##
 # ######################################################################################################################
 
-install(
-  TARGETS ${PROJECT_NAME}_plugins ${PROJECT_NAME}_node
-  ARCHIVE DESTINATION  ${PROJECT_NAME}
-  LIBRARY DESTINATION  lib
-  RUNTIME DESTINATION  include)
+install(TARGETS ${PROJECT_NAME}_plugins
+  EXPORT ${PROJECT_NAME}_plugins
+  LIBRARY DESTINATION lib
+  INCLUDES DESTINATION include)
+
+install(TARGETS ${PROJECT_NAME}_node
+  DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION include)
 

@@ -48,7 +48,7 @@ MoveItIKSolver::MoveItIKSolver(moveit::core::RobotModelConstPtr model, const std
 
   scene_.reset(new planning_scene::PlanningScene(model_));
 
-  scene_pub_ = reach_ros::utils::node->create_publisher<moveit_msgs::msg::PlanningScene>("planning_scene", 1);
+  scene_pub_ = reach_ros::utils::getNodeInstance()->create_publisher<moveit_msgs::msg::PlanningScene>("planning_scene", 1);
   moveit_msgs::msg::PlanningScene scene_msg;
   scene_->getPlanningSceneMsg(scene_msg);
   scene_pub_->publish(scene_msg);
@@ -123,8 +123,7 @@ reach::IKSolver::ConstPtr MoveItIKSolverFactory::create(const YAML::Node& config
   auto planning_group = reach::get<std::string>(config, "planning_group");
   auto dist_threshold = reach::get<double>(config, "distance_threshold");
 
-  utils::initROS();
-  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::node, "robot_description");
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::getNodeInstance(), "robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 
@@ -187,8 +186,7 @@ reach::IKSolver::ConstPtr DiscretizedMoveItIKSolverFactory::create(const YAML::N
   auto planning_group = reach::get<std::string>(config, "planning_group");
   auto dist_threshold = reach::get<double>(config, "distance_threshold");
 
-  utils::initROS();
-  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::node, "robot_description");
+  moveit::core::RobotModelConstPtr model = moveit::planning_interface::getSharedRobotModel(reach_ros::utils::getNodeInstance(), "robot_description");
   if (!model)
     throw std::runtime_error("Failed to initialize robot model pointer");
 

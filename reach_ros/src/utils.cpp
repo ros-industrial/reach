@@ -58,7 +58,7 @@ visualization_msgs::msg::Marker makeVisual(const reach::ReachRecord& r, const st
 
   visualization_msgs::msg::Marker marker;
   marker.header.frame_id = frame;
-  marker.header.stamp = node->get_clock()->now();
+  marker.header.stamp = getNodeInstance()->get_clock()->now();
   marker.ns = ns;
   marker.id = idx++;
   marker.type = visualization_msgs::msg::Marker::ARROW;
@@ -139,7 +139,7 @@ visualization_msgs::msg::Marker makeMarker(const std::vector<geometry_msgs::msg:
 {
   visualization_msgs::msg::Marker marker;
   marker.header.frame_id = frame;
-  marker.header.stamp = node->get_clock()->now();
+  marker.header.stamp = getNodeInstance()->get_clock()->now();
   marker.ns = ns;
   marker.type = visualization_msgs::msg::Marker::POINTS;
   marker.action = visualization_msgs::msg::Marker::ADD;

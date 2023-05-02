@@ -27,6 +27,12 @@ static bool checkFile(const std::string& package_name, const std::string& relati
       resolved_filename = (dir / relative_filename).string();
       return true;
     }
+    // For ROS 2 we need to check the share subfolder
+    else if (boost::filesystem::exists(dir / "share" / package_name / relative_filename) && dir.filename().string() == package_name)
+    {
+      resolved_filename = (dir / "share" / package_name / relative_filename).string();
+      return true;
+    }
     else
     {
       // Either the file doesn't exist within this package or the package name was incorrect
@@ -51,20 +57,35 @@ static std::string resolveROSPackageRelativeFile(const std::string& package_name
 {
   const char* ros_package_paths_env = "ROS_PACKAGE_PATH";
   const char* ros_package_paths_str = std::getenv(ros_package_paths_env);
-  if (!ros_package_paths_str)
+  const char* ros2_package_paths_env = "AMENT_PREFIX_PATH";
+  const char* ros2_package_paths_str = std::getenv(ros2_package_paths_env);
+  if (!ros_package_paths_str && !ros2_package_paths_str)
   {
     std::stringstream ss;
-    ss << "'" << ros_package_paths_env << "' environment variable is empty";
+    ss << "'" << ros_package_paths_env << "' and '" << ros2_package_paths_env <<"' environment variable are empty. Can not resolve package path.";
     throw std::runtime_error(ss.str());
   }
 
   std::string resolved_fileanme;
-  std::vector<std::string> tokens;
+  std::vector<std::string> ros1_tokens;
+  std::vector<std::string> ros2_tokens;
+  if (ros_package_paths_str){
 #ifndef _WIN32
-  boost::split(tokens, ros_package_paths_str, boost::is_any_of(":"), boost::token_compress_on);
+    boost::split(ros1_tokens, ros_package_paths_str, boost::is_any_of(":"), boost::token_compress_on);
 #else
-  boost::split(tokens, ros_package_paths, boost::is_any_of(";"), boost::token_compress_on);
+    boost::split(ros1_tokens, ros_package_paths, boost::is_any_of(";"), boost::token_compress_on);
 #endif
+  }
+  if (ros2_package_paths_str){
+#ifndef _WIN32
+    boost::split(ros2_tokens, ros2_package_paths_str, boost::is_any_of(":"), boost::token_compress_on);
+#else
+    boost::split(ros2_tokens, ros_package_paths, boost::is_any_of(";"), boost::token_compress_on);
+#endif
+  }
+  std::vector<std::string> tokens;
+  tokens.insert(tokens.begin(), ros1_tokens.begin(), ros1_tokens.end());
+  tokens.insert(tokens.end(), ros2_tokens.begin(), ros2_tokens.end());
   for (const auto& token : tokens)
   {
     boost::filesystem::path d(token);

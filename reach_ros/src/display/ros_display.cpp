@@ -34,11 +34,11 @@ ROSDisplay::ROSDisplay(std::string kinematic_base_frame, double marker_scale, bo
   , marker_scale_(marker_scale)
   , use_full_color_range_(use_full_color_range)
 {
-  utils::initROS();
-  server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, reach_ros::utils::node);
-  joint_state_pub_ = reach_ros::utils::node->create_publisher<sensor_msgs::msg::JointState>(JOINT_STATES_TOPIC, 1);
-  mesh_pub_ = reach_ros::utils::node->create_publisher<visualization_msgs::msg::Marker>(MESH_MARKER_TOPIC, 1);
-  neighbors_pub_ = reach_ros::utils::node->create_publisher<visualization_msgs::msg::Marker>(NEIGHBORS_MARKER_TOPIC, 1);
+  //utils::initROS();
+  server_ = std::make_shared<interactive_markers::InteractiveMarkerServer>(INTERACTIVE_MARKER_TOPIC, reach_ros::utils::getNodeInstance());
+  joint_state_pub_ = reach_ros::utils::getNodeInstance()->create_publisher<sensor_msgs::msg::JointState>(JOINT_STATES_TOPIC, 1);
+  mesh_pub_ = reach_ros::utils::getNodeInstance()->create_publisher<visualization_msgs::msg::Marker>(MESH_MARKER_TOPIC, 1);
+  neighbors_pub_ = reach_ros::utils::getNodeInstance()->create_publisher<visualization_msgs::msg::Marker>(NEIGHBORS_MARKER_TOPIC, 1);
 }
 
 void ROSDisplay::showEnvironment() const
