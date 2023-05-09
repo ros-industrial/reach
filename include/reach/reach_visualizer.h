@@ -21,6 +21,8 @@
 #include <reach/interfaces/ik_solver.h>
 #include <reach/utils.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace reach
 {
 /**
