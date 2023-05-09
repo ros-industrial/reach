@@ -128,6 +128,6 @@ Use the following steps to run a reach study with a robot using the ROS1 infrast
 1. Reach study results are serialized to file and can be loaded using the API in `reach` for programmatic analysis or modification
 
 [1]: docs/reach_study.png
-[2]: reach_ros/demo/docs/reach_study_demo.gif
+[2]: docs/reach_study_demo.gif
 [3]: docs/heat_map_colorized_mesh.png
 [4]: docs/reach_study_flow_diagram.png
