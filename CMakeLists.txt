@@ -67,7 +67,7 @@ target_link_libraries(
          ${PCL_LIBRARIES}
          OpenMP::OpenMP_CXX)
 target_compile_definitions(${PROJECT_NAME} PUBLIC SEARCH_LIBRARIES_ENV="REACH_PLUGINS"
-                                                  PLUGIN_LIBRARIES="${PROJECT_NAME}_plugins:reach_ros_plugins")
+                                                  PLUGIN_LIBRARIES="${PROJECT_NAME}_plugins")
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 list(APPEND TARGETS ${PROJECT_NAME})
 
