@@ -4,14 +4,6 @@
 
 **R**obotic **E**valuation **A**nd **C**omparison **H**euristic
 
-**Table of Contents**
-- [Description](#description)
-- [Installation](#installation)
-- [Demo](#demo)
-- [Usage](#usage)
-- [Hints](#hints)
-- [Architecture and Interfaces](#architecture-and-interfaces)
-
 ![Robot Reach Study][1]
 
 ![Reach Study Demo][2]
@@ -21,8 +13,7 @@
 ## Table of Contents
 - [Description](#Description)
 - [Installation](#Installation)
-- [Demo](#Demo)
-- [Usage](#Usage)
+- [ROS Integration](#ROS-Integration)
 - [Tips](#Tips)
 
 ## Description
@@ -55,7 +46,7 @@ The `reach` package also provides the interface definition for the required reac
 The interfaces described above are exposed as plugins using the [`boost_plugin_loader` library](https://github.com/tesseract-robotics/boost_plugin_loader) to support custom implementations.
 
 Several default and dummy plugins have been created in the `reach` package.
-Many other ROS1-based plugins have been implemented in the [`reach_ros`](reach_ros) package.
+Many other ROS-based plugins have been implemented in the [`reach_ros`](https://github.com/ros-industrial/reach_ros) and [`reach_ros2`](https://github.com/ros-industrial/reach_ros2) packages.
 All of the plugins built in this project are discovered automatically by the plugin loader without additional manual steps.
 
 The plugin loader class finds plugin libraries using two environment variables:
@@ -73,11 +64,11 @@ export REACH_PLUGINS=my_custom_reach_plugins:cool_reach_plugins
 ```
 
 ## Installation
-Nominally, the `reach` package is ROS-independent, but it is convenient to use the ROS1 dependency management and build tools to build the package, as well as the `reach_ros` package.
+Nominally, the `reach` package is ROS-independent, but it is convenient to use the ROS dependency management and build tools to build the package.
 
 First, clone the repository into a `catkin` workspace
 ``` bash
-cd ~/catkin_ws/src
+cd ~/reach_ws/src
 git clone https://github.com/ros-industrial/reach.git
 cd ..
 ```
@@ -90,34 +81,11 @@ rosdep install --from-paths src --ignore-src -r -y
 
 Build the repository
 ```
-catkin build
+<catkin/colcon> build
 ```
 
-## Demo
-A simple demonstration of the capability of this repository is provided in the `reach_ros` package.
-See the [instructions](reach_ros/demo/README.md) for details on how to run the demo.
-
-## Usage
-Use the following steps to run a reach study with a robot using the ROS1 infrastructure and plugins.
-
-1. Create a URDF of your robot system
-1. Create a launch file to load the URDF, SRDF, and other required parameters (e.g. related to kinematics, joint, limits) to the parameter server (see [this demo example file](reach_ros/demo/config/robot.launch))
-1. Create a mesh model of the workpiece
-    > Note: the origin of this model should align with the kinematic base frame of the robot
-1. Create a point cloud of the target points on the workpiece
-    - This point cloud can be generated using a command line tool from PCL 1.8:
-      ```
-      pcl_mesh_sampling <workpiece_mesh>.ply <output_cloud>.pcd -n_samples <number of samples> -leaf_size <leaf_size> -write_normals true
-      ```
-1. Create a configuration YAML file defining the parameters of the reach study and the configuration of the interface plugins (see [this demo example](reach_ros/demo/config/reach_study.yaml))
-1. Run the setup launch file
-    ```
-    roslaunch reach_ros setup.launch robot:=<load_robot_parameters>.launch
-    ```
-1. Run the reach study analysis
-    ```
-    roslaunch reach_ros start.launch config_file:=<config_file.yaml> config_name:=<arbitrary_config>
-    ```
+## ROS Integration
+See the [`reach_ros`](https://github.com/ros-industrial/reach_ros) and [`reach_ros2`](https://github.com/ros-industrial/reach_ros2) repositories for ROS-based plugins, capability demos, and general usage instructions.
 
 ## Tips
 1. Ensure the object mesh and reach target position scales match and are correct (visualize in `rviz`). It is common to be off by a factor of 1000.
