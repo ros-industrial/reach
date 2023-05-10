@@ -16,6 +16,7 @@
 #ifndef reach_INTERFACES_EVALUATOR_H
 #define reach_INTERFACES_EVALUATOR_H
 
+#include <string>
 #include <map>
 #include <memory>
 #include <vector>
