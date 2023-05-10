@@ -2,6 +2,20 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Move ROS1 components (`#44 <https://github.com/marip8/reach/issues/44>`_)
+  * Removed reach_ros directory
+  * Flattened reach package
+  * Updated CI config file
+  * Added demo GIF and README
+  * Fixed table of contents; added references to ROS repos; removed section on ROS-specific usage and demos
+  * Changes to support ROS2
+  * Updated dependencies
+  * Remove reach_ros from plugins target compile definitions
+  * Added colcon package file
+* Contributors: Michael Ripperger
+
 1.0.0 (2022-12-06)
 ------------------
 * Added Python interface (`#38 <https://github.com/ros-industrial/reach/issues/38>`_)
