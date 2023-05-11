@@ -2,6 +2,11 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Exposed plugin implementations for linking by downstream projects (`#45 <https://github.com/marip8/reach/issues/45>`_)
+* Contributors: Michael Ripperger
+
 1.1.0 (2023-05-10)
 ------------------
 * Move ROS1 components (`#44 <https://github.com/marip8/reach/issues/44>`_)
