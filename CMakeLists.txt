@@ -59,7 +59,13 @@ add_library(
   src/types.cpp
   src/reach_visualizer.cpp
   src/reach_study.cpp
-  src/reach_study_comparison.cpp)
+  src/reach_study_comparison.cpp
+  # Implementations
+  src/plugins/multiplicative_evaluator.cpp
+  src/plugins/point_cloud_target_pose_generator.cpp
+  src/plugins/console_logger.cpp
+  src/plugins/boost_progress_console_logger.cpp
+  src/plugins/no_op.cpp)
 target_link_libraries(
   ${PROJECT_NAME}
   PUBLIC ${PROJECT_NAME}_interface
@@ -72,13 +78,7 @@ target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 list(APPEND TARGETS ${PROJECT_NAME})
 
 # Plugins Library
-add_library(
-  ${PROJECT_NAME}_plugins SHARED
-  src/plugins/multiplicative_evaluator.cpp
-  src/plugins/point_cloud_target_pose_generator.cpp
-  src/plugins/console_logger.cpp
-  src/plugins/boost_progress_console_logger.cpp
-  src/plugins/no_op.cpp)
+add_library(${PROJECT_NAME}_plugins SHARED src/plugins/plugins.cpp)
 target_link_libraries(
   ${PROJECT_NAME}_plugins
   PUBLIC ${PROJECT_NAME}

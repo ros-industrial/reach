@@ -1,69 +1,49 @@
-#include <reach/interfaces/evaluator.h>
-#include <reach/interfaces/ik_solver.h>
-#include <reach/interfaces/display.h>
-
-#include <boost/shared_ptr.hpp>
+#include <reach/plugins/no_op.h>
 
 namespace reach
 {
-struct NoOpEvaluator : public Evaluator
+double NoOpEvaluator::calculateScore(const std::map<std::string, double>&) const
 {
-  double calculateScore(const std::map<std::string, double>&) const override
-  {
-    return 0.0;
-  }
-};
+  return 0.0;
+}
 
-struct NoOpEvaluatorFactory : public EvaluatorFactory
+Evaluator::ConstPtr NoOpEvaluatorFactory::create(const YAML::Node&) const
 {
-  virtual Evaluator::ConstPtr create(const YAML::Node&) const override
-  {
-    return std::make_shared<NoOpEvaluator>();
-  }
-};
+  return std::make_shared<NoOpEvaluator>();
+}
 
-struct NoOpIKSolver : public IKSolver
+std::vector<std::string> NoOpIKSolver::getJointNames() const
 {
-public:
-  std::vector<std::string> getJointNames() const override
-  {
-    return { "j1" };
-  }
+  return { "j1" };
+}
 
-  std::vector<std::vector<double>> solveIK(const Eigen::Isometry3d&,
-                                           const std::map<std::string, double>&) const override
-  {
-    return { { 0.0 } };
-  }
-};
-
-struct NoOpIKSolverFactory : public IKSolverFactory
+std::vector<std::vector<double>> NoOpIKSolver::solveIK(const Eigen::Isometry3d&,
+                                                       const std::map<std::string, double>&) const
 {
-  IKSolver::ConstPtr create(const YAML::Node&) const override
-  {
-    return std::make_shared<NoOpIKSolver>();
-  }
-};
+  return { { 0.0 } };
+}
 
-struct NoOpDisplay : public Display
+IKSolver::ConstPtr NoOpIKSolverFactory::create(const YAML::Node&) const
 {
-  void showEnvironment() const override{};
-  void updateRobotPose(const std::map<std::string, double>&) const override{};
-  void showReachNeighborhood(const std::map<std::size_t, ReachRecord>&) const override{};
-  void showResults(const ReachResult&) const override{};
-};
+  return std::make_shared<NoOpIKSolver>();
+}
 
-struct NoOpDisplayFactory : public DisplayFactory
+void NoOpDisplay::showEnvironment() const
 {
-  Display::ConstPtr create(const YAML::Node&) const override
-  {
-    return std::make_shared<NoOpDisplay>();
-  }
-};
+}
+void NoOpDisplay::updateRobotPose(const std::map<std::string, double>&) const
+{
+}
+void NoOpDisplay::showReachNeighborhood(const std::map<std::size_t, ReachRecord>&) const
+{
+}
+void NoOpDisplay::showResults(const ReachResult&) const
+{
+}
+
+Display::ConstPtr NoOpDisplayFactory::create(const YAML::Node&) const
+{
+  return std::make_shared<NoOpDisplay>();
+}
 
 }  // namespace reach
-
-#include <reach/plugin_utils.h>
-EXPORT_EVALUATOR_PLUGIN(reach::NoOpEvaluatorFactory, NoOpEvaluator)
-EXPORT_IK_SOLVER_PLUGIN(reach::NoOpIKSolverFactory, NoOpIKSolver)
-EXPORT_DISPLAY_PLUGIN(reach::NoOpDisplayFactory, NoOpDisplay)
