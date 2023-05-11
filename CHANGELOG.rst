@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2023-05-11)
+------------------
 * Exposed plugin implementations for linking by downstream projects (`#45 <https://github.com/marip8/reach/issues/45>`_)
 * Contributors: Michael Ripperger
 
