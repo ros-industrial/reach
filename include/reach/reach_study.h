@@ -41,6 +41,7 @@ public:
     float step_improvement_threshold;
     float radius;
     std::size_t max_threads = std::thread::hardware_concurrency();
+    std::map<std::string, double> initial_seed;
   };
 
   ReachStudy(IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator, TargetPoseGenerator::ConstPtr pose_generator,

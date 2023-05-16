@@ -92,8 +92,15 @@ void ReachStudy::run()
     const Eigen::Isometry3d& tgt_frame = target_poses_[i] * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX());
 
     // Get the seed position
-    const std::vector<std::string> joint_names = ik_solver_->getJointNames();
-    std::map<std::string, double> seed_state = zip(joint_names, std::vector<double>(joint_names.size(), 0.0));
+    std::map<std::string, double> seed_state;
+    if (params_.initial_seed.size() == 0){
+      // no initialization give, use 0 positions
+      const std::vector<std::string> joint_names = ik_solver_->getJointNames();
+      seed_state = zip(joint_names, std::vector<double>(joint_names.size(), 0.0));
+    }else{
+      // use given initial positions
+      seed_state = params_.initial_seed;
+    }
 
     // Solve IK
     try
@@ -259,6 +266,16 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   params.step_improvement_threshold = opt_config["step_improvement_threshold"].as<double>();
   if (opt_config["max_threads"])
     params.max_threads = opt_config["max_threads"].as<std::size_t>();
+
+  // read the initial joint positions if specified
+  const YAML::Node initial_seed_yaml = opt_config["initial_seed"];
+  for (auto it = initial_seed_yaml.begin(); it != initial_seed_yaml.end(); ++it)
+  {
+    const YAML::Node& initial_seed_entry = *it;
+    std::string name = reach::get<std::string>(initial_seed_entry, "name");
+    double position = reach::get<double>(initial_seed_entry, "position");
+    params.initial_seed.insert(std::pair<std::string,double>(name, position));
+  }
 
   boost_plugin_loader::PluginLoader loader;
   std::vector<std::string> plugin_libraries;
