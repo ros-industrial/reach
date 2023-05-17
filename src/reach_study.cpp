@@ -93,13 +93,16 @@ void ReachStudy::run()
 
     // Get the seed position
     std::map<std::string, double> seed_state;
-    if (params_.initial_seed.size() == 0){
+    if (params_.seed_state.empty())
+    {
       // no initialization give, use 0 positions
       const std::vector<std::string> joint_names = ik_solver_->getJointNames();
       seed_state = zip(joint_names, std::vector<double>(joint_names.size(), 0.0));
-    }else{
+    }
+    else
+    {
       // use given initial positions
-      seed_state = params_.initial_seed;
+      seed_state = params_.seed_state;
     }
 
     // Solve IK
@@ -268,13 +271,13 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
     params.max_threads = opt_config["max_threads"].as<std::size_t>();
 
   // read the initial joint positions if specified
-  const YAML::Node initial_seed_yaml = opt_config["initial_seed"];
-  for (auto it = initial_seed_yaml.begin(); it != initial_seed_yaml.end(); ++it)
+  const YAML::Node seed_state_yaml = opt_config["seed_state"];
+  for (auto it = seed_state_yaml.begin(); it != seed_state_yaml.end(); ++it)
   {
-    const YAML::Node& initial_seed_entry = *it;
-    std::string name = reach::get<std::string>(initial_seed_entry, "name");
-    double position = reach::get<double>(initial_seed_entry, "position");
-    params.initial_seed.insert(std::pair<std::string,double>(name, position));
+    const YAML::Node& seed_state_entry = *it;
+    std::string name = reach::get<std::string>(seed_state_entry, "name");
+    double position = reach::get<double>(seed_state_entry, "position");
+    params.seed_state.insert(std::pair<std::string, double>(name, position));
   }
 
   boost_plugin_loader::PluginLoader loader;
