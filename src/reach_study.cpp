@@ -91,28 +91,14 @@ void ReachStudy::run()
   {
     const Eigen::Isometry3d& tgt_frame = target_poses_[i] * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX());
 
-    // Get the seed position
-    std::map<std::string, double> seed_state;
-    if (params_.seed_state.empty())
-    {
-      // no initialization give, use 0 positions
-      const std::vector<std::string> joint_names = ik_solver_->getJointNames();
-      seed_state = zip(joint_names, std::vector<double>(joint_names.size(), 0.0));
-    }
-    else
-    {
-      // use given initial positions
-      seed_state = params_.seed_state;
-    }
-
     // Solve IK
     try
     {
       std::vector<double> solution;
       double score;
-      std::tie(solution, score) = evaluateIK(tgt_frame, seed_state, ik_solver_, evaluator_);
+      std::tie(solution, score) = evaluateIK(tgt_frame, params_.seed_state, ik_solver_, evaluator_);
 
-      ReachRecord msg(true, tgt_frame, seed_state, zip(ik_solver_->getJointNames(), solution), score);
+      ReachRecord msg(true, tgt_frame, params_.seed_state, zip(ik_solver_->getJointNames(), solution), score);
       {
         std::lock_guard<std::mutex> lock{ mutex_ };
         active_result->operator[](i) = msg;
@@ -120,7 +106,7 @@ void ReachStudy::run()
     }
     catch (const std::exception&)
     {
-      ReachRecord msg(false, tgt_frame, seed_state, seed_state, 0.0);
+      ReachRecord msg(false, tgt_frame, params_.seed_state, params_.seed_state, 0.0);
       {
         std::lock_guard<std::mutex> lock{ mutex_ };
         active_result->operator[](i) = msg;
@@ -270,16 +256,6 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   if (opt_config["max_threads"])
     params.max_threads = opt_config["max_threads"].as<std::size_t>();
 
-  // read the initial joint positions if specified
-  const YAML::Node seed_state_yaml = opt_config["seed_state"];
-  for (auto it = seed_state_yaml.begin(); it != seed_state_yaml.end(); ++it)
-  {
-    const YAML::Node& seed_state_entry = *it;
-    std::string name = reach::get<std::string>(seed_state_entry, "name");
-    double position = reach::get<double>(seed_state_entry, "position");
-    params.seed_state.insert(std::pair<std::string, double>(name, position));
-  }
-
   boost_plugin_loader::PluginLoader loader;
   std::vector<std::string> plugin_libraries;
   boost::split(loader.search_libraries, PLUGIN_LIBRARIES, boost::is_any_of(":"), boost::token_compress_on);
@@ -290,6 +266,29 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   {
     auto factory = loader.createInstance<IKSolverFactory>(get<std::string>(ik_config, "name"));
     ik_solver = factory->create(ik_config);
+  }
+
+  // read the initial joint positions if specified
+  const YAML::Node seed_state_config = opt_config["seed_state"];
+  if (!seed_state_config)
+  {
+    // Initialize with all zeros
+    for (const std::string& name : ik_solver->getJointNames())
+      params.seed_state.insert(std::pair<std::string, double>(name, 0.0));
+  }
+  else
+  {
+    for (auto it = seed_state_config.begin(); it != seed_state_config.end(); ++it)
+    {
+      const YAML::Node& seed_state_entry = *it;
+      std::string name = reach::get<std::string>(seed_state_entry, "name");
+      double position = reach::get<double>(seed_state_entry, "position");
+      params.seed_state.insert(std::pair<std::string, double>(name, position));
+    }
+    // Check that a seed state is defined for all joints known to the IK interface
+    for (const std::string& name : ik_solver->getJointNames())
+      if (params.seed_state.find(name) == params.seed_state.end())
+        throw std::runtime_error("Seed state parameter does not include joint '" + name + "'");
   }
 
   // Load the target pose generator plugin
