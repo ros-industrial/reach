@@ -2,6 +2,14 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Initial IK seed (`#46 <https://github.com/marip8/reach/issues/46>`_)
+  * add option to specify initial IK seed
+  * refactor based on PR comments
+  * improve reading of seed parameter from yaml
+* Contributors: Marc Bestmann
+
 1.2.0 (2023-05-11)
 ------------------
 * Exposed plugin implementations for linking by downstream projects (`#45 <https://github.com/marip8/reach/issues/45>`_)
