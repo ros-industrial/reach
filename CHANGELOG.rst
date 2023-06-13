@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.0 (2023-06-13)
+------------------
 * Initial IK seed (`#46 <https://github.com/marip8/reach/issues/46>`_)
   * add option to specify initial IK seed
   * refactor based on PR comments
