@@ -94,6 +94,7 @@ See the [`reach_ros`](https://github.com/ros-industrial/reach_ros) and [`reach_r
     - Additional constraints (or lack thereof, such as orientation freedom about the tool z-axis) can also be incorporated into the IK solver (via parameters or source code changes) to produce different reach study results
     - For `MoveIt`-based plugins, the selection of IK solver is defined in the `kinematics.yaml` file
 1. Reach study results are serialized to file and can be loaded using the API in `reach` for programmatic analysis or modification
+1. You can specify a starting seed for the IK solver by providing a list of joint positions in the config. This be used to help the IK solver to find solutions for complex scenarios. It might also help to guide the solver to solutions that are closer to a certain configuration that you prefere. If no initial seed is provided, a pose with all joints at 0 position is used.
 
 [1]: docs/reach_study.png
 [2]: docs/reach_study_demo.gif

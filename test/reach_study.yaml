@@ -2,6 +2,9 @@ optimization:
   radius: 0.4
   max_steps: 10
   step_improvement_threshold: 0.01
+  seed_state:
+    - name: j1
+      position: 2.66
 
 ik_solver:
   name: NoOpIKSolver
