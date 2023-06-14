@@ -165,7 +165,7 @@ void ReachStudy::optimize()
     // Randomize
     std::random_shuffle(rand_vec.begin(), rand_vec.end());
 
-#pragma parallel for num_threads(params_.max_threads)
+#pragma omp parallel for num_threads(params_.max_threads)
     for (std::size_t i = 0; i < rand_vec.size(); ++i)
     {
       const ReachRecord& msg = active_result->at(i);
@@ -218,7 +218,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
   std::atomic<double> total_joint_distance;
 
 // Iterate
-#pragma parallel for num_threads(params_.max_threads)
+#pragma omp parallel for num_threads(params_.max_threads)
   for (auto it = active_result.begin(); it != active_result.end(); ++it)
   {
     if (it->reached)
