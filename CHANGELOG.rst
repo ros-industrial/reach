@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.1 (2023-06-14)
+------------------
 * fix parallelization error of omp parallel (`#47 <https://github.com/marip8/reach/issues/47>`_)
 * Contributors: Marc Bestmann
 
