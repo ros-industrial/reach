@@ -2,6 +2,11 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix parallelization error of omp parallel (`#47 <https://github.com/marip8/reach/issues/47>`_)
+* Contributors: Marc Bestmann
+
 1.3.0 (2023-06-13)
 ------------------
 * Initial IK seed (`#46 <https://github.com/marip8/reach/issues/46>`_)
