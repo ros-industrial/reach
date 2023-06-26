@@ -11,6 +11,7 @@ target_compile_definitions(${PROJECT_NAME}_python PRIVATE MODULE_NAME=${PROJECT_
 set_target_properties(
   ${PROJECT_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages
                                     OUTPUT_NAME ${PROJECT_NAME})
+target_cxx_version(${PROJECT_NAME}_python PUBLIC VERSION 14)
 
 list(
   APPEND

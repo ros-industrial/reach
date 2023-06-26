@@ -215,7 +215,7 @@ std::tuple<double, double> ReachStudy::getAverageNeighborsCount() const
 
 // Iterate
 #pragma omp parallel for num_threads(params_.max_threads)
-  for (auto it = active_result.begin(); it != active_result.end(); ++it)
+  for (auto it = active_result.begin(); it < active_result.end(); ++it)
   {
     if (it->reached)
     {

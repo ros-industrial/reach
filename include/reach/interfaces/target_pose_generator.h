@@ -30,6 +30,8 @@ struct TargetPoseGenerator
   using Ptr = std::shared_ptr<TargetPoseGenerator>;
   using ConstPtr = std::shared_ptr<const TargetPoseGenerator>;
 
+  virtual ~TargetPoseGenerator() = default;
+
   /**
    * @brief Creates a list of Cartesian target poses for the reach study
    * @details The Cartesian poses should be relative to the robot kinematic base frame, and the pose z-axis should

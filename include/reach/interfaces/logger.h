@@ -30,6 +30,8 @@ struct Logger
   using Ptr = std::shared_ptr<Logger>;
   using ConstPtr = std::shared_ptr<const Logger>;
 
+  virtual ~Logger() = default;
+
   virtual void setMaxProgress(unsigned long max_progress) = 0;
   virtual void printProgress(unsigned long progress) const = 0;
 
@@ -43,6 +45,8 @@ struct LoggerFactory
 {
   using Ptr = std::shared_ptr<LoggerFactory>;
   using ConstPtr = std::shared_ptr<const LoggerFactory>;
+
+  virtual ~LoggerFactory() = default;
 
   virtual Logger::Ptr create(const YAML::Node& config) const = 0;
 
