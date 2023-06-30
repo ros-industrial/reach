@@ -13,12 +13,6 @@ set_target_properties(
                                     OUTPUT_NAME ${PROJECT_NAME})
 target_cxx_version(${PROJECT_NAME}_python PUBLIC VERSION 14)
 
-# Add a hook for colcon to add the Python library directory to the PYTHONPATH environment variable
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/python_path.dsv
-     "prepend-non-duplicate;PYTHONPATH;lib/python3/dist-packages")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/python_path.dsv
-        DESTINATION share/${PROJECT_NAME}/hook)
-
 list(
   APPEND
   TARGETS
