@@ -1,4 +1,4 @@
-name: Focal Noetic
+name: Ubuntu
 
 on:
   push:
@@ -13,17 +13,18 @@ on:
     types:
       - released
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  ROS_DISTRO: noetic
-  PREFIX: ${{ github.repository }}_
-
 jobs:
   ci:
+    name: ${{ matrix.distro }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-    runs-on: ubuntu-latest
+      matrix:
+        distro: [focal, jammy]
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: ${{ github.repository }}
+      PREFIX: ${{ github.repository }}_
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -45,23 +46,24 @@ jobs:
             prefix=
             suffix=
           tags: |
-            type=ref,event=branch,prefix=${{ env.ROS_DISTRO }}-
-            type=semver,pattern={{major}}.{{minor}},prefix=${{ env.ROS_DISTRO }}-
+            type=ref,event=branch,prefix=${{ matrix.distro }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.distro }}-
 
       - name: Build repository
-        uses: 'ros-industrial/industrial_ci@master'
+        uses: 'tesseract-robotics/industrial_ci@2f4c8ab919f0aafddd514e586325defabd2911ea'
         env:
-          CI_NAME: focal
-          OS_NAME: ubuntu
-          OS_CODE_NAME: focal
-          UPSTREAM_WORKSPACE: dependencies.repos
+          DOCKER_IMAGE: ubuntu:${{ matrix.distro }}
+          ROS_DISTRO: false
           PREFIX: ${{ github.repository }}_
-          CMAKE_ARGS: '-DENABLE_TESTING=ON -DENABLE_RUN_TESTING=OFF'
-          DOCKER_IMAGE: 'ros:${{ env.ROS_DISTRO }}'
-          DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
+          UPSTREAM_WORKSPACE: dependencies.repos
+          ADDITIONAL_DEBS: 'curl lsb-release'
+          AFTER_INIT: './.github/workflows/add_ros_apt_sources.sh'
+          TARGET_CMAKE_ARGS: '-DENABLE_TESTING=ON -DENABLE_RUN_TESTING=OFF -DCMAKE_BUILD_TYPE=Release'
           AFTER_INSTALL_TARGET_DEPENDENCIES: 'python3 -m pip install -r requirements.txt -qq'
           BEFORE_RUN_TARGET_TEST_EMBED: 'ici_with_unset_variables source $BASEDIR/${PREFIX}target_ws/install/setup.bash'
-          AFTER_RUN_TARGET_TEST: 'rosenv python3 -m pytest -v'
+          AFTER_RUN_TARGET_TEST: 'python3 -m pytest -v'
+          AFTER_SCRIPT: 'rm -r $BASEDIR/${PREFIX}upstream_ws/build $BASEDIR/${PREFIX}target_ws/build'
+          DOCKER_COMMIT: ${{ steps.meta.outputs.tags }}
 
       - name: Push post-build Docker
         if: ${{ github.ref == 'refs/heads/master' || github.event_name == 'release' }}
