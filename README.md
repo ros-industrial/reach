@@ -1,6 +1,6 @@
 # REACH
 ![](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-[![Focal Noetic](https://github.com/ros-industrial/reach/actions/workflows/focal_noetic.yml/badge.svg)](https://github.com/ros-industrial/reach/actions/workflows/focal_noetic.yml)
+[![Ubuntu](https://github.com/ros-industrial/reach/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/ros-industrial/reach/actions/workflows/ubuntu.yml)
 
 **R**obotic **E**valuation **A**nd **C**omparison **H**euristic
 
@@ -19,6 +19,12 @@
 ## Description
 The REACH repository is a tool that allows users to visualize and quantitatively evaluate the reach capability of a robot system for a given workpiece.
 See the ROSCon 2019 [presentation](docs/roscon2019_presentation.pdf) and [video](https://vimeo.com/378683038) for a more detailed explanation of the reach study concept and approach.
+
+### Supported OS Distros
+| OS            | Support |
+| :---          | :---:   |
+| Ubuntu Focal  | &check; |
+| Ubuntu Jammy  | &check; |
 
 ### Structure
 `reach` is a ROS-independent package that provides the framework for the reach study process, defined in the diagram below:
