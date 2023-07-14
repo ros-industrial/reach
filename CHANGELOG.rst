@@ -2,6 +2,19 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Updated badges in README; added table of supported distros (`#56 <https://github.com/marip8/reach/issues/56>`_)
+* Removed -dev libraries before running unit tests in CI (`#55 <https://github.com/marip8/reach/issues/55>`_)
+* Updated CI configuration to be ROS-independent (`#54 <https://github.com/marip8/reach/issues/54>`_)
+* Update to later version of RICB that adds hook for PYTHONPATH (`#51 <https://github.com/marip8/reach/issues/51>`_)
+* Added colcon hook for setting the PYTHONPATH environment variable (`#50 <https://github.com/marip8/reach/issues/50>`_)
+* Minor Updates (`#48 <https://github.com/marip8/reach/issues/48>`_)
+  * Added virtual destructors
+  * Compile Python bindings with c++14
+  * Change comparison operator for clang-tidy
+* Contributors: Michael Ripperger
+
 1.3.1 (2023-06-14)
 ------------------
 * fix parallelization error of omp parallel (`#47 <https://github.com/marip8/reach/issues/47>`_)
