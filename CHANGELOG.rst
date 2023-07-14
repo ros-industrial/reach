@@ -2,6 +2,11 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Exposed relevant compile definitions for plugins to the Python interface (`#57 <https://github.com/marip8/reach/issues/57>`_)
+* Contributors: Michael Ripperger
+
 1.3.2 (2023-07-13)
 ------------------
 * Updated badges in README; added table of supported distros (`#56 <https://github.com/marip8/reach/issues/56>`_)
