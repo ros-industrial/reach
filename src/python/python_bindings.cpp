@@ -313,6 +313,9 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
     bp::register_ptr_to_python<TargetPoseGenerator::ConstPtr>();
     bp::register_ptr_to_python<TargetPoseGeneratorFactory::Ptr>();
   }
+
+  // Export relevant compile definitions
+  bp::scope().attr("SEARCH_LIBRARIES_ENV") = SEARCH_LIBRARIES_ENV;
 }
 
 }  // namespace reach
