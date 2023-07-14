@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.2 (2023-07-13)
+------------------
 * Updated badges in README; added table of supported distros (`#56 <https://github.com/marip8/reach/issues/56>`_)
 * Removed -dev libraries before running unit tests in CI (`#55 <https://github.com/marip8/reach/issues/55>`_)
 * Updated CI configuration to be ROS-independent (`#54 <https://github.com/marip8/reach/issues/54>`_)
