@@ -128,19 +128,19 @@ bp::list normalizeScoresPython(const ReachResult& result, bool use_full_range)
   return out;
 }
 
-np::ndarray computeHeatMapColorsPython1(const ReachResult& result, bool use_full_color_range)
+np::ndarray computeHeatMapColorsPython1(const ReachResult& result, bool use_full_color_range, bool use_red_to_green)
 {
-  return fromEigen<float, Eigen::Dynamic, 3>(computeHeatMapColors(result, use_full_color_range));
+  return fromEigen<float, Eigen::Dynamic, 3>(computeHeatMapColors(result, use_full_color_range, use_red_to_green));
 }
 
-np::ndarray computeHeatMapColorsPython2(const bp::list& scores)
+np::ndarray computeHeatMapColorsPython2(const bp::list& scores, bool use_red_to_green)
 {
   std::vector<float> scores_v;
   scores_v.reserve(bp::len(scores));
   for (bp::ssize_t i = 0; i < bp::len(scores); ++i)
     scores_v.push_back(bp::extract<float>{ scores[i] }());
 
-  return fromEigen<float, Eigen::Dynamic, 3>(computeHeatMapColors(scores_v));
+  return fromEigen<float, Eigen::Dynamic, 3>(computeHeatMapColors(scores_v, use_red_to_green));
 }
 
 BOOST_PYTHON_MODULE(MODULE_NAME)

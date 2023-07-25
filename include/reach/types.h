@@ -124,7 +124,7 @@ std::vector<float> normalizeScores(const ReachResult& result, bool use_full_rang
  * @param scores Vector of reach target scores in the range [0, 1]
  * @return An array of RGB colors on [0, 1] for each channel
  */
-Eigen::MatrixX3f computeHeatMapColors(const std::vector<float>& scores);
+Eigen::MatrixX3f computeHeatMapColors(const std::vector<float>& scores, bool use_red_to_green = false);
 
 /**
  * @brief Computes heat map colors for the reach targets in a reach study result
@@ -134,7 +134,7 @@ Eigen::MatrixX3f computeHeatMapColors(const std::vector<float>& scores);
  * before colorization
  * @return An array of RGB colors on [0, 1] for each channel
  */
-Eigen::MatrixX3f computeHeatMapColors(const ReachResult& result, bool use_full_color_range);
+Eigen::MatrixX3f computeHeatMapColors(const ReachResult& result, bool use_full_color_range, bool use_red_to_green);
 
 class ReachDatabase
 {
@@ -144,7 +144,7 @@ public:
 
   bool operator==(const ReachDatabase& rhs) const;
   ReachResultSummary calculateResults() const;
-  Eigen::MatrixX3f computeHeatMapColors(bool use_full_color_range = false) const;
+  Eigen::MatrixX3f computeHeatMapColors(bool use_full_color_range = false, bool use_red_to_green = false) const;
 
 private:
   friend class boost::serialization::access;
