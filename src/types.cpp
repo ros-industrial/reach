@@ -131,24 +131,16 @@ ReachDatabase load(const std::string& filename)
   return db;
 }
 
-Eigen::MatrixX3f computeHeatMapColors(const std::vector<float>& scores, bool use_red_to_green)
+Eigen::MatrixX3f computeHeatMapColors(const std::vector<float>& scores, float hue_low_score, float hue_high_score)
 {
-  // Compute the color of the marker as a heatmap from blue to red using HSV space
-  float max_h;
-  if (use_red_to_green)
-    max_h = 120.0f;  // Corresponds to green color
-  else
-    max_h = 0.75f * 360.0f;  // Corresponds to blue color
-
+  // Compute the color of the marker as a color scale in HSV space based on the given boundary hue values
   Eigen::MatrixX3f colors(scores.size(), 3);
   for (std::size_t i = 0; i < scores.size(); ++i)
   {
     // Convert to RGB (note: constructor seems to have strange behavior, so set HSV individually)
     pcl::PointXYZHSV pt_hsv;
-    if (use_red_to_green)
-      pt_hsv._PointXYZHSV::h = max_h * scores[i];
-    else
-      pt_hsv._PointXYZHSV::h = max_h - max_h * scores[i];
+    // The following computation of the hue also works if hue_high_score < hue_low_score
+    pt_hsv._PointXYZHSV::h = hue_low_score + (hue_high_score - hue_low_score) * scores[i];
     pt_hsv._PointXYZHSV::s = 1.0f;
     pt_hsv._PointXYZHSV::v = scores[i] > std::numeric_limits<float>::epsilon() ? 1.0f : 0.0f;
 
@@ -187,9 +179,10 @@ std::vector<float> normalizeScores(const ReachResult& result, bool use_full_rang
   return scores;
 }
 
-Eigen::MatrixX3f computeHeatMapColors(const ReachResult& result, bool use_full_color_range, bool use_red_to_green)
+Eigen::MatrixX3f computeHeatMapColors(const ReachResult& result, bool use_full_color_range, float hue_low_score,
+                                      float hue_high_score)
 {
-  return computeHeatMapColors(normalizeScores(result, use_full_color_range), use_red_to_green);
+  return computeHeatMapColors(normalizeScores(result, use_full_color_range), hue_low_score, hue_high_score);
 }
 
 bool ReachDatabase::operator==(const ReachDatabase& rhs) const
@@ -205,12 +198,13 @@ ReachResultSummary ReachDatabase::calculateResults() const
   return reach::calculateResults(results.back());
 }
 
-Eigen::MatrixX3f ReachDatabase::computeHeatMapColors(bool use_full_color_range, bool use_red_to_green) const
+Eigen::MatrixX3f ReachDatabase::computeHeatMapColors(bool use_full_color_range, float hue_low_score,
+                                                     float hue_high_score) const
 {
   if (results.empty())
     throw std::runtime_error("Database contains no results");
 
-  return reach::computeHeatMapColors(results.back(), use_full_color_range, use_red_to_green);
+  return reach::computeHeatMapColors(results.back(), use_full_color_range, hue_low_score, hue_high_score);
 }
 
 }  // namespace reach
