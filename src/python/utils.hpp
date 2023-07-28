@@ -61,16 +61,11 @@ inline YAML::Node toYAML(const boost::python::object& obj)
 {
   namespace bp = boost::python;
 
-  auto dict_extractor = bp::extract<bp::dict>(obj);
-  auto list_extractor = bp::extract<bp::list>(obj);
-  auto str_extractor = bp::extract<std::string>(obj);
-  auto int_extractor = bp::extract<int>(obj);
-  auto float_extractor = bp::extract<float>(obj);
-
-  if (dict_extractor.check())
+  // We use the direct checks for object types since bp::extract().check() does not distinguish between int and bool
+  if (PyDict_Check(obj.ptr()))
   {
     YAML::Node node(YAML::NodeType::Map);
-    bp::dict dict = dict_extractor();
+    bp::dict dict = bp::extract<bp::dict>(obj);
     bp::list keys = dict.keys();
     for (int i = 0; i < bp::len(keys); ++i)
     {
@@ -80,10 +75,10 @@ inline YAML::Node toYAML(const boost::python::object& obj)
 
     return node;
   }
-  else if (list_extractor.check())
+  else if (PyList_Check(obj.ptr()))
   {
     YAML::Node node(YAML::NodeType::Sequence);
-    bp::list list = list_extractor();
+    bp::list list = bp::extract<bp::list>(obj);
     for (bp::ssize_t i = 0; i < bp::len(list); ++i)
     {
       node[i] = toYAML(list[i]);
@@ -91,13 +86,14 @@ inline YAML::Node toYAML(const boost::python::object& obj)
 
     return node;
   }
-  else if (str_extractor.check())
-    return YAML::Node(str_extractor());
-  else if (int_extractor.check())
-    return YAML::Node(int_extractor());
-  else if (float_extractor.check())
-    return YAML::Node(float_extractor());
-
+  else if (PyUnicode_Check(obj.ptr()))
+    return YAML::Node(bp::extract<std::string>(obj)());
+  else if (PyBool_Check(obj.ptr()))
+    return YAML::Node(bp::extract<bool>(obj)());
+  else if (PyLong_Check(obj.ptr()))
+    return YAML::Node(bp::extract<int>(obj)());
+  else if (PyFloat_Check(obj.ptr()))
+    return YAML::Node(bp::extract<float>(obj)());
   throw std::runtime_error("Unsupported Python value type '" +
                            bp::extract<std::string>{ obj.attr("__class__").attr("__name__") }() + "'");
 }
