@@ -145,8 +145,8 @@ public:
 
   bool operator==(const ReachDatabase& rhs) const;
   ReachResultSummary calculateResults() const;
-  Eigen::MatrixX3f computeHeatMapColors(bool use_full_color_range = false, float hue_low_score = 270.0,
-                                        float hue_high_score = 0.0) const;
+  Eigen::MatrixX3f computeHeatMapColors(bool use_full_color_range = false, float hue_low_score = 270.0f,
+                                        float hue_high_score = 0.0f) const;
 
 private:
   friend class boost::serialization::access;
