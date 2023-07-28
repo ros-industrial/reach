@@ -2,6 +2,11 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added ability to specify heat map color range (`#58 <https://github.com/marip8/reach/issues/58>`_)
+* Contributors: Marc Bestmann
+
 1.4.0 (2023-07-13)
 ------------------
 * Exposed relevant compile definitions for plugins to the Python interface (`#57 <https://github.com/marip8/reach/issues/57>`_)
