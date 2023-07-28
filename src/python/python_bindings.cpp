@@ -128,14 +128,14 @@ bp::list normalizeScoresPython(const ReachResult& result, bool use_full_range)
   return out;
 }
 
-np::ndarray computeHeatMapColorsPython1(const ReachResult& result, bool use_full_color_range, float hue_low_score,
-                                        float hue_high_score)
+np::ndarray computeHeatMapColorsPython1(const ReachResult& result, bool use_full_color_range, float hue_low_score = 270.0f,
+                                        float hue_high_score = 0.0f)
 {
   return fromEigen<float, Eigen::Dynamic, 3>(
       computeHeatMapColors(result, use_full_color_range, hue_low_score, hue_high_score));
 }
 
-np::ndarray computeHeatMapColorsPython2(const bp::list& scores, float hue_low_score, float hue_high_score)
+np::ndarray computeHeatMapColorsPython2(const bp::list& scores, float hue_low_score = 270.0f, float hue_high_score = 0.0f)
 {
   std::vector<float> scores_v;
   scores_v.reserve(bp::len(scores));
