@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.1 (2023-08-16)
+------------------
 * fix bools in yaml in Python (`#59 <https://github.com/marip8/reach/issues/59>`_)
 * Contributors: Marc Bestmann
 
