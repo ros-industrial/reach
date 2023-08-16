@@ -2,6 +2,11 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix bools in yaml in Python (`#59 <https://github.com/marip8/reach/issues/59>`_)
+* Contributors: Marc Bestmann
+
 1.5.0 (2023-07-28)
 ------------------
 * Added ability to specify heat map color range (`#58 <https://github.com/marip8/reach/issues/58>`_)
