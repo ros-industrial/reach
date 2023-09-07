@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.2 (2023-09-07)
+------------------
 * Updated install of python module (`#63 <https://github.com/marip8/reach/issues/63>`_)
 * Contributors: Michael Ripperger
 
