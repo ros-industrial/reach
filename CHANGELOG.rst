@@ -2,6 +2,11 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Updated install of python module (`#63 <https://github.com/marip8/reach/issues/63>`_)
+* Contributors: Michael Ripperger
+
 1.5.1 (2023-08-16)
 ------------------
 * fix bools in yaml in Python (`#59 <https://github.com/marip8/reach/issues/59>`_)
