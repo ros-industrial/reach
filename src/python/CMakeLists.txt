@@ -8,13 +8,14 @@ target_link_libraries(
           Boost::numpy
           ${PYTHON_LIBRARIES})
 target_compile_definitions(${PROJECT_NAME}_python PRIVATE MODULE_NAME=${PROJECT_NAME})
-set_target_properties(
-  ${PROJECT_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/lib/python3/dist-packages
-                                    OUTPUT_NAME ${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}_python PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_cxx_version(${PROJECT_NAME}_python PUBLIC VERSION 14)
 
-list(
-  APPEND
-  TARGETS
-  ${PROJECT_NAME}_python
-  PARENT_SCOPE)
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" -c "if True:
+    from distutils import sysconfig as sc
+    print(sc.get_python_lib(prefix='', plat_specific=True))"
+  OUTPUT_VARIABLE PYTHON_SITE
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+install(TARGETS ${PROJECT_NAME}_python DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE})
