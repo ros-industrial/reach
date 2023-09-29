@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.3 (2023-09-29)
+------------------
 * Updated links in README (`#65 <https://github.com/marip8/reach/issues/65>`_)
 * Update docs (`#64 <https://github.com/marip8/reach/issues/64>`_)
   * Updated flow chart
