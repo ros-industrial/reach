@@ -33,19 +33,19 @@ See the ROSCon 2019 [presentation](docs/roscon2019_presentation.pdf) and [video]
 
 The `reach` package also provides the interface definition for the required reach study functions:
 
-1. [`TargetPoseGenerator`](reach/include/reach/interfaces/target_pose_generator.h)
+1. [`TargetPoseGenerator`](include/reach/interfaces/target_pose_generator.h)
     - Generates Cartesian target poses that the robot should attempt to reach during the reach study
     - These target poses are expected to be relative to the kinematic base frame of the robot
     - The z-axis of the target poses is expected to oppose the z-axis of the robot kinematic tip frame
-1. [`IKSolver`](reach/include/reach/interfaces/ik_solver.h)
+1. [`IKSolver`](include/reach/interfaces/ik_solver.h)
     - Calculates the inverse kinematics solution for the robot at an input 6 degree-of-freedom Cartesian target
-1. [`Evaluator`](reach/include/reach/interfaces/evaluator.h)
+1. [`Evaluator`](include/reach/interfaces/evaluator.h)
     - Calculates a numerical "fitness" score of an IK solution (i.e., robot joint pose) at a given Cartesian target pose
     - Higher values indicate better reachability
     - Example numerical measures of reachability include manipulability, distance from closest collision, etc.
-1. [`Display`](reach/include/reach/interfaces/display.h)
+1. [`Display`](include/reach/interfaces/display.h)
     - Visualizes the robot/reach study environment, target Cartesian poses, IK solutions, and reach study results
-1. [`Logger`](reach/include/reach/interfaces/logger.h)
+1. [`Logger`](include/reach/interfaces/logger.h)
     - Logs messages about the status and progress of the reach study
 
 ### Plugins
