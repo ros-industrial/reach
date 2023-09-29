@@ -2,6 +2,15 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Updated links in README (`#65 <https://github.com/marip8/reach/issues/65>`_)
+* Update docs (`#64 <https://github.com/marip8/reach/issues/64>`_)
+  * Updated flow chart
+  * Push docker image if ref_type is a tag
+  * Update AFTER_SCRIPT
+* Contributors: Michael Ripperger
+
 1.5.2 (2023-09-07)
 ------------------
 * Updated install of python module (`#63 <https://github.com/marip8/reach/issues/63>`_)
