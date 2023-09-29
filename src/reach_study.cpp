@@ -57,14 +57,15 @@ void ReachStudy::checkSeedState()
 {
   // Check the optional seed state parameter
   const std::vector<std::string> joint_names = ik_solver_->getJointNames();
-  if(params_.seed_state.empty())
+  if (params_.seed_state.empty())
   {
     logger_->print("Seed state is empty; setting to all-zeros state");
     params_.seed_state = zip(joint_names, std::vector<double>(joint_names.size(), 0.0));
   }
   else
   {
-    // Attempt to extract a subset of the seed state for the provided joint names. This function throws an exception if this is not possible
+    // Attempt to extract a subset of the seed state for the provided joint names. This function throws an exception if
+    // this is not possible
     extractSubset(params_.seed_state, joint_names);
   }
 }

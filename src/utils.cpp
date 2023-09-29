@@ -203,8 +203,7 @@ void reachNeighborsRecursive(const ReachResult& db, const ReachRecord& rec, IKSo
   }
 }
 
-std::vector<double> extractSubset(const std::map<std::string, double>& input,
-                                       const std::vector<std::string>& keys)
+std::vector<double> extractSubset(const std::map<std::string, double>& input, const std::vector<std::string>& keys)
 {
   if (keys.size() > input.size())
     throw std::runtime_error("Input map size was not at least as large as the number of keys");
