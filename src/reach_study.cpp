@@ -65,7 +65,7 @@ void ReachStudy::checkSeedState()
   else
   {
     // Attempt to extract a subset of the seed state for the provided joint names. This function throws an exception if this is not possible
-    transcribeInputMap(params_.seed_state, joint_names);
+    extractSubset(params_.seed_state, joint_names);
   }
 }
 

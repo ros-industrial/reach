@@ -61,9 +61,9 @@ void reachNeighborsRecursive(const ReachResult& db, const ReachRecord& msg, IKSo
                              SearchTreePtr search_tree = nullptr);
 
 /**
- * @brief Extracts the vector of values from the input map that correspond to the ordered input keys
+ * @brief Extracts the subset vector of values from the input map that correspond to the ordered input keys
  */
-std::vector<double> transcribeInputMap(const std::map<std::string, double>& input,
+std::vector<double> extractSubset(const std::map<std::string, double>& input,
                                        const std::vector<std::string>& keys);
 
 }  // namespace reach
