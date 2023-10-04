@@ -2,6 +2,16 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add seed state checks (`#66 <https://github.com/marip8/reach/issues/66>`_)
+  * Added utility from reach_ros for getting subset of joint state
+  * Added check to ensure seed state parameter is set correctly
+  * Updated function name
+  * Run format jobs on 20.04
+  * Clang format
+* Contributors: Michael Ripperger
+
 1.5.3 (2023-09-29)
 ------------------
 * Updated links in README (`#65 <https://github.com/marip8/reach/issues/65>`_)
