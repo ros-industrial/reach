@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.0 (2023-10-04)
+------------------
 * Add seed state checks (`#66 <https://github.com/marip8/reach/issues/66>`_)
   * Added utility from reach_ros for getting subset of joint state
   * Added check to ensure seed state parameter is set correctly
