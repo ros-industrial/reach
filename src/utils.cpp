@@ -203,4 +203,24 @@ void reachNeighborsRecursive(const ReachResult& db, const ReachRecord& rec, IKSo
   }
 }
 
+std::vector<double> extractSubset(const std::map<std::string, double>& input, const std::vector<std::string>& keys)
+{
+  if (keys.size() > input.size())
+    throw std::runtime_error("Input map size was not at least as large as the number of keys");
+
+  // Pull the joints of the planning group out of the input map
+  std::vector<double> values;
+  values.reserve(keys.size());
+  for (const std::string& name : keys)
+  {
+    const auto it = input.find(name);
+    if (it == input.end())
+      throw std::runtime_error("Key '" + name + "' is not in the input map");
+
+    values.push_back(it->second);
+  }
+
+  return values;
+}
+
 }  // namespace reach

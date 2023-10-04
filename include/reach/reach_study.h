@@ -85,6 +85,12 @@ public:
   std::tuple<double, double> getAverageNeighborsCount() const;
 
 protected:
+  /**
+   * @brief Checks the seed state parameter for validity and sets it to a default value if it does not exist
+   * @throws Throws an exception if all of the IK solver joint names cannot be found in the seed state parameter
+   */
+  void checkSeedState();
+
   Parameters params_;
   ReachDatabase db_;
 
