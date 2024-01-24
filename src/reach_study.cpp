@@ -343,9 +343,6 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
 
   const boost::filesystem::path db_file = results_dir / config_name / "reach.db.xml";
 
-  YAML::Emitter emitter;
-  emitter << opt_config;
-  logger->print(emitter.c_str());
   bool skip_load = opt_config["skip_load"] && opt_config["skip_load"].as<bool>();
   if (boost::filesystem::exists(db_file) && !skip_load)
   {
