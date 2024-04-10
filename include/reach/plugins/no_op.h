@@ -20,8 +20,6 @@
 #include <reach/interfaces/ik_solver.h>
 #include <reach/interfaces/display.h>
 
-#include <boost/shared_ptr.hpp>
-
 namespace reach
 {
 struct NoOpEvaluator : public Evaluator

@@ -18,7 +18,6 @@
 
 #include <reach/interfaces/logger.h>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/timer/progress_display.hpp>
 #include <mutex>
 
@@ -39,7 +38,7 @@ public:
 
 protected:
   mutable std::mutex mutex_;
-  mutable boost::shared_ptr<boost::timer::progress_display> display_;
+  mutable std::shared_ptr<boost::timer::progress_display> display_;
 };
 
 struct BoostProgressConsoleLoggerFactory : public LoggerFactory
