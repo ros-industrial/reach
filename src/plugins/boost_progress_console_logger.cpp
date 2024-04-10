@@ -13,7 +13,7 @@ BoostProgressConsoleLogger::BoostProgressConsoleLogger() : display_(nullptr)
 void BoostProgressConsoleLogger::setMaxProgress(unsigned long max_progress)
 {
   std::lock_guard<std::mutex> lock{ mutex_ };
-  display_ = boost::make_shared<boost::progress_display>(max_progress);
+  display_ = boost::make_shared<boost::timer::progress_display>(max_progress);
 }
 
 void BoostProgressConsoleLogger::printProgress(unsigned long progress) const
