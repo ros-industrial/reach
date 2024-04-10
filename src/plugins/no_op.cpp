@@ -4,7 +4,7 @@ namespace reach
 {
 double NoOpEvaluator::calculateScore(const std::map<std::string, double>&) const
 {
-  return 0.0;
+  return 1.0;
 }
 
 Evaluator::ConstPtr NoOpEvaluatorFactory::create(const YAML::Node&) const
