@@ -281,11 +281,8 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   loader.search_libraries_env = SEARCH_LIBRARIES_ENV;
 
   // Load the IK Solver plugin
-  reach::IKSolver::ConstPtr ik_solver;
-  {
-    auto factory = loader.createInstance<IKSolverFactory>(get<std::string>(ik_config, "name"));
-    ik_solver = factory->create(ik_config);
-  }
+  auto ik_solver_factory = loader.createInstance<IKSolverFactory>(get<std::string>(ik_config, "name"));
+  reach::IKSolver::ConstPtr ik_solver = ik_solver_factory->create(ik_config);
 
   // read the initial joint positions if specified
   const YAML::Node seed_state_config = opt_config["seed_state"];
@@ -311,32 +308,20 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   }
 
   // Load the target pose generator plugin
-  reach::TargetPoseGenerator::ConstPtr target_pose_generator;
-  {
-    auto factory = loader.createInstance<TargetPoseGeneratorFactory>(get<std::string>(pose_gen_config, "name"));
-    target_pose_generator = factory->create(pose_gen_config);
-  }
+  auto target_pose_generator_factory = loader.createInstance<TargetPoseGeneratorFactory>(get<std::string>(pose_gen_config, "name"));
+  reach::TargetPoseGenerator::ConstPtr target_pose_generator = target_pose_generator_factory->create(pose_gen_config);
 
   // Load the evaluator plugin
-  reach::Evaluator::ConstPtr evaluator;
-  {
-    auto factory = loader.createInstance<EvaluatorFactory>(get<std::string>(eval_config, "name"));
-    evaluator = factory->create(eval_config);
-  }
+  auto evaluator_factory = loader.createInstance<EvaluatorFactory>(get<std::string>(eval_config, "name"));
+  reach::Evaluator::ConstPtr evaluator = evaluator_factory->create(eval_config);
 
   // Load the display plugin
-  reach::Display::ConstPtr display;
-  {
-    auto factory = loader.createInstance<DisplayFactory>(get<std::string>(display_config, "name"));
-    display = factory->create(display_config);
-  }
+  auto display_factory = loader.createInstance<DisplayFactory>(get<std::string>(display_config, "name"));
+  reach::Display::ConstPtr display = display_factory->create(display_config);
 
   // Load the logger plugin
-  reach::Logger::Ptr logger;
-  {
-    auto factory = loader.createInstance<LoggerFactory>(get<std::string>(logger_config, "name"));
-    logger = factory->create(logger_config);
-  }
+  auto logger_factory = loader.createInstance<LoggerFactory>(get<std::string>(logger_config, "name"));
+  reach::Logger::Ptr logger = logger_factory->create(logger_config);
 
   // Initialize the reach study
   reach::ReachStudy rs(ik_solver, evaluator, target_pose_generator, display, logger, params);
