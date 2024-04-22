@@ -387,7 +387,7 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   display->showEnvironment();
   display->showResults(db.results.back());
 
-  auto handleSignal = [](int /*sig*/) { throw std::runtime_error("Reach study temrinated"); };
+  auto handleSignal = [](int /*sig*/) { throw std::runtime_error("Reach study terminated"); };
   signal(SIGINT, handleSignal);
   signal(SIGTERM, handleSignal);
 
