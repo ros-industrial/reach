@@ -308,7 +308,8 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   }
 
   // Load the target pose generator plugin
-  auto target_pose_generator_factory = loader.createInstance<TargetPoseGeneratorFactory>(get<std::string>(pose_gen_config, "name"));
+  auto target_pose_generator_factory =
+      loader.createInstance<TargetPoseGeneratorFactory>(get<std::string>(pose_gen_config, "name"));
   reach::TargetPoseGenerator::ConstPtr target_pose_generator = target_pose_generator_factory->create(pose_gen_config);
 
   // Load the evaluator plugin
