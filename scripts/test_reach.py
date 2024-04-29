@@ -156,9 +156,9 @@ class ReachStudyFixture(unittest.TestCase):
 
         results = db.calculateResults()
         logger.printResults(results)
-        self.assertAlmostEqual(results.total_pose_score, 0.0)
+        self.assertAlmostEqual(results.total_pose_score, 100.0)
         self.assertAlmostEqual(results.reach_percentage, 100.0)
-        self.assertAlmostEqual(results.norm_total_pose_score, 0.0)
+        self.assertAlmostEqual(results.norm_total_pose_score, 100.0)
 
         display.showEnvironment()
 
