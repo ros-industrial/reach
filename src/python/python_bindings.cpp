@@ -25,6 +25,7 @@
 #include <boost/python.hpp>
 #include <boost/python/converter/builtin_converters.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/suite/indexing/map_indexing_suite.hpp>
 #include <boost/python/numpy.hpp>
 #include <cstdarg>
 #include <yaml-cpp/yaml.h>
@@ -248,6 +249,8 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
 
   // Wrap the datatypes
   {
+    bp::class_<std::map<std::string, double>>("StateMap").def(bp::map_indexing_suite<std::map<std::string, double>>());
+
     bp::class_<ReachStudy::Parameters>("Parameters")
         .def_readwrite("max_steps", &ReachStudy::Parameters::max_steps)
         .def_readwrite("step_improvement_threshold", &ReachStudy::Parameters::step_improvement_threshold)
