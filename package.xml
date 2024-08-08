@@ -18,6 +18,12 @@
   <depend>libomp-dev</depend>
   <depend>yaml-cpp</depend>
   <test_depend>gtest</test_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
+  <exec_depend>python3-open3d</exec_depend>
+  <exec_depend>python3-tqdm</exec_depend>
+  <exec_depend>python3-matplotlib</exec_depend>
+  <exec_depend>python3-pytest</exec_depend>
 
   <export>
     <build_type>cmake</build_type>
