@@ -1,6 +1,0 @@
-numpy
-scipy
-open3d
-tqdm
-matplotlib
-pytest
