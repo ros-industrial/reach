@@ -32,7 +32,7 @@ class ReachRecord
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   ReachRecord(const bool reached, const Eigen::Isometry3d& goal, const std::map<std::string, double> seed_state,
-              const std::map<std::string, double> goal_state, const double score);
+              const std::map<std::string, double> goal_state, const double score, const double ik_time);
   ReachRecord() = default;
   ReachRecord(const ReachRecord&) = default;
   ReachRecord& operator=(const ReachRecord&) = default;
@@ -55,6 +55,9 @@ public:
   /** @brief Reachability score associated with this target pose */
   double score;
 
+  /** @brief Time taken to solve the IK for this target pose */
+  double ik_time;
+
 private:
   friend class boost::serialization::access;
 
@@ -66,6 +69,7 @@ private:
     ar& BOOST_SERIALIZATION_NVP(seed_state);
     ar& BOOST_SERIALIZATION_NVP(goal_state);
     ar& BOOST_SERIALIZATION_NVP(score);
+    ar& BOOST_SERIALIZATION_NVP(ik_time);
   }
 };
 
