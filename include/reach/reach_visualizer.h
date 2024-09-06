@@ -21,8 +21,6 @@
 #include <reach/interfaces/ik_solver.h>
 #include <reach/utils.h>
 
-#include <boost/shared_ptr.hpp>
-
 namespace reach
 {
 /**
@@ -32,7 +30,7 @@ namespace reach
 class ReachVisualizer
 {
 public:
-  using Ptr = boost::shared_ptr<ReachVisualizer>;
+  using Ptr = std::shared_ptr<ReachVisualizer>;
 
   ReachVisualizer(ReachResult result, IKSolver::ConstPtr solver, Evaluator::ConstPtr evaluator,
                   Display::ConstPtr display, const double neighbor_radius);
