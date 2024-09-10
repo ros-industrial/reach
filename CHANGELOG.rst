@@ -2,6 +2,25 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix CMake error about missing target MPI::MPI_C (`#82 <https://github.com/marip8/reach/issues/82>`_)
+* Registered state map type for Python binding (`#80 <https://github.com/marip8/reach/issues/80>`_)
+* CI Update (`#81 <https://github.com/marip8/reach/issues/81>`_)
+  * Updated CI workflow
+  * Moved Python deps to package.xml
+* Removed duplicate entry from clang format file (`#78 <https://github.com/marip8/reach/issues/78>`_)
+* Make NoOpEvaluator return 1.0 (`#71 <https://github.com/marip8/reach/issues/71>`_)
+  * Make NoOpEvaluator return 1.0
+  * Fix pytest
+* Keep plugin factories in scope (`#74 <https://github.com/marip8/reach/issues/74>`_)
+  * Keep plugin factories in scope
+  * Run clang-format
+* Fix typo (`#73 <https://github.com/marip8/reach/issues/73>`_)
+  Co-authored-by: Timon Engelke <timon.engelke@dlr.de>
+* Fixed heat map generation Python bindings to have default values for hue low and high score (`#68 <https://github.com/marip8/reach/issues/68>`_)
+* Contributors: Michael Ripperger, Timon Engelke
+
 1.6.0 (2023-10-04)
 ------------------
 * Add seed state checks (`#66 <https://github.com/marip8/reach/issues/66>`_)
