@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.0 (2024-09-10)
+------------------
 * Fix CMake error about missing target MPI::MPI_C (`#82 <https://github.com/marip8/reach/issues/82>`_)
 * Registered state map type for Python binding (`#80 <https://github.com/marip8/reach/issues/80>`_)
 * CI Update (`#81 <https://github.com/marip8/reach/issues/81>`_)
