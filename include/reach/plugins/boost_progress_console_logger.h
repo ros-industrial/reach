@@ -19,8 +19,15 @@
 #include <reach/interfaces/logger.h>
 
 #include <boost/shared_ptr.hpp>
-#include <boost/progress.hpp>
 #include <mutex>
+
+#include <boost/version.hpp>
+#define BOOST_GTE_107200 (BOOST_VERSION >= 107200)
+#if BOOST_GTE_107200
+#include <boost/timer/progress_display.hpp>
+#else
+#include <boost/progress.hpp>
+#endif
 
 namespace reach
 {
@@ -39,7 +46,11 @@ public:
 
 protected:
   mutable std::mutex mutex_;
+#if BOOST_GTE_107200
+  mutable boost::shared_ptr<boost::timer::progress_display> display_;
+#else
   mutable boost::shared_ptr<boost::progress_display> display_;
+#endif
 };
 
 struct BoostProgressConsoleLoggerFactory : public LoggerFactory
