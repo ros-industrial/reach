@@ -2,6 +2,14 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Replace deprecated functions (`#84 <https://github.com/marip8/reach/issues/84>`_)
+  * Fixed deprecation of boost::progress_display
+  * Fixed deprecation of std::random_shuffle
+  * Comment dependency on Open3D until version for 24.04 is released to prevent CI job failures
+* Contributors: Michael Ripperger
+
 1.7.0 (2024-09-10)
 ------------------
 * Fix CMake error about missing target MPI::MPI_C (`#82 <https://github.com/marip8/reach/issues/82>`_)
