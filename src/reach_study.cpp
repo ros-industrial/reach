@@ -21,6 +21,7 @@
 #include <boost/filesystem.hpp>
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <numeric>
+#include <random>
 #include <signal.h>
 #include <thread>
 #include <yaml-cpp/yaml.h>
@@ -178,7 +179,7 @@ void ReachStudy::optimize()
     current_counter = 0;
 
     // Randomize
-    std::random_shuffle(rand_vec.begin(), rand_vec.end());
+    std::shuffle(rand_vec.begin(), rand_vec.end(), std::mt19937{});
 
 #pragma omp parallel for num_threads(params_.max_threads)
     for (std::size_t i = 0; i < rand_vec.size(); ++i)
