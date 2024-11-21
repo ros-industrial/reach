@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.1 (2024-11-21)
+------------------
 * Replace deprecated functions (`#84 <https://github.com/marip8/reach/issues/84>`_)
   * Fixed deprecation of boost::progress_display
   * Fixed deprecation of std::random_shuffle
