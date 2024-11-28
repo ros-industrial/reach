@@ -71,8 +71,8 @@ namespace reach
 {
 ReachRecord::ReachRecord(const bool reached_, const Eigen::Isometry3d& goal_,
                          const std::map<std::string, double> seed_state_,
-                         const std::map<std::string, double> goal_state_, const double score_)
-  : reached(reached_), goal(goal_), seed_state(seed_state_), goal_state(goal_state_), score(score_)
+                         const std::map<std::string, double> goal_state_, const double score_, const double ik_time_)
+  : reached(reached_), goal(goal_), seed_state(seed_state_), goal_state(goal_state_), score(score_), ik_time(ik_time_)
 {
 }
 
@@ -83,8 +83,9 @@ bool ReachRecord::operator==(const ReachRecord& rhs) const
   const bool goal_states_match = isApprox(goal_state, rhs.goal_state);
   const bool seed_states_match = isApprox(seed_state, rhs.seed_state);
   const bool scores_match = std::abs(score - rhs.score) < std::numeric_limits<double>::epsilon();
+  const bool times_match = std::abs(ik_time - rhs.ik_time) < std::numeric_limits<double>::epsilon();
 
-  return reach_match && goals_match && goal_states_match && seed_states_match && scores_match;
+  return reach_match && goals_match && goal_states_match && seed_states_match && scores_match && times_match;
 }
 
 ReachResultSummary calculateResults(const ReachResult& db)
