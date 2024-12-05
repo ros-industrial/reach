@@ -22,7 +22,6 @@
 #include <boost_plugin_loader/plugin_loader.hpp>
 #include <numeric>
 #include <random>
-#include <signal.h>
 #include <thread>
 #include <yaml-cpp/yaml.h>
 
@@ -373,10 +372,6 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
   logger->printResults(db.calculateResults());
   display->showEnvironment();
   display->showResults(db.results.back());
-
-  auto handleSignal = [](int /*sig*/) { throw std::runtime_error("Reach study terminated"); };
-  signal(SIGINT, handleSignal);
-  signal(SIGTERM, handleSignal);
 
   if (wait_after_completion)
   {
