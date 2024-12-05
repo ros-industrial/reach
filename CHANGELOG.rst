@@ -2,8 +2,8 @@
 Changelog for package reach_core
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.7.2 (2024-12-05)
+------------------
 * Remove unnecessary signal handlers (`#86 <https://github.com/marip8/reach/issues/86>`_)
 * Contributors: Roman
 
