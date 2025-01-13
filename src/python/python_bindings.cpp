@@ -273,6 +273,7 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
         .def("computeHeatMapColors", &ReachDatabase::computeHeatMapColors);
 
     bp::class_<ReachResultSummary>("ReachResultSummary")
+        .def_readonly("reached_points", &ReachResultSummary::points_reached)
         .def_readonly("total_pose_score", &ReachResultSummary::total_pose_score)
         .def_readonly("norm_total_pose_score", &ReachResultSummary::norm_total_pose_score)
         .def_readonly("reach_percentage", &ReachResultSummary::reach_percentage)
