@@ -329,7 +329,8 @@ void runReachStudy(const YAML::Node& config, const std::string& config_name, con
 
   const boost::filesystem::path db_file = results_dir / config_name / "reach.db.xml";
 
-  if (boost::filesystem::exists(db_file))
+  bool skip_load = opt_config["skip_load"] && opt_config["skip_load"].as<bool>();
+  if (boost::filesystem::exists(db_file) && !skip_load)
   {
     // Attempt to load the database first, if it exists
     rs.load(db_file.string());
