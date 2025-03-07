@@ -104,6 +104,7 @@ ReachResultSummary calculateResults(const ReachResult& db)
   const float pct_success = static_cast<float>(success) / static_cast<float>(total);
 
   ReachResultSummary results;
+  results.points_reached = success;
   results.reach_percentage = 100.0f * pct_success;
   results.total_pose_score = score;
   results.norm_total_pose_score = score / pct_success;

@@ -75,6 +75,9 @@ private:
 class ReachResultSummary
 {
 public:
+  /** @brief The number of target poses that were reachable */
+  float points_reached = 0.0f;
+
   /**
    * @brief The total pose score for all reachable points
    * @details This score is generally only significant relative to the score of a different reach study using the same
@@ -96,6 +99,7 @@ public:
   {
     std::stringstream ss;
     ss << "------------------------------------------------\n";
+    ss << "Points Reached = " << points_reached << "\n";
     ss << "Percent Reached = " << reach_percentage << "\n";
     ss << "Total points score = " << total_pose_score << "\n";
     ss << "Normalized total points score = " << norm_total_pose_score << "\n";
