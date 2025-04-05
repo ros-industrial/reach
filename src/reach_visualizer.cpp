@@ -44,11 +44,12 @@ void ReachVisualizer::reSolveIK(const std::size_t record_idx)
 
   // Re-solve IK at the selected marker
   std::vector<double> goal_pose;
-  double score;
-  std::tie(goal_pose, score) = evaluateIK(lookup.goal, lookup.seed_state, solver_, evaluator_);
+  double score, ik_time;
+  std::tie(goal_pose, score, ik_time) = evaluateIK(lookup.goal, lookup.seed_state, solver_, evaluator_);
 
   lookup.reached = true;
   lookup.score = score;
+  lookup.ik_time = ik_time;
   lookup.goal_state = zip(solver_->getJointNames(), goal_pose);
 
   // Update the interactive marker server

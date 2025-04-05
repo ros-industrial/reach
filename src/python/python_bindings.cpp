@@ -260,6 +260,7 @@ BOOST_PYTHON_MODULE(MODULE_NAME)
         .def(
             "goal", +[](const ReachRecord& r) -> bp::numpy::ndarray { return fromEigen(r.goal); })
         .def_readwrite("score", &ReachRecord::score)
+        .def_readwrite("ik_time", &ReachRecord::ik_time)
         .def_readwrite("goal_state", &ReachRecord::goal_state)
         .def_readwrite("seed_state", &ReachRecord::seed_state)
         .def_readwrite("reached", &ReachRecord::reached);

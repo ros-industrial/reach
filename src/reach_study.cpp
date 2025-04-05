@@ -114,10 +114,10 @@ void ReachStudy::run()
     try
     {
       std::vector<double> solution;
-      double score;
-      std::tie(solution, score) = evaluateIK(tgt_frame, params_.seed_state, ik_solver_, evaluator_);
+      double score, ik_time;
+      std::tie(solution, score, ik_time) = evaluateIK(tgt_frame, params_.seed_state, ik_solver_, evaluator_);
 
-      ReachRecord msg(true, tgt_frame, params_.seed_state, zip(ik_solver_->getJointNames(), solution), score);
+      ReachRecord msg(true, tgt_frame, params_.seed_state, zip(ik_solver_->getJointNames(), solution), score, ik_time);
       {
         std::lock_guard<std::mutex> lock{ mutex_ };
         active_result->operator[](i) = msg;
@@ -125,7 +125,7 @@ void ReachStudy::run()
     }
     catch (const std::exception&)
     {
-      ReachRecord msg(false, tgt_frame, params_.seed_state, params_.seed_state, 0.0);
+      ReachRecord msg(false, tgt_frame, params_.seed_state, params_.seed_state, 0.0, 0.0);
       {
         std::lock_guard<std::mutex> lock{ mutex_ };
         active_result->operator[](i) = msg;

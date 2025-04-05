@@ -16,14 +16,20 @@
 #include <reach/utils.h>
 
 #include <iostream>
+#include <chrono>
 
 namespace reach
 {
-std::tuple<std::vector<double>, double> evaluateIK(const Eigen::Isometry3d& target,
-                                                   const std::map<std::string, double>& seed,
-                                                   IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator)
+std::tuple<std::vector<double>, double, double> evaluateIK(const Eigen::Isometry3d& target,
+                                                           const std::map<std::string, double>& seed,
+                                                           IKSolver::ConstPtr ik_solver, Evaluator::ConstPtr evaluator)
 {
+  auto ik_start_time = std::chrono::high_resolution_clock::now();
   std::vector<std::vector<double>> poses = ik_solver->solveIK(target, seed);
+  auto ik_end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> ik_duration = ik_end_time - ik_start_time;
+  double ik_time = ik_duration.count();
+
   const std::vector<std::string> joint_names = ik_solver->getJointNames();
   double best_score = 0.0;
   std::size_t best_idx = 0;
@@ -38,7 +44,7 @@ std::tuple<std::vector<double>, double> evaluateIK(const Eigen::Isometry3d& targ
     }
   }
 
-  return std::make_tuple(poses.at(best_idx), best_score);
+  return std::make_tuple(poses.at(best_idx), best_score, ik_time);
 }
 
 SearchTreePtr createSearchTree(const VectorIsometry3d& poses)
@@ -121,8 +127,8 @@ std::map<std::size_t, ReachRecord> reachNeighborsDirect(const ReachResult& db, c
     {
       // Use current point's IK solution as seed
       std::vector<double> new_solution;
-      double score;
-      std::tie(new_solution, score) = evaluateIK(it->second.goal, rec.goal_state, solver, evaluator);
+      double score, ik_time;
+      std::tie(new_solution, score, ik_time) = evaluateIK(it->second.goal, rec.goal_state, solver, evaluator);
 
       // Update the record
       if (!it->second.reached || score > it->second.score)
@@ -131,6 +137,7 @@ std::map<std::size_t, ReachRecord> reachNeighborsDirect(const ReachResult& db, c
         it->second.seed_state = rec.goal_state;
         it->second.goal_state = zip(solver->getJointNames(), new_solution);
         it->second.score = score;
+        it->second.ik_time = ik_time;
       }
       ++it;
     }
@@ -177,8 +184,8 @@ void reachNeighborsRecursive(const ReachResult& db, const ReachRecord& rec, IKSo
 
         // Use current point's IK solution as seed
         std::vector<double> new_pose;
-        double score;
-        std::tie(new_pose, score) = evaluateIK(neighbor.goal, rec.goal_state, solver, evaluator);
+        double score, ik_time;
+        std::tie(new_pose, score, ik_time) = evaluateIK(neighbor.goal, rec.goal_state, solver, evaluator);
 
         // Store information in new reach record object
         //        neighbor.seed_state = rec.goal_state;
