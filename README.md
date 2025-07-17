@@ -37,6 +37,47 @@ The `reach` package also provides the interface definition for the required reac
     - Generates Cartesian target poses that the robot should attempt to reach during the reach study
     - These target poses are expected to be relative to the kinematic base frame of the robot
     - The z-axis of the target poses is expected to oppose the z-axis of the robot kinematic tip frame
+    
+    Currently two pose generators are supported:
+
+    - **PointCloudTargetPoseGenerator**: This pose generator accepts a point cloud  file (`.pcd`) with normals as input and calculates the reachability for each point + normal in the file. Syntax for the `reach_study.yaml`:
+    ```
+    target_pose_generator:
+        name: PointCloudTargetPoseGenerator
+        pcd_file: package://reach/test/part.pcd
+    ```
+
+    - **YAMLTargetPoseGenerator**: This pose generator directly accepts a `.yaml` file containing poses and evaluates reachability of each pose in the file. Syntax of `poses.yaml`:
+    
+    ```
+    poses:
+    - position:
+        x: 0.3629872500896454
+        y: -0.06363007426261902
+        z: -0.0005234468844719231
+        orientation:
+        x: 0.09166051483190088
+        y: -0.0017855572788278349
+        z: 0.9957755116009193
+        w: 0.005127601962168693
+    - position:
+        x: 0.3251079320907593
+        y: -0.0632486343383789
+        z: 0.006282307207584381
+        orientation:
+        x: 0.07515697809440232
+        y: -0.002977202008927411
+        z: 0.9971538575858108
+        w: 0.005171964196712022
+    ```
+
+    Syntax for reach_study.yaml
+    ```
+        ```
+    target_pose_generator:
+        name: PointCloudTargetPoseGenerator
+        poses: /path/to/poses.yaml
+
 1. [`IKSolver`](include/reach/interfaces/ik_solver.h)
     - Calculates the inverse kinematics solution for the robot at an input 6 degree-of-freedom Cartesian target
 1. [`Evaluator`](include/reach/interfaces/evaluator.h)

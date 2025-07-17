@@ -63,6 +63,7 @@ add_library(
   # Implementations
   src/plugins/multiplicative_evaluator.cpp
   src/plugins/point_cloud_target_pose_generator.cpp
+  src/plugins/yaml_target_pose_generator.cpp
   src/plugins/console_logger.cpp
   src/plugins/boost_progress_console_logger.cpp
   src/plugins/no_op.cpp)

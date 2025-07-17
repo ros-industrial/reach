@@ -14,4 +14,4 @@ install(
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 
-install(FILES part.pcd reach_study.yaml DESTINATION share/${PROJECT_NAME}/test)
+install(FILES part.pcd reach_study.yaml test_target_poses.yaml DESTINATION share/${PROJECT_NAME}/test)

@@ -15,6 +15,9 @@ evaluator:
 target_pose_generator:
   name: PointCloudTargetPoseGenerator
   pcd_file: package://reach/test/part.pcd
+  # Uncomment to test YAML target pose generator
+  # name: YAMLTargetPoseGenerator
+  # poses: package://reach/test/test_target_poses.yaml
 
 display:
   name: NoOpDisplay
